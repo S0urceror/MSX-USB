@@ -28,9 +28,15 @@ This connects the CH376s board you can find on eBay or AliExpress for around 4 E
 
 Circuitry is added to correctly handle the _BUSDIR signal. Make sure you select parallel by setting the jumper on the CH376s board correctly.
 
-The CH376s board will be visible on port 10h and 11h on the MSX. Port 11h is the command port and 10h is the data port. Specifics on how to program for the CH376s can be found here. 
+The CH376s board will be visible on port 10h and 11h on the MSX. Port 11h is the command port and 10h is the data port. Specifics on how to program for the CH376s are scattered around the Internet:
+* https://www.mpja.com/download/ch376ds1.pdf
+* https://arduinobasics.blogspot.com/2015/05/ch376s-usb-readwrite-module.html
 
-Most information is available on how to use the higher-order API for flash drives. If you want to use other USB device you have to go low-level. As it turns out Konamiman already did some work there and after some researching I finally got USB HID keyboards working as well.
+Most information is available on how to use the higher-order API for flash drives. 
+
+If you want to use other USB devices you have to go low-level. As it turns out Konamiman already did some work there and after some researching I finally got USB HID keyboards working as well. Check out my source-code or these great pages for more information:
+* http://www.usbmadesimple.co.uk/index.html
+* https://www.beyondlogic.org/usbnutshell/usb1.shtml
 
 ## Flash Drive
 For the flash drive I created a NEXTOR driver that looks for a file called NEXTOR.DSK on the root of the flash drive at startup. I initially used 720Kb images but I discovered that I can use bigger FAT16 images as well. Now I'm using a 128Mb image and it works good. 
