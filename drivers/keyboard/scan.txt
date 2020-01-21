@@ -1,0 +1,14 @@
+modifier_keys: 00, keycode1:10, keycode2:00, keycode3:00, keycode4:00, keycode5:00, keycode6:00 'M'
+modifier_keys: 00, keycode1:00, keycode2:00, keycode3:00, keycode4:00, keycode5:00, keycode6:00
+modifier_keys: 00, keycode1:04, keycode2:00, keycode3:00, keycode4:00, keycode5:00, keycode6:00 'A'
+modifier_keys: 00, keycode1:04, keycode2:15, keycode3:00, keycode4:00, keycode5:00, keycode6:00 'A' + 'R'
+modifier_keys: 00, keycode1:00, keycode2:15, keycode3:00, keycode4:00, keycode5:00, keycode6:00       'R'
+modifier_keys: 00, keycode1:0C, keycode2:15, keycode3:00, keycode4:00, keycode5:00, keycode6:00 'I' + 'R'
+modifier_keys: 00, keycode1:0C, keycode2:00, keycode3:00, keycode4:00, keycode5:00, keycode6:00 'I'
+modifier_keys: 00, keycode1:0C, keycode2:12, keycode3:00, keycode4:00, keycode5:00, keycode6:00 'I' + 'O'
+modifier_keys: 00, keycode1:00, keycode2:12, keycode3:00, keycode4:00, keycode5:00, keycode6:00       'O'
+
+rule 1: scan after 0 in column is always valid
+rule 2: repeating scan in column is only valid when all other columns are the same
+
+
