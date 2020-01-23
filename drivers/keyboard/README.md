@@ -2,8 +2,14 @@
 
 USB-HID uses low level execute-command sequences for all common USB and USB HID communication via CH376.
 
-The CH376s has higher level commands for GET_DESCRIPTOR, SET_ADDRESS but they are limited to 64 byte packet-size. By using low-level command sequences we can read the larger descriptors that are typical for HID devices. Particulary the Logitech USB Receivers that I intend to use.
+Load the current version via BLOAD "driver.bin",r
 
-Is currently able to discover attached keyboards and mice.
+It will find the connected USB HID keyboard, activate it's BOOT protocol, and installs the H.CHGE hook. After this the normal keyboard won't work anymore. The HID keyboard takes over. 
 
-This simple C/C++ program is just a tester to move this functionality to a MSX driver. Yes, this illustrious computing system from the 80's finally gets USB connectivity.
+When you press ALT+Q the hook is deinstalled and the MSX keyboard works again.
+
+## Limitations
+* cursor not visible
+* special keys like STOP and GRAPH not yet implemented
+* should automatically start with the computer from ROM
+* work in progress...
