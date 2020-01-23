@@ -1,0 +1,31 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make Flash Drive",
+            "type": "shell",
+            "command": "make -C ./drivers/flashdrive/src/",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "make USB HID Keyboard",
+            "type": "shell",
+            "command": "make -C ./drivers/keyboard/src/",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "make CH376s USB HID debug/test",
+            "type": "shell",
+            "command": "make -C ./debug/HID/src/",
+            "group": {
+                "kind": "build"
+            }
+        }
+    ]
+}
