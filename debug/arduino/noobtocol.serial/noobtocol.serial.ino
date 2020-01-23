@@ -27,7 +27,7 @@ The protocol is as follows:
 
 /*
 By Konamiman, extending original code by Xavirompe
-Updated by Mario Smit to use Teensy 2.0 and serial interface
+Updated by Sourceror to use Teensy 2.0 and serial interface
 */
 
 const unsigned long SERIAL_BAUDS = 115200;

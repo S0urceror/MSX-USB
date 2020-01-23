@@ -1,8 +1,6 @@
-#ASM = java -jar /Users/mario/Development/msx/Compilers/glass.jar
-ASM = /Users/mario/Development/msx/Compilers/sjasmplus/build/release/sjasmplus
-#ASM = ~/Development/msx/cpm/cpm M80 =
+ASM = sjasmplus
 ASMFLAGS = --raw=$@ --sym=$(basename $@).sym
-OUTPUT_DIR = dist
+OUTPUT_DIR = ../dist
 
 all: $(OUTPUT_DIR)/driver.bin $(OUTPUT_DIR)/isr.bin
 .PHONY: all clean copy
