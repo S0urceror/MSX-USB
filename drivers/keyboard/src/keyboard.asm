@@ -15,6 +15,8 @@
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 ;
 
+INTFLG equ 0FC9Bh
+
 ; READ_HID_KEYBOARD: reads the current state of the keyboard
 ; Input: (none)
 ; Output: Cy on error or when Quit key is pressed
@@ -56,8 +58,24 @@ _READ_HID_CONTINUE:
     scf
     ret
 ;
-
 _READ_HID_CONTINUE1:
+    xor a
+    ld (INTFLG), a
+    ld a, c ; restore A
+; check STOP and/or CTRL-STOP
+    cp 0x48 ; pressed Pause/Break?
+    jr nz, _READ_HID_CONTINUE2
+    ld a, 4
+    ld (INTFLG), a
+    ld a, b
+    and 0x01 ; LEFT CTRL
+    jr z, _READ_HID_CONTINUE2
+    ld a, 3
+    ld (INTFLG), a
+    ret
+;
+
+_READ_HID_CONTINUE2:
     ld a, c ; restore A
     call CONVERT_SCANCODE
     or a; clear Cy
@@ -101,64 +119,67 @@ KEYPRESS_DONE:
     or a ; set Z flag according to contents A
     ret
 
-_SCANCODES_ASCII:
-    DB 0x04,'a','A'
-    DB 0x05,'b','B'
-    DB 0x06,'c','C'
-    DB 0x07,'d','D'
-    DB 0x08,'e','E'
-    DB 0x09,'f','F'
-    DB 0x0a,'g','G'
-    DB 0x0b,'h','H'
-    DB 0x0c,'i','I'
-    DB 0x0d,'j','J'
-    DB 0x0e,'k','K'
-    DB 0x0f,'l','L'
-    DB 0x10,'m','M'
-    DB 0x11,'n','N'
-    DB 0x12,'o','O'
-    DB 0x13,'p','P'
-    DB 0x14,'q','Q'
-    DB 0x15,'r','R'
-    DB 0x16,'s','S'
-    DB 0x17,'t','T'
-    DB 0x18,'u','U'
-    DB 0x19,'v','V'
-    DB 0x1a,'w','W'
-    DB 0x1b,'x','X'
-    DB 0x1c,'y','Y'
-    DB 0x1d,'z','Z'
-    DB 0x1e,'1','!'
-    DB 0x1f,'2','@'
-    DB 0x20,'3','#'
-    DB 0x21,'4','$'
-    DB 0x22,'5','%'
-    DB 0x23,'6','^'
-    DB 0x24,'7','&'
-    DB 0x25,'8','*'
-    DB 0x26,'9','('
-    DB 0x27,'0',')'
-    DB 0x28,13,13 ; ENTER
-    DB 0x29,27,27 ; ESC
-    DB 0x2a,8,8  ; BACKSPACE
-    DB 0x2b,9,9  ; TAB
-    DB 0x2c,' ',' '; SPACE
-    DB 0x2d,'-','_'
-    DB 0x2e,'=','+'
-    DB 0x2f,'[','{'
-    DB 0x30,']','}'
-    DB 0x31,0x5c,0x7c
-    DB 0x33,';',':'
-    DB 0x34,"\'","\""
-    DB 0x35,'`','~'
-    DB 0x36,',','<'
-    DB 0x37,'.','>'
-    DB 0x38,'/','?'
-    DB 0x49,0x12,0x12 ; insert key
-    DB 0x4f,0x1c,0x1c ; right arrow
-    DB 0x50,0x1d,0x1d ; left arrow
-    DB 0x51,0x1f,0x1f ; down arrow
-    DB 0x52,0x1e,0x1e ; up arrow
+_SCANCODES_ASCII: 
+;   scancode,normal,shifted,ctrl
+    DB 0x04,'a','A',0
+    DB 0x05,'b','B',2
+    DB 0x06,'c','C',3
+    DB 0x07,'d','D',0
+    DB 0x08,'e','E',5
+    DB 0x09,'f','F',6
+    DB 0x0a,'g','G',0
+    DB 0x0b,'h','H',0
+    DB 0x0c,'i','I',0
+    DB 0x0d,'j','J',0
+    DB 0x0e,'k','K',0
+    DB 0x0f,'l','L',0
+    DB 0x10,'m','M',0
+    DB 0x11,'n','N',14
+    DB 0x12,'o','O',15
+    DB 0x13,'p','P',16
+    DB 0x14,'q','Q',17
+    DB 0x15,'r','R',0
+    DB 0x16,'s','S',19
+    DB 0x17,'t','T',20
+    DB 0x18,'u','U',21
+    DB 0x19,'v','V',0
+    DB 0x1a,'w','W',0
+    DB 0x1b,'x','X',0
+    DB 0x1c,'y','Y',25
+    DB 0x1d,'z','Z',26
+    DB 0x1e,'1','!',0
+    DB 0x1f,'2','@',0
+    DB 0x20,'3','#',0
+    DB 0x21,'4','$',0
+    DB 0x22,'5','%',0
+    DB 0x23,'6','^',0
+    DB 0x24,'7','&',0
+    DB 0x25,'8','*',0
+    DB 0x26,'9','(',0
+    DB 0x27,'0',')',0
+    DB 0x28,13,13,0 ; ENTER
+    DB 0x29,27,27,0 ; ESC
+    DB 0x2a,8,8,0  ; BACKSPACE
+    DB 0x2b,9,9,0  ; TAB
+    DB 0x2c,' ',' ',0; SPACE
+    DB 0x2d,'-','_',0
+    DB 0x2e,'=','+',0
+    DB 0x2f,'[','{',0
+    DB 0x30,']','}',0
+    DB 0x32,0x5c,0x7c,0
+    DB 0x33,';',':',0
+    DB 0x34,"\'","\"",0
+    DB 0x35,'`','~',0
+    DB 0x36,',','<',0
+    DB 0x37,'.','>',0
+    DB 0x38,'/','?',0
+    DB 0x49,0x12,0x12,0 ; insert key
+    DB 0x4a,0xb,0xc,0 ; home key
+    DB 0x4c,0x7f,0x7f,0 ; delete key
+    DB 0x4f,0x1c,0x1c,0 ; right arrow
+    DB 0x50,0x1d,0x1d,0 ; left arrow
+    DB 0x51,0x1f,0x1f,0 ; down arrow
+    DB 0x52,0x1e,0x1e,0 ; up arrow
 _SCANCODES_ASCII_END:
 
 ; A = SCANCODE
@@ -173,15 +194,21 @@ _SCANCODES_ASCII_END:
 ;     KEY_MOD_RMETA  0x80
 CONVERT_SCANCODE:
     ld d,b ; modifier keys
+    ld e,a ; scancode
     ld hl, _SCANCODES_ASCII
     ld bc, _SCANCODES_ASCII_END - _SCANCODES_ASCII
 _AGAIN:
+    ld a, e
     cpi
     jr z, _FOUND
     inc hl
     inc hl
+    inc hl
     dec bc
     dec bc
+    dec bc
+    ld a, b
+    or c
     jr nz,_AGAIN
     xor a
     ret ; not found
@@ -193,6 +220,11 @@ _FOUND:
     cp 0x02
     jr z, _CONTINUE
     cp 0x20
+    jr z, _CONTINUE
+    inc hl
+    cp 0x01
+    jr z, _CONTINUE
+    cp 0x10
     jr z, _CONTINUE
     xor a
     ret ; do not support

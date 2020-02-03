@@ -22,6 +22,8 @@ SCNCNT EQU 0F3F6H
 PUTPNT EQU 0F3F8h
 GETPNT EQU 0F3FAh
 KEYBUF EQU 0FBF0h
+KILBUF EQU 00156h
+CSRSW EQU 0FCA9h
 
 ; BLOAD header
     db 0x0fe
@@ -73,21 +75,21 @@ UNHOOK_US:
         ld hl,TXT_UNINSTALLED_ISR
         call PRINT
     ENDIF
+    call KILBUF
     ld a, 0x0b ; CR when ending
     ret
 
 NEW_HCHGE:
     call OLD_HCHGE
-
+    ; show cursor
+    ld a, 255
+    ld (CSRSW),a
 _SCAN_AGAIN:
     call READ_HID_KEYBOARD
     call c, UNHOOK_US ; when error or ALT+Q
     or a
     jr z, _SCAN_AGAIN
- 
-    call C0F55
-    ret 
-    
+
     pop bc ; call address
     pop	bc, de, hl ; saved registers
     ret
