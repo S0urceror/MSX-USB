@@ -28,6 +28,7 @@
 #include <thread>
 #include <chrono>
 
+
 #define BAUDRATE B115200
 int serial=-1;
 
@@ -135,6 +136,18 @@ std::vector <USB_INTERF_DESCRIPTOR> interfaces;
      uint8_t bInterval;
  } USB_ENDPOINT_DESCRIPTOR;
 std::vector <USB_ENDPOINT_DESCRIPTOR> endpoints;
+
+typedef struct __attribute__((packed)) _USB_ETHERNET_DESCRIPTOR {
+     uint8_t bLength;
+     uint8_t bDescriptorType;
+     uint8_t bDescriptorSubType;
+     uint8_t iMACAddress;
+     uint32_t bmEthernetStatistics;
+     uint16_t wMaxSegmentSize;
+     uint16_t wNumberMCFilters;
+     uint8_t bNumberPowerFilters;
+ } USB_ETHERNET_DESCRIPTOR;
+std::vector <USB_ETHERNET_DESCRIPTOR> ethernets;
 
 void error (char const * msg)
 {
@@ -252,7 +265,7 @@ void check_exists ()
     ssize_t bytes = readData (&new_value);
     value = value ^ 255;
     if (bytes!=1 || (new_value != value))
-        error ("ERROR: device does not exist\n");
+        error ("Device does not exist\n");
 }
 // CH376 built-in commands
 ///////////////////////////////////////////////////////////////////////////
@@ -274,7 +287,7 @@ bool set_usb_host_mode (uint8_t mode)
     writeData(mode);
     
     uint8_t value;
-    for(int i=0; i!=50; i++ )
+    for(int i=0; i!=200; i++ )
     {
         readData(&value);
         if ( value == CH375_CMD_RET_SUCCESS )
@@ -523,6 +536,19 @@ bool get_device_descriptor2 ()
     max_packet_size = device.bMaxPacketSize0;
     return true;
 }
+
+void print_buffer (uint8_t* data, uint16_t length)
+{
+    for (int i=0;i<length;i++)
+    {
+        if ((i%16)==0)
+            printf ("\n");
+        if ((i%4)==0)
+            printf (" ");
+        printf ("%02x ",*(data+i));
+    }
+}
+
 bool get_configuration_descriptor2 (uint8_t target_device_address,uint8_t config_id)
 {
     uint8_t cmd[] = {0x80,6,config_id,2,0,0,sizeof(USB_CONFIG_DESCRIPTOR),0};
@@ -538,35 +564,94 @@ bool get_configuration_descriptor2 (uint8_t target_device_address,uint8_t config
     uint8_t* data2 = execute_control_transfer(target_device_address,cmd2,NULL,max_packet_size);
     if (data2==NULL)
         return false;
+    print_buffer (data2,config.wTotalLength);
     uint8_t* pointer = data2+sizeof(USB_CONFIG_DESCRIPTOR);
+
+    USB_INTERF_DESCRIPTOR interface;
+    USB_ENDPOINT_DESCRIPTOR endpoint;
+    USB_HID_DESCRIPTOR hid;
+    USB_ETHERNET_DESCRIPTOR ethernet;
+    while ((pointer-data2) < config.wTotalLength)
+    {
+        switch (*(pointer+1))
+        {
+            case 0x04: // interface descriptor
+                memcpy (&interface,pointer,sizeof(USB_INTERF_DESCRIPTOR));
+                if (interface.bLength!=sizeof(USB_INTERF_DESCRIPTOR))
+                    error ("USB interface descriptor not read");
+                interfaces.push_back(interface);
+                pointer += *(pointer);
+                break;
+            case 0x05: // endpoint descriptor
+                memcpy (&endpoint,pointer,sizeof(USB_ENDPOINT_DESCRIPTOR));
+                if (endpoint.bLength!=sizeof(USB_ENDPOINT_DESCRIPTOR))
+                    error ("USB endpoint descriptor not read");
+                endpoints.push_back(endpoint);
+                pointer += *(pointer);
+                break;
+            case 0x21: // HID descriptor
+                memcpy (&hid,pointer,sizeof(USB_HID_DESCRIPTOR));
+                if (hid.bLength!=sizeof(USB_HID_DESCRIPTOR))
+                    error ("USB HID descriptor not read");
+                hids.push_back(hid);
+                pointer += *(pointer);
+                break;
+            case 0x24: // CDC ECM / CS_INTERFACE
+                switch (*(pointer+2)) // subtype
+                {
+                    case 0x00: // header
+                        break;
+                    case 0x06: // union
+                        break;
+                    case 0x0f: // ethernet
+                        memcpy (&ethernet,pointer,sizeof(USB_ETHERNET_DESCRIPTOR));
+                        if (ethernet.bLength!=sizeof(USB_ETHERNET_DESCRIPTOR))
+                            error ("USB Ethernet descriptor not read");
+                        ethernets.push_back(ethernet);
+                        break;
+                }
+                pointer += *(pointer);
+                break;
+            default: 
+                pointer += *(pointer);
+                break;
+        }
+    }
+
+/*
+
     for (int i=0;i<config.bNumInterfaces;i++)
     {
         USB_INTERF_DESCRIPTOR interface;
         memcpy (&interface,pointer,sizeof(USB_INTERF_DESCRIPTOR));
         if (interface.bLength!=sizeof(USB_INTERF_DESCRIPTOR))
-            error ("ERROR: USB interface descriptor not read");
+            error ("USB interface descriptor not read");
         interfaces.push_back(interface);
         pointer+=sizeof(USB_INTERF_DESCRIPTOR);
-        
-        if (interface.bInterfaceClass==0x03) // HID
+        while (*(pointer+1)!=0x05) // not an interface? then we'll have a class-specific desciptor following
         {
-            USB_HID_DESCRIPTOR hid;
-            memcpy (&hid,pointer,sizeof(USB_INTERF_DESCRIPTOR));
-            if (hid.bLength!=sizeof(USB_HID_DESCRIPTOR))
-                error ("ERROR: USB HID descriptor not read");
-            hids.push_back(hid);
-            pointer+=sizeof(USB_HID_DESCRIPTOR);
+            if (interface.bInterfaceClass==0x03 && *(pointer+1)==0x21) // HID
+            {
+                USB_HID_DESCRIPTOR hid;
+                memcpy (&hid,pointer,sizeof(USB_HID_DESCRIPTOR));
+                if (hid.bLength!=sizeof(USB_HID_DESCRIPTOR))
+                    error ("USB HID descriptor not read");
+                hids.push_back(hid);
+                pointer+=sizeof(USB_HID_DESCRIPTOR);
+            }
+            else // not recognized
+                pointer += *(pointer);
         }
         for (int j=0;j<interface.bNumEndpoints;j++)
         {
             USB_ENDPOINT_DESCRIPTOR endpoint;
-            memcpy (&endpoint,pointer,sizeof(USB_INTERF_DESCRIPTOR));
+            memcpy (&endpoint,pointer,sizeof(USB_ENDPOINT_DESCRIPTOR));
             if (endpoint.bLength!=sizeof(USB_ENDPOINT_DESCRIPTOR))
-                error ("ERROR: USB endpoint descriptor not read");
+                error ("USB endpoint descriptor not read");
             endpoints.push_back(endpoint);
             pointer+=sizeof(USB_ENDPOINT_DESCRIPTOR);
         }
-    }
+    }*/
     free (data2);
     return true;
 }
@@ -688,11 +773,11 @@ int main(int argc, const char * argv[]) {
     
     //if (!set_usb_host_mode(CH375_USB_MODE_HOST))
     //    error ("ERROR: host mode not succeeded\n");
-    set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
-    if (!set_usb_host_mode(CH375_USB_MODE_HOST))
+    bool result;
+    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
+    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
         error ("ERROR: host mode not succeeded\n");
-    
-    bool result = get_device_descriptor2();
+    result = get_device_descriptor2();
     if (!result)
     {
         // 2-set to 1.5 Mhz low-speed mode, 0-set to 12 Mhz high-speed mode (default)
@@ -701,9 +786,6 @@ int main(int argc, const char * argv[]) {
     }
     if (!result)
         error("unable to get device descriptor");
-    set_address2 (DEV_ADDRESS);
-    for (int i=0;i<device.bNumConfigurations;i++)
-        get_configuration_descriptor2(DEV_ADDRESS,i);
     
     printf ("Manufacturer ID: %s\n",get_string2 (DEV_ADDRESS,device.iManufacturer).c_str());
     printf ("Product ID: %s\n",get_string2 (DEV_ADDRESS,device.iProduct).c_str());
@@ -712,12 +794,19 @@ int main(int argc, const char * argv[]) {
     printf ("Device Class: %02X\n",device.bDeviceClass);
     printf ("Device SubClass: %02X\n",device.bDeviceSubClass);
     printf ("Device Protocol: %02X\n",device.bDeviceProtocol);
+    printf ("Number configurations: %02d\n",device.bNumConfigurations);
+
+    set_address2 (DEV_ADDRESS);
+    for (int i=0;i<device.bNumConfigurations;i++)
+        get_configuration_descriptor2(DEV_ADDRESS,i);
+    
     int interface_nr = 0;
     int hid_nr = 0;
     int endpoint_nr = 0;
-    uint8_t mouse_endpoint,mouse_millis,mouse_interface;
+    int ethernet_nr = 0;
+    uint8_t mouse_endpoint,mouse_millis,mouse_interface=255;
     uint16_t mouse_packetsize;
-    uint8_t keyboard_endpoint,keyboard_millis,keyboard_interface;
+    uint8_t keyboard_endpoint,keyboard_millis,keyboard_interface=255;
     uint16_t keyboard_packetsize;
     for (int j=0;j<configs.size();j++)
     {
@@ -742,6 +831,13 @@ int main(int argc, const char * argv[]) {
                 printf ("\tHID: %d\n",hid_nr);
                 printf ("\tHID descriptor type: %0x\n",hids[hid_nr].descriptor_type);
                 printf ("\tHID descriptor length: %d\n",hids[hid_nr++].descriptor_length);
+            }
+            if (interfaces[interface_nr].bInterfaceClass==0x02 &&
+                interfaces[interface_nr].bInterfaceSubClass==0x06) // CDC, ECM
+            {
+                printf ("\tEthernet package size: %d\n",ethernets[ethernet_nr].wMaxSegmentSize);
+                printf ("\tMAC: %s\n",get_string2(DEV_ADDRESS, ethernets[ethernet_nr].iMACAddress).c_str());
+                ethernet_nr++;
             }
             for (int i=0;i<interfaces[interface_nr].bNumEndpoints;i++)
             {
@@ -769,16 +865,20 @@ int main(int argc, const char * argv[]) {
             interface_nr++;
         }
     }
-    // enable device configuration
-    set_configuration2(DEV_ADDRESS,configs[0].bConfigurationvalue);
-    // set boot protocol for mouse and read it
-    set_protocol2 (DEV_ADDRESS,BOOT_PROTOCOL,mouse_interface); // select boot protocol for our device
-    //set_idle2(DEV_ADDRESS, 0x0, 0,mouse_interface); // wait on change
-    // set boot protocol for keyboard and read it
-    set_protocol2 (DEV_ADDRESS,BOOT_PROTOCOL,keyboard_interface); // select boot protocol for our device
-    set_idle2(DEV_ADDRESS, 0x80, 0,keyboard_interface); // scan every ~500ms
-    
-    read_boot_keyboard (DEV_ADDRESS,keyboard_endpoint,keyboard_millis,keyboard_packetsize); // assume endpoint 2
-    //read_boot_mouse (DEV_ADDRESS,mouse_endpoint,mouse_millis,mouse_packetsize); // assume endpoint 2
+    // USB HID?
+    if (mouse_interface!=255 && keyboard_interface!=255)
+    {
+        // enable device configuration
+        set_configuration2(DEV_ADDRESS,configs[0].bConfigurationvalue);
+        // set boot protocol for mouse and read it
+        set_protocol2 (DEV_ADDRESS,BOOT_PROTOCOL,mouse_interface); // select boot protocol for our device
+        //set_idle2(DEV_ADDRESS, 0x0, 0,mouse_interface); // wait on change
+        // set boot protocol for keyboard and read it
+        set_protocol2 (DEV_ADDRESS,BOOT_PROTOCOL,keyboard_interface); // select boot protocol for our device
+        set_idle2(DEV_ADDRESS, 0x80, 0,keyboard_interface); // scan every ~500ms
+        
+        read_boot_keyboard (DEV_ADDRESS,keyboard_endpoint,keyboard_millis,keyboard_packetsize); // assume endpoint 2
+        //read_boot_mouse (DEV_ADDRESS,mouse_endpoint,mouse_millis,mouse_packetsize); // assume endpoint 2
+    }
     return 0;
 }

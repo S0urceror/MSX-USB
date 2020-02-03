@@ -1,0 +1,49 @@
+# TPLINK USB 3.0 UE300 => RTL8153
+Manufacturer ID: {no data}
+Product ID: {no data}
+VID:PID: 2357:0600
+Serial: {no data}
+Device Class: 00
+Device SubClass: 00
+Device Protocol: 00
+Number configurations: 01
+
+CONFIGURATION: 0
+Serial: {no data}
+Configuration ID: 1
+
+        INTERFACE: 0
+        Name: Ethernet Data
+        Interface Class: 08
+        Interface SubClass: 06
+        Interface Protocol: 50
+        ENDPOINT: 0 IN
+        Endpoint address: 84
+        ENDPOINT: 1 OUT
+        Endpoint address: 05
+
+# APPLE USB 2.0 - Ethernet => ASIX AX88772A
+Manufacturer ID: {no data}
+Product ID: {no data}
+VID:PID: 05AC:1402
+Serial: {no data}
+Device Class: FF
+Device SubClass: FF
+Device Protocol: 00
+Number configurations: 01
+
+CONFIGURATION: 0
+Serial: {no data}
+Configuration ID: 1
+
+        INTERFACE: 0
+        Name: {no data}
+        Interface Class: FF
+        Interface SubClass: FF
+        Interface Protocol: 00
+        ENDPOINT: 0 IN
+        Endpoint address: 81
+        ENDPOINT: 1 IN
+        Endpoint address: 82
+        ENDPOINT: 2 OUT
+        Endpoint address: 03

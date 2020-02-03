@@ -8,7 +8,7 @@
             "name": "(lldb) Launch",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/debug/HID/dist/main",
+            "program": "${workspaceFolder}/test/HID/dist/main",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

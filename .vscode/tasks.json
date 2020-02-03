@@ -16,13 +16,14 @@
             "type": "shell",
             "command": "make -C ./drivers/keyboard/src/",
             "group": {
-                "kind": "build"
+                "kind": "build",
+                "isDefault": true
             }
         },
         {
             "label": "make CH376s USB HID debug/test",
             "type": "shell",
-            "command": "make -C ./debug/HID/src/",
+            "command": "make -C ./test/HID/src/",
             "group": {
                 "kind": "build"
             }
