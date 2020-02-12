@@ -4,5 +4,11 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"queue": "c",
+			"stack": "c",
+			"random": "c"
+		}
+	}
 }

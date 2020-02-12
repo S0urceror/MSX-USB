@@ -28,8 +28,21 @@
 #include <thread>
 #include <chrono>
 
-
-#define BAUDRATE B115200
+#define   B115200 0010002
+#define   B230400 0010003
+#define   B460800 0010004
+#define   B500000 0010005
+#define   B576000 0010006
+#define   B921600 0010007
+#define  B1000000 0010010
+#define  B1152000 0010011
+#define  B1500000 0010012
+#define  B2000000 0010013
+#define  B2500000 0010014
+#define  B3000000 0010015
+#define  B3500000 0010016
+#define  B4000000 0010017
+#define BAUDRATE B1000000
 int serial=-1;
 
 #define CH375_CMD_SET_USB_SPEED 0x04

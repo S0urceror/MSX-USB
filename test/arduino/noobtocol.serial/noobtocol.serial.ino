@@ -34,7 +34,7 @@ const unsigned long SERIAL_BAUDS = 115200;
 
 //CH376 pins to Arduino digital connections mapping
 
-#define USB Serial1
+#define CH376 Serial1
 const int CH_BZY = 2;
 const int CH_INT = 3;
 
@@ -43,7 +43,7 @@ void setup() {
   pinMode (CH_INT, INPUT);
   
   Serial.begin(SERIAL_BAUDS);
-  USB.begin(9600);
+  CH376.begin(9600);
 }
 
 void loop() {
@@ -111,8 +111,8 @@ void WriteByteToSerial(byte data)
 
 byte CH_ReadData()
 {
-  while (USB.available() == 0);
-  return USB.read();
+  while (CH376.available() == 0);
+  return CH376.read();
 }
 
 byte CH_ReadStatus()
@@ -129,15 +129,15 @@ byte CH_ReadStatus()
 
 byte CH_WriteData(byte data)
 {
-	while (USB.availableForWrite() == 0);
-  USB.write(data);
+  while (CH376.availableForWrite() == 0);
+  CH376.write(data);
 }
 
 byte CH_WriteCommand(byte command)
 {
   // flush all old data not read
-  while (USB.available())
-    USB.read ();
+  while (CH376.available())
+    CH376.read ();
   // write command
   CH_WriteData (0x57);
   CH_WriteData (0xAB);

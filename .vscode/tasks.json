@@ -7,18 +7,21 @@
             "label": "make Flash Drive",
             "type": "shell",
             "command": "make -C ./drivers/flashdrive/src/",
-            "group": {
-                "kind": "build"
-            }
+            "group": "build"
         },
         {
             "label": "make USB HID Keyboard",
             "type": "shell",
             "command": "make -C ./drivers/keyboard/src/",
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             }
+        },
+        {
+            "label": "make UNAPI USB",
+            "type": "shell",
+            "command": "make -C ./drivers/UNAPIUSB/src/",
+            "group": "build"
         },
         {
             "label": "make CH376s USB HID debug/test",
@@ -26,6 +29,15 @@
             "command": "make -C ./test/HID/src/",
             "group": {
                 "kind": "build"
+            }
+        },
+        {
+            "label": "make client software",
+            "type": "shell",
+            "command": "make -C ./software/src/",
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         }
     ]

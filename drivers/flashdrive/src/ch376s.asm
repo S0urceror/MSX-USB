@@ -1,6 +1,23 @@
+;
+; CH376s.ASM - Z80 assembly to communicate with the CH376s generic USB chip
+; Copyright (c) 2019 Néstor Soriano (Konamiman), Mario Smit (S0urceror)
+; 
+; This program is free software: you can redistribute it and/or modify  
+; it under the terms of the GNU General Public License as published by  
+; the Free Software Foundation, version 3.
+;
+; This program is distributed in the hope that it will be useful, but 
+; WITHOUT ANY WARRANTY; without even the implied warranty of 
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+; General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License 
+; along with this program. If not, see <http://www.gnu.org/licenses/>.
+;
 CH_DEBUG:       equ     1
 
 ; CH376 commands
+CH_CMD_SET_SPEED: equ 04h
 CH_CMD_RESET_ALL: equ 05h
 CH_CMD_CHECK_EXIST: equ 06h
 CH_CMD_SET_RETRY: equ 0Bh
@@ -48,8 +65,19 @@ CH_USB_ERR_OPEN_DIR: equ 41h
 CH_USB_ERR_MISS_FILE: equ 42h
 CH_USB_ERR_FOUND_NAME: equ 43h
 CH_USB_ERR_FILE_CLOSE: equ 0b4h
+;--- PIDs
+CH_PID_SETUP: equ 0Dh
+CH_PID_IN: equ 09h
+CH_PID_OUT: equ 01h
 ; own result codes
 USB_ERR_PANIC_BUTTON_PRESSED: equ 0C1h
+
+CH_BOOT_PROTOCOL: equ 0
+; 2-set to 1.5 Mhz low-speed mode, 0-set to 12 Mhz high-speed mode (default)
+CH_SPEED_LOW: equ 2
+CH_SPEED_HIGH: equ 0
+CH_MODE_HOST_RESET: equ 7
+CH_MODE_HOST: equ 6
 
 ; --------------------------------------
 ; CH_FILE_CLOSE
@@ -652,3 +680,472 @@ DO_SNSMAT:
     ;row 6:  F3     F2       F1  CODE    CAPS  GRAPH  CTRL   SHIFT
     ;row 7:  RET    SELECT   BS  STOP    TAB   ESC    F5     F4
     ;row 8:	 right  down     up  left    DEL   INS    HOME  SPACE
+
+; Generic USB command variables
+target_device_address EQU 0
+configuration_id EQU 0
+string_id EQU 0
+config_descriptor_size EQU 9
+
+; Generic USB commands
+CMD_GET_DEVICE_DESCRIPTOR: DB 0x80,6,0,1,0,0,18,0
+CMD_SET_ADDRESS: DB 0x00,0x05,target_device_address,0,0,0,0,0
+CMD_SET_CONFIGURATION: DB 0x00,0x09,configuration_id,0,0,0,0,0
+CMD_GET_STRING: DB 0x80,6,string_id,3,0,0,255,0
+CMD_GET_CONFIG_DESCRIPTOR: DB 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
+
+; USB HID command variables
+report_id EQU 0
+duration EQU 0x80
+interface_id EQU 0
+protocol_id EQU 0
+; USB HID commands
+CMD_SET_IDLE: DB 0x21,0x0A,report_id,duration,interface_id,0,0,0
+CMD_SET_PROTOCOL: DB 0x21,0x0B,protocol_id,0,interface_id,0,0,0
+
+; --------------------------------------
+; CH_SET_TARGET_DEVICE_ADDRESS
+;
+; Set target USB device address for operation
+;
+; Input: A = Device address
+
+CH_SET_TARGET_DEVICE_ADDRESS:
+    push af
+    ld a,CH_CMD_SET_USB_ADDR
+    out (CH_COMMAND_PORT),a
+    pop af
+    out (CH_DATA_PORT),a
+    ret
+
+; --------------------------------------
+; CH_ISSUE_TOKEN
+;
+; Send a token to the current target USB device
+;
+; Input: E = Endpoint number
+;        B = PID, one of CH_PID_*
+;        A = Toggle bit in bit 7 (for IN transfer)
+;            Toggle bit in bit 6 (for OUT transfer)
+
+CH_ISSUE_TOKEN:
+    ld d,a
+    ld a,CH_CMD_ISSUE_TKN_X
+    out (CH_COMMAND_PORT),a
+    ld a,d
+    out (CH_DATA_PORT),a    ;Toggles
+    ld a,e
+    rla
+    rla
+    rla
+    rla
+    and 0F0h
+    or b
+    out (CH_DATA_PORT),a    ;Endpoint | PID
+    ret
+
+; -----------------------------------------------------------------------------
+; HW_DATA_IN_TRANSFER: Perform a USB data IN transfer
+; -----------------------------------------------------------------------------
+; Input:  HL = Address of a buffer for the received data
+;         BC = Data length
+;         A  = Device address
+;         D  = Maximum packet size for the endpoint
+;         E  = Endpoint number
+;         Cy = Current state of the toggle bit
+; Output: A  = USB error code
+;         BC = Amount of data actually received (only if no error)
+;         Cy = New state of the toggle bit (even on error)
+
+HW_DATA_IN_TRANSFER:
+    call CH_SET_TARGET_DEVICE_ADDRESS
+
+; This entry point is used when target device address is already set
+CH_DATA_IN_TRANSFER:
+    ld a,0
+    rra     ;Toggle to bit 7 of A
+    ld ix,0 ;IX = Received so far count
+    push de
+    pop iy  ;IY = EP size + EP number
+
+_CH_DATA_IN_LOOP:
+    push af ;Toggle in bit 7
+    push bc ;Remaining length
+
+    ld e,iyl
+    ld b,CH_PID_IN
+    call CH_ISSUE_TOKEN
+
+    call CH_WAIT_INT_AND_GET_RESULT
+    cp CH_USB_INT_SUCCESS
+    jr nz,_CH_DATA_IN_ERR   ;DONE if error
+
+    call CH_READ_DATA
+    ld b,0
+    add ix,bc   ;Update received so far count
+_CH_DATA_IN_NO_MORE_DATA:
+    pop de
+    pop af
+    xor 80h     ;Update toggle
+    push af
+    push de
+
+    ld a,c
+    or a
+    jr z,_CH_DATA_IN_DONE    ;DONE if no data received
+
+    ex (sp),hl  ;Now HL = Remaining data length
+    or a
+    sbc hl,bc   ;Now HL = Updated remaning data length
+    ld a,h
+    or l
+    ex (sp),hl  ;Remaining data length is back on the stack
+    jr z,_CH_DATA_IN_DONE    ;DONE if no data remaining
+
+    ld a,c
+    cp iyh
+    jr c,_CH_DATA_IN_DONE    ;DONE if transferred less than the EP size
+
+    pop bc
+    pop af  ;We need this to pass the next toggle to CH_ISSUE_TOKEN
+
+    jr _CH_DATA_IN_LOOP
+
+;Input: A=Error code (if ERR), in stack: remaining length, new toggle
+_CH_DATA_IN_DONE:
+    ld a, CH_USB_INT_SUCCESS
+_CH_DATA_IN_ERR:
+    ld d,a
+    pop bc
+    pop af
+    rla ;Toggle back to Cy
+    ld a,d
+    push ix
+    pop bc
+    ret
+
+; -----------------------------------------------------------------------------
+; HW_DATA_OUT_TRANSFER: Perform a USB data OUT transfer
+; -----------------------------------------------------------------------------
+; Input:  HL = Address of a buffer for the data to be sent
+;         BC = Data length
+;         A  = Device address
+;         D  = Maximum packet size for the endpoint
+;         E  = Endpoint number
+;         Cy = Current state of the toggle bit
+; Output: A  = USB error code
+;         Cy = New state of the toggle bit (even on error)
+
+HW_DATA_OUT_TRANSFER:
+    call CH_SET_TARGET_DEVICE_ADDRESS
+
+; This entry point is used when target device address is already set
+CH_DATA_OUT_TRANSFER:
+    ld a,0
+    rra     ;Toggle to bit 6 of A
+    rra
+    push de
+    pop iy  ;IY = EP size + EP number
+
+_CH_DATA_OUT_LOOP:
+    push af ;Toggle in bit 6
+    push bc ;Remaining length
+
+    ld a,b 
+    or a
+    ld a,iyh
+    jr nz,_CH_DATA_OUT_DO
+    ld a,c
+    cp iyh
+    jr c,_CH_DATA_OUT_DO
+    ld a,iyh
+
+_CH_DATA_OUT_DO:
+    ;Here, A = Length of the next transfer: min(remaining length, EP size)
+
+    ex (sp),hl
+    ld e,a
+    ld d,0
+    or a
+    sbc hl,de
+    ex (sp),hl     ;Updated remaining data length to the stack
+
+    ld b,a
+    call CH_WRITE_DATA
+
+    pop bc
+    pop af  ;Retrieve toggle
+    push af
+    push bc
+
+    ld e,iyl
+    ld b,CH_PID_OUT
+    call CH_ISSUE_TOKEN
+
+    call CH_WAIT_INT_AND_GET_RESULT
+    cp CH_USB_INT_SUCCESS
+    jr nz,_CH_DATA_OUT_DONE   ;DONE if error
+
+    pop bc
+    pop af
+    xor 40h     ;Update toggle
+    push af
+
+    ld a,b
+    or c
+    jr z,_CH_DATA_OUT_DONE_2  ;DONE if no more data to transfer
+
+    pop af  ;We need this to pass the next toggle to CH_ISSUE_TOKEN
+
+    jr _CH_DATA_OUT_LOOP
+
+;Input: A=Error code, in stack: remaining length, new toggle
+_CH_DATA_OUT_DONE:
+    pop bc
+_CH_DATA_OUT_DONE_2:
+    ld d,a
+    pop af
+    rla ;Toggle back to Cy
+    rla
+    ld a,d
+    ret
+
+; -----------------------------------------------------------------------------
+; HW_CONTROL_TRANSFER: Perform a USB control transfer on endpoint 0
+;
+; The size and direction of the transfer are taken from the contents
+; of the setup packet.
+; -----------------------------------------------------------------------------
+; Input:  HL = Address of a 8 byte buffer with the setup packet
+;         DE = Address of the input or output data buffer
+;         A  = Device address
+;         B  = Maximum packet size for endpoint 0
+; Output: A  = USB error code
+;         BC = Amount of data actually transferred (if IN transfer and no error)
+
+HW_CONTROL_TRANSFER:
+    call CH_SET_TARGET_DEVICE_ADDRESS
+
+    push hl
+    push bc
+    push de
+
+    ; SETUP STAGE
+    ; -----------
+    ld b,8
+    call CH_WRITE_DATA  ;Write SETUP data packet    
+
+    xor a
+    ld e,0
+    ld b,CH_PID_SETUP
+    call CH_ISSUE_TOKEN
+
+    call CH_WAIT_INT_AND_GET_RESULT
+    pop hl  ;HL = Data address (was DE)
+    pop de  ;D  = Endpoint size (was B)
+    pop ix  ;IX = Address of setup packet (was HL)
+    cp CH_USB_INT_SUCCESS
+    ld bc,0
+    ret nz  ;DONE if error
+
+    ld c,(ix+6)
+    ld b,(ix+7) ;BC = Data length
+    ld a,b
+    or c
+    jr z,_CH_CONTROL_STATUS_IN_TRANSFER
+    ld e,0      ;E  = Endpoint number
+    scf         ;Use toggle = 1
+    bit 7,(ix)
+    jr z,_CH_CONTROL_OUT_TRANSFER
+
+    ; DATA IN STAGE
+    ; -------------
+_CH_CONTROL_IN_TRANSFER:
+    call CH_DATA_IN_TRANSFER
+    or a
+    ret nz
+
+    ; STATUS STAGE
+    ; -----------
+    push bc
+    ld b,0
+    call CH_WRITE_DATA
+    ld e,0
+    ld b,CH_PID_OUT
+    ld a,40h    ;Toggle bit = 1
+    call CH_ISSUE_TOKEN
+    call CH_WAIT_INT_AND_GET_RESULT
+
+    pop bc
+    ret
+
+    ; DATA OUT STAGE
+    ; -------------
+_CH_CONTROL_OUT_TRANSFER:
+    call CH_DATA_OUT_TRANSFER
+    or a
+    ret nz
+
+_CH_CONTROL_STATUS_IN_TRANSFER:
+    ; STATUS STAGE
+    ; -----------
+    push bc
+    ld e,0
+    ld b,CH_PID_IN
+    ld a,80h    ;Toggle bit = 1
+    call CH_ISSUE_TOKEN
+    ld hl,0
+    call CH_READ_DATA
+    call CH_WAIT_INT_AND_GET_RESULT
+
+    pop bc
+    ret
+
+; --------------------------------------
+; CH_GET_DEVICE_DESCRIPTOR
+;
+; Input: HL=pointer to memory to receive device descriptor
+; Output: Cy=0 no error, Cy=1 error
+;         A  = USB error code
+;         BC = Amount of data actually transferred (if IN transfer and no error)
+CH_GET_DEVICE_DESCRIPTOR:
+    push ix,hl,de,bc
+    ld de, hl ; Address of the input or output data buffer
+    ld hl, CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x80,6,0,1,0,0,18,0
+    ld a, 0 ; device address
+    ld b, 8 ; length in bytes
+    call HW_CONTROL_TRANSFER
+    pop bc,de,hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
+; --------------------------------------
+; CH_GET_CONFIG_DESCRIPTOR
+;
+; Input: HL=pointer to memory to receive config descriptor
+;        A=configuration index starting with 0 to DEVICE_DESCRIPTOR.bNumConfigurations
+;        B=max_packetsize
+;        C=config_descriptor_size
+;        D=device address 
+; Output: Cy=0 no error, Cy=1 error
+CH_GET_CONFIG_DESCRIPTOR:
+    push ix,hl,de,bc
+    ld iy, hl ; Address of the input or output data buffer
+    ld hl, CMD_GET_CONFIG_DESCRIPTOR ; Address of the command: 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
+    ld ix, hl
+    ld (ix+2), a
+    ld (ix+6), c
+    ld a, d ; device address
+    ld de, iy ; Address of the input or output data buffer
+    call HW_CONTROL_TRANSFER
+    pop bc,de,hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
+
+; --------------------------------------
+; CH_SET_SPEED
+;
+; Input: A=speed value
+; Output: Cy=0 no error, Cy=1 error
+CH_SET_SPEED:
+    push bc
+    ld b,a
+    ld a,CH_CMD_SET_SPEED
+    out (CH_COMMAND_PORT),a
+    ld a,b
+    out (CH_DATA_PORT),a
+    or a; clear Cy
+    pop bc
+    ret
+
+; --------------------------------------
+; CH_SET_CONFIGURATION
+;
+; Input: A=configuration id
+;        B=packetsize
+;        D=device address 
+; Output: Cy=0 no error, Cy=1 error
+CH_SET_CONFIGURATION:
+    push ix,hl
+    ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
+    ld ix, hl
+    ld (ix+2),a
+    ld a, d ; device address
+    call HW_CONTROL_TRANSFER
+    pop hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
+
+; --------------------------------------
+; CH_SET_PROTOCOL
+;
+; Input: A=protocol id (0=BOOT)
+;        B=packetsize
+;        D=device address 
+;        E=interface id
+; Output: Cy=0 no error, Cy=1 error
+CH_SET_PROTOCOL:
+    push ix,hl
+    ld hl, CMD_SET_PROTOCOL ; Address of the command: 0x21,0x0B,protocol_id,0,interface_id,0,0,0
+    ld ix, hl
+    ld (ix+2),a
+    ld (ix+4),e
+    ld a, d ; device address
+    call HW_CONTROL_TRANSFER
+    pop hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
+; --------------------------------------
+; CH_SET_IDLE
+;
+; Input: A=idle value
+;        B=packetsize
+;        C=report id
+;        D=device address 
+;        E=interface id
+; Output: Cy=0 no error, Cy=1 error
+CH_SET_IDLE:
+    push ix,hl
+    ld hl, CMD_SET_IDLE ; Address of the command: 0x21,0x0A,report_id,duration,interface_id,0,0,0
+    ld ix, hl
+    ld (ix+2),c
+    ld (ix+3),a
+    ld (ix+4),e
+    ld a, d ; device address
+    call HW_CONTROL_TRANSFER
+    pop hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
+; --------------------------------------
+; CH_SET_ADDRESS
+;
+; Input: A=address to assign to connected USB device
+;        B=packetsize
+; Output: Cy=0 no error, Cy=1 error
+CH_SET_ADDRESS:
+    push ix,hl,de
+    ld de, hl ; Address of the input or output data buffer
+    ld hl, CMD_SET_ADDRESS ; Address of the command: 0x00,0x05,target_device_address,0,0,0,0,0
+    ld ix, hl
+    ld (ix+2),a
+    ld a, 0 ; device address
+    call HW_CONTROL_TRANSFER
+    pop de,hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret

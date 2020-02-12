@@ -30,7 +30,7 @@ By Konamiman, extending original code by Xavirompe
 Updated by Sourceror to use Teensy 2.0 and parallel interface
 */
 
-const unsigned long SERIAL_BAUDS = 115200;
+const unsigned long SERIAL_BAUDS = 1000000;
 
 //CH376 pins to Arduino digital connections mapping
 
@@ -59,25 +59,9 @@ void setup() {
   digitalWrite(CH_WR, HIGH);
 
   Serial.begin(SERIAL_BAUDS);
-
-  //for (int i=0;i<256;i++)
-  //{
-  //  CH_WriteCommand (CH375_CMD_CHECK_EXIST);
-  //  CH_WriteData (i);
-  //  int data=CH_ReadData();
-  //  Serial.println (data,DEC);
-  //}
-
 }
 
 void loop() {
-  //int status = CH_ReadStatus ();
-  //Serial.println (status,HEX);
-  //delay (100);
-  //return;
-
-
-  
   byte data;
   int length;
   int i;
@@ -128,8 +112,6 @@ void loop() {
   default:
     while (Serial.available() >= 0) Serial.read();
   }
-
-  //while (Serial.available() >= 0) Serial.read();
 }
 
 byte ReadByteFromSerial()

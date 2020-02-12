@@ -1,5 +1,5 @@
-    ; Dummy disk driver for Nextor 2.1
-    ; By Konamiman, 8/2018
+    ; CH376s disk driver for Nextor 2.1
+    ; By S0urceror, 2/2020
     ;
     ; This code can be used as the basis for developing
     ; a real disk driver: just set DRV_TYPE appropriately,
@@ -820,7 +820,6 @@ _LUN_INFO_NO_EXIST:
 	include "print_bios.asm"
 	include "basic_extensions.asm"
 	include "ch376s.asm"
-
 
 DRV_END:
 
