@@ -28,21 +28,15 @@ Input: A = 3
 
 Return both the fixed length DEVICE_DESCRIPTOR followed by the variable length CONFIGURATION_DESCRIPTOR containing INTERFACE_DESCRIPTORS, ENDPOINT_DESCRIPTORS and specialised descriptors for HID, CDC ECM, etc.
 
-## LsUsb
+## ExecuteControlTransfer 
 
 Input: A = 4
 
-Output the USB descriptors, on the console, in a human friendly way. Like the similar command does on Linux.
-
-## ExecuteControlTransfer 
+## DataInTransfer
 
 Input: A = 5
 
-## DataInTransfer
-
-Input: A = 6
-
 ## DataOutTransfer
 
-Input: A = 7
+Input: A = 6
 
