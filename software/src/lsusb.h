@@ -4,5 +4,6 @@
 void PrintUsageAndEnd();
 void PrintImplementationName();
 void PrintDescriptors ();
+void GetJumpTable ();
 
 #endif 
