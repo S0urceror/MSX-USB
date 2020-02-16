@@ -6,13 +6,14 @@ IMPLEMENTATION_P:  equ  0
 IMPLEMENTATION_S:  equ  1
 
 USB_DEVICE_ADDRESS EQU 1
-SCRATCH_SPACE EQU 0100h
 
 HIMEM equ 0FC4Ah
 BOTTOM equ 0FC48h
 MEMSIZ equ 0F672h
 USRTAB equ 0F39Ah
 RAMAD3 equ 0F344h
+
+CHPUT   EQU     #A2
 
     org  4000h
     db  "AB"
@@ -22,11 +23,12 @@ RAMAD3 equ 0F344h
 INIT:
     ; HOOK EXTBIO
     call HOOK_EXTBIO
+    ; create a scratch space by moving HIMEM down
+    call ALLOC_SCRATCH
     ; INIT finished
     ld hl, TXT_INIT
     call PRINT
-    ; create a scratch space by moving HIMEM down
-    call ALLOC_SCRATCH
+
 	ret	; Back to slots scanning
 
 ALLOC_SCRATCH:
@@ -35,10 +37,16 @@ ALLOC_SCRATCH:
     ; get SLTWRK in HL for this ROM page
     call GETSLT
     call GETWRK
+    ; skip 5 bytes old EXTBIO contents in SLTWRK
+    inc hl
+    inc hl
+    inc hl
+    inc hl
+    inc hl
     ; calculate new HIMEM
     ld de,(HIMEM)
     ex hl, de
-    ld bc, SCRATCH_SPACE
+    ld bc, USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
     or a
     sbc hl, bc
     ex hl, de
@@ -47,7 +55,7 @@ ALLOC_SCRATCH:
     inc hl
     ld (hl),d
     ex hl, de
-    ; OPTION 2, make HIMEM lower => works
+    ; update HIMEM
     ld a,l
     ld (HIMEM),a
     ld a,h
@@ -55,14 +63,28 @@ ALLOC_SCRATCH:
 
     ; copy USB commands to scratch area
     ex de,hl
-    ld hl, CMD_GET_DEVICE_DESCRIPTOR
-    ld bc, CMD_GET_CONFIG_DESCRIPTOR - CMD_GET_DEVICE_DESCRIPTOR + 8
+    ld hl, USB_DESCRIPTORS_START
+    ld bc, USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
     ldir
 
     pop hl,de,bc,af
     ret 
 
-    include "print_bios.asm"
+;       Subroutine      Print nul-terminated text with the BIOS routine
+;       Inputs          HL - pointer to text to print
+;       Outputs         -------------------------------
+PRINT:
+    push af,hl
+_PRINT_MORE:
+    ld a,(hl)
+    and a
+    jr z, _PRINT_DONE
+    call CHPUT
+    inc hl
+    jr _PRINT_MORE
+_PRINT_DONE:
+    pop hl,af
+    ret
 
 ;***********************************
 ;***  FUNCTIONS ADDRESSES TABLE  ***
@@ -71,13 +93,62 @@ ALLOC_SCRATCH:
 ;--- Standard routines addresses table
 FN_TABLE:
 FN_0:  dw  FN_INFO
-FN_1:  dw  FN_CHECK
-FN_2:  dw  FN_CONNECT
-FN_3:  dw  FN_GETDESCRIPTORS
-FN_4:  dw  FN_EXECUTE_CONTROL_TRANSFER
-FN_5:  dw  FN_DATA_IN_TRANSFER
-FN_6:  dw  FN_DATA_OUT_TRANSFER
-MAX_FN equ 6
+FN_1:  dw  FN_JUMP_TABLE
+FN_2:  dw  FN_CHECK
+FN_3:  dw  FN_CONNECT
+FN_4:  dw  FN_GETDESCRIPTORS
+MAX_FN equ 5
+
+JUMP_TABLE:
+JN_0:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw FN_CHECK
+    ret
+    nop 
+    nop 
+    nop
+JN_1:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw FN_CONNECT
+    ret
+    nop 
+    nop 
+    nop
+JN_2:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw FN_GETDESCRIPTORS
+    ret
+    nop 
+    nop 
+    nop
+JN_3:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw HW_CONTROL_TRANSFER
+    ret
+    nop 
+    nop 
+    nop
+JN_4:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw HW_DATA_IN_TRANSFER
+    ret
+    nop 
+    nop 
+    nop
+JN_5:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw HW_DATA_OUT_TRANSFER
+    ret
+    nop 
+    nop 
+    nop
+END_JUMP_TABLE: DB 0
 
 ;************************
 ;***  FUNCTIONS CODE  ***
@@ -155,21 +226,30 @@ _INIT_USBHID_NEXT:
     ld c, (ix+CONFIG_DESCRIPTOR.wTotalLength) ; lower 8 bits
     call CH_GET_CONFIG_DESCRIPTOR ; call again with real size
     ret
-FN_LSUSB:
-    ret
-FN_EXECUTE_CONTROL_TRANSFER:
-    ret
-FN_DATA_IN_TRANSFER:
-    ret
-FN_DATA_OUT_TRANSFER:
-    ret
+
+FN_JUMP_TABLE:
+    push hl
+    ; copy jump table
+    ex hl,de
+    ld hl, JUMP_TABLE
+    ld bc, END_JUMP_TABLE - JUMP_TABLE
+    ldir
+    pop ix
+    ; add current slot-id
+    call GETSLT
+    ld (ix+JN_0-JUMP_TABLE+1),a
+    ld (ix+JN_1-JUMP_TABLE+1),a
+    ld (ix+JN_2-JUMP_TABLE+1),a
+    ld (ix+JN_3-JUMP_TABLE+1),a
+    ld (ix+JN_4-JUMP_TABLE+1),a
+    ld (ix+JN_5-JUMP_TABLE+1),a
+    ret 
 
     include "usb_descriptors.asm"
 	include "ch376s.asm"
     include "unapi.asm"
 
-TXT_INIT DB "\r\nUNAPI USB Driver started\r\n\r\n",0
-TXT_NEWLINE DB "\r\n",0
+TXT_INIT DB "\r\nUNAPI MSX USB Driver started\r\n\r\n",0
 UNAPI_ID DB "MSXUSB",0
 UNAPI_INFO: db "MSXUSB driver by Sourceror",0
 

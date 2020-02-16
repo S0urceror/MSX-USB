@@ -20,8 +20,11 @@
         {
             "label": "make UNAPI USB",
             "type": "shell",
-            "command": "make -C ./drivers/UNAPIUSB/src/",
-            "group": "build"
+            "command": "make -C ./drivers/UnapiUsb/src/",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "make CH376s USB HID debug/test",
@@ -35,10 +38,7 @@
             "label": "make client software",
             "type": "shell",
             "command": "make -C ./software/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         }
     ]
 }

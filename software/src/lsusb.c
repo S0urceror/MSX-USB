@@ -28,7 +28,6 @@
 #define print(x) printf(x)
 typedef unsigned char byte;
 
-
 typedef struct _USB_DEVICE_DESCRIPTOR {
      uint8_t bLength;
      uint8_t bDescriptorType;
@@ -101,6 +100,7 @@ typedef struct _USB_ETHERNET_DESCRIPTOR {
 
 enum EthUnapiFunctions {
     USB_INFO = 0,
+    USB_JUMPTABLE,
     USB_CHECK,
     USB_CONNECT,
     USB_GETDESCRIPTORS,
@@ -122,29 +122,27 @@ const char* strUsage=
 Z80_registers regs;
 uint specVersion;
 unapi_code_block codeBlock;
+char jumptable[6*8];
     
 int main(char** argv, int argc)
 {
     char paramLetter;
+    uint8_t slot;
+    uint8_t segment;
+    uint16_t address;
 
     print(strPresentation);
-
     int i = UnapiGetCount("MSXUSB");
     if(i==0) {
         print("*** No MSX USB UNAPI implementations found");
         return 0;
     }
-    
     UnapiBuildCodeBlock(NULL, i, &codeBlock);
-    uint8_t slot;
-    uint8_t segment;
-    uint16_t address;
     UnapiParseCodeBlock (&codeBlock, &slot, &segment, &address);
     printf ("Found implementation in slot: %d, segment: %d, address: %x\n",slot,segment,address);
-
+    GetJumpTable ();
     PrintImplementationName();
     PrintDescriptors ();
-
     return 0;    
 }
 
@@ -189,26 +187,28 @@ void PrintDescriptors ()
 {
     char buffer[512];
 
-    UnapiCall(&codeBlock, USB_CHECK, &regs, REGS_NONE, REGS_MAIN);
+    AsmCall(jumptable,&regs, REGS_NONE, REGS_MAIN);
+    //UnapiCall(&codeBlock, USB_CHECK, &regs, REGS_NONE, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("CH376s not available\n");
         return;
     }
-    UnapiCall(&codeBlock, USB_CONNECT, &regs, REGS_NONE, REGS_MAIN);
+    AsmCall(jumptable+8,&regs, REGS_NONE, REGS_MAIN);
+    //UnapiCall(&codeBlock, USB_CONNECT, &regs, REGS_NONE, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("USB device not connected\n");
         return;
     }
     regs.UWords.HL = buffer;
-    UnapiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
+    AsmCall(jumptable+16,&regs, REGS_MAIN, REGS_MAIN);
+    //UnapiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("USB descriptors not read\n");
         return;
     }
-
     char *ptr = buffer;
     USB_DEVICE_DESCRIPTOR* device=NULL;
     USB_CONFIG_DESCRIPTOR* config=NULL;
@@ -221,39 +221,39 @@ void PrintDescriptors ()
         switch (*(ptr+1))
         {
             case 1: // DEVICE_DESCRIPTOR
-                device = ptr;
+                device = (USB_DEVICE_DESCRIPTOR*) ptr;
                 printf ("Device Descriptor:\n");
-                printf ("  bLength\t\t%d\n",device->bLength);
-                printf ("  bDescriptorType\t%d\n",device->bDescriptorType);
-                printf ("  bcdUSB\t\t%d.%d\n",(device->bcdUSB & 0xff00)>>8, device->bcdUSB & 0xff);
-                printf ("  bDeviceClass\t\t%d\n",device->bDeviceClass);
-                printf ("  bDeviceSubClass\t%d\n",device->bDeviceSubClass);
-                printf ("  bDeviceProtocol\t%d\n",device->bDeviceProtocol);
-                printf ("  idVendor\t\t0x%04x\n",device->idVendor);
-                printf ("  idProduct\t\t0x%04x\n",device->idProduct);
-                printf ("  bcdDevice\t\t%d.%d\n",(device->bcdDevice & 0xff00)>>8, device->bcdDevice & 0xff);
-                printf ("  iManufacturer\t\t%d\n",device->iManufacturer);
-                printf ("  iProduct\t\t%d\n",device->iProduct);
-                printf ("  iSerial\t\t%d\n",device->iSerial);
-                printf ("  bNumConfigurations\t%d\n",device->bNumConfigurations);
+                printf ("  bLength\t\t\t%d\n",device->bLength);
+                printf ("  bDescriptorType\t\t%d\n",device->bDescriptorType);
+                printf ("  bcdUSB\t\t\t%d.%d\n",(device->bcdUSB & 0xff00)>>8, device->bcdUSB & 0xff);
+                printf ("  bDeviceClass\t\t\t%d\n",device->bDeviceClass);
+                printf ("  bDeviceSubClass\t\t%d\n",device->bDeviceSubClass);
+                printf ("  bDeviceProtocol\t\t%d\n",device->bDeviceProtocol);
+                printf ("  idVendor\t\t\t0x%04x\n",device->idVendor);
+                printf ("  idProduct\t\t\t0x%04x\n",device->idProduct);
+                printf ("  bcdDevice\t\t\t%d.%d\n",(device->bcdDevice & 0xff00)>>8, device->bcdDevice & 0xff);
+                printf ("  iManufacturer\t\t\t%d\n",device->iManufacturer);
+                printf ("  iProduct\t\t\t%d\n",device->iProduct);
+                printf ("  iSerial\t\t\t%d\n",device->iSerial);
+                printf ("  bNumConfigurations\t\t%d\n",device->bNumConfigurations);
                 ptr += *ptr;
                 break;
             case 2: // CONFIG_DESCRIPTOR
-                config = ptr;
+                config = (USB_CONFIG_DESCRIPTOR*) ptr;
                 printf ("  Configuration Descriptor:\n");
-                printf ("    bLength\t\t%d\n",config->bLength);
-                printf ("    bDescriptorType\t%d\n",config->bDescriptorType);
-                printf ("    wTotalLength\t%d\n",config->wTotalLength);
-                printf ("    bNumInterfaces\t%d\n",config->bNumInterfaces);
-                printf ("    bConfigurationvalue\t%d\n",config->bConfigurationvalue);
-                printf ("    iConfiguration\t%d\n",config->iConfiguration);
-                printf ("    bmAttributes\t%d\n",config->bmAttributes);
-                printf ("    bMaxPower\t\t%d\n",config->bMaxPower);
+                printf ("    bLength\t\t\t%d\n",config->bLength);
+                printf ("    bDescriptorType\t\t%d\n",config->bDescriptorType);
+                printf ("    wTotalLength\t\t%d\n",config->wTotalLength);
+                printf ("    bNumInterfaces\t\t%d\n",config->bNumInterfaces);
+                printf ("    bConfigurationvalue\t\t%d\n",config->bConfigurationvalue);
+                printf ("    iConfiguration\t\t%d\n",config->iConfiguration);
+                printf ("    bmAttributes\t\t%d\n",config->bmAttributes);
+                printf ("    bMaxPower\t\t\t%d\n",config->bMaxPower);
                 device->bNumConfigurations--;
                 ptr += *ptr;
                 break;
             case 0x04: // interface descriptor
-                interface = ptr;
+                interface = (USB_INTERF_DESCRIPTOR*) ptr;
                 printf ("    Interface Descriptor:\n");
                 printf ("      bLength\t\t\t%d\n",interface->bLength);
                 printf ("      bDescriptorType\t\t%d\n",interface->bDescriptorType);
@@ -267,7 +267,7 @@ void PrintDescriptors ()
                 ptr += *ptr;
                 break;
             case 0x05: // endpoint descriptor
-                endpoint = ptr;
+                endpoint = (USB_ENDPOINT_DESCRIPTOR*) ptr;
                 printf ("      Endpoint Descriptor:\n");
                 printf ("        bLength\t\t\t%d\n",endpoint->bLength);
                 printf ("        bDescriptorType\t\t%d\n",endpoint->bDescriptorType);
@@ -278,11 +278,11 @@ void PrintDescriptors ()
                 ptr += *ptr;
                 break;
             case 0x21: // HID descriptor
-                hid = ptr;
+                hid = (USB_HID_DESCRIPTOR*) ptr;
                 printf ("      HID Descriptor:\n");
                 printf ("        bLength\t\t\t%d\n",hid->bLength);
                 printf ("        bDescriptorType\t\t%d\n",hid->bDescriptorType);
-                printf ("        bcdHID\t\t\t%d\n",(hid->hid_version & 0xff00)>>8, hid->hid_version & 0xff);
+                printf ("        bcdHID\t\t\t%d.%d\n",(hid->hid_version & 0xff00)>>8, hid->hid_version & 0xff);
                 printf ("        bCountryCode\t\t%d\n",hid->country_code);
                 printf ("        bNumDescriptors\t\t%d\n",hid->num_descriptors);
                 printf ("        bDescriptorType\t\t%d\n",hid->descriptor_type);
@@ -298,4 +298,18 @@ void PrintDescriptors ()
                 break;
         }
     }
+}
+
+void GetJumpTable ()
+{
+    regs.UWords.HL = jumptable;
+    UnapiCall(&codeBlock, USB_JUMPTABLE, &regs, REGS_MAIN, REGS_MAIN);
+    /*
+    char *ptr = jumptable;
+    for (int i=0;i<6;i++)
+    {
+        printf ("%04x: %02x %02x %02x %02x %02x %02x %02x %02x\n",ptr,*(ptr+0)&0xff,*(ptr+1)&0xff,*(ptr+2)&0xff,*(ptr+3)&0xff,*(ptr+4)&0xff,*(ptr+5)&0xff,*(ptr+6)&0xff,*(ptr+7)&0xff);
+        ptr=ptr+8;
+    }
+    */
 }
