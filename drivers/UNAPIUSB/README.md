@@ -58,18 +58,20 @@ HL+0010: GetDescriptors
 HL+0018: ExecuteControlTransfer
 HL+0020: DataInTransfer
 HL+0028: DataOutTransfer
-HL+0030
+HL+0030: ScratchArea
 ```
 ## Check (UNAPI:2/JT:00h)
 Check if specialised USB hardware is present, like RookieDrive or MSXUSB cartridge.
 ```
-Input: A = 2
+Input:  A = 2
+Output: Cy = 0, everything okay, Cy = 1, adapter not ready
 ```
 
 ## Connect (UNAPI:3/JT:08h)
 Connect the inserted USB device, reset it properly and prepare for communication.
 ```
-Input: A = 3
+Input:  A = 3
+Output: Cy = 0, everything okay, Cy = 1, device not connected
 ```
 
 ## GetDescriptors (UNAPI:4/JT:10h)
@@ -113,4 +115,10 @@ Input:  HL = Address of a buffer for the data to be sent
         Cy = Current state of the toggle bit
 Output: A  = USB error code
         Cy = New state of the toggle bit (even on error)
+```
+## ScratchArea (JT:30h)
+Get a pointer to the scratch area allocated by moving HIMEM down. Scratch area is used to store USB command packages and a bit of reserved space.
+```
+Input:  BC = delta in bytes should >0 and < size of scratch area (8*8 bytes currently)
+Output: HL = pointer to scratch area in page 3
 ```

@@ -16,6 +16,14 @@
             "externalConsole": false,
             "MIMode": "lldb",
             "preLaunchTask": "make CH376s USB HID debug/test"
+        },
+        {
+            "name": "(lldb) Launch OpenMSX",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_MSM", "-cart", "${workspaceFolder}/drivers/UnapiUsb/dist/unapiusb.rom", "-diska", "${workspaceFolder}/drivers/UnapiKbd/dist"],
+            "cwd": "../Emulators/OpenMSX/share"
         }
     ]
 }

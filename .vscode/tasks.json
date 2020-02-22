@@ -21,6 +21,12 @@
             "label": "make UNAPI USB",
             "type": "shell",
             "command": "make -C ./drivers/UnapiUsb/src/",
+            "group": "build"
+        },
+        {
+            "label": "make UNAPI Keyboard",
+            "type": "shell",
+            "command": "make -C ./drivers/UnapiKbd/src/",
             "group": {
                 "kind": "build",
                 "isDefault": true

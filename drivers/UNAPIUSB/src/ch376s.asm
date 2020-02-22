@@ -694,6 +694,9 @@ CMD_SET_ADDRESS: DB 0x00,0x05,target_device_address,0,0,0,0,0
 CMD_SET_CONFIGURATION: DB 0x00,0x09,configuration_id,0,0,0,0,0
 CMD_GET_STRING: DB 0x80,6,string_id,3,0,0,255,0
 CMD_GET_CONFIG_DESCRIPTOR: DB 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
+    DS 8,0 ; reserved
+    DS 8,0 ; reserved
+    DS 8,0 ; reserved
 USB_DESCRIPTORS_END:
 
 ; USB HID command variables
@@ -1003,23 +1006,6 @@ _CH_CONTROL_STATUS_IN_TRANSFER:
     pop bc
     ret
 
-; return USB descriptor stored in scratch-area pointed to by SLTWRK+5 in HL for this ROM page
-GET_USB_DESCRIPTOR_SLTWRK:
-    push de, af
-    push bc
-    call GETSLT
-    call GETWRK
-    ld de, 5
-    add hl, de
-    ld e, (hl)
-    inc hl
-    ld d, (hl)
-    ex de, hl
-    pop bc
-    add hl, bc
-    pop af, de
-    ret 
-
 ; --------------------------------------
 ; CH_GET_DEVICE_DESCRIPTOR
 ;
@@ -1033,7 +1019,7 @@ CH_GET_DEVICE_DESCRIPTOR:
 
     ; return USB descriptor stored in scratch-area pointed to by SLTWRK+5 in HL for this ROM page
     ld bc, CMD_GET_DEVICE_DESCRIPTOR-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x80,6,0,1,0,0,18,0
-    call GET_USB_DESCRIPTOR_SLTWRK
+    call GET_SCRATCH
 
     ld a, 0 ; device address
     ld b, 8 ; length in bytes
@@ -1061,7 +1047,7 @@ CH_GET_CONFIG_DESCRIPTOR:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_GET_CONFIG_DESCRIPTOR-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
-    call GET_USB_DESCRIPTOR_SLTWRK
+    call GET_SCRATCH
     pop bc
     
     ld ix, hl
@@ -1106,7 +1092,7 @@ CH_SET_CONFIGURATION:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_CONFIGURATION-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
-    call GET_USB_DESCRIPTOR_SLTWRK
+    call GET_SCRATCH
     pop bc
 
     ld ix, hl
@@ -1134,7 +1120,7 @@ CH_SET_PROTOCOL:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_PROTOCOL-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x21,0x0B,protocol_id,0,interface_id,0,0,0
-    call GET_USB_DESCRIPTOR_SLTWRK
+    call GET_SCRATCH
     pop bc
 
     ld ix, hl
@@ -1163,7 +1149,7 @@ CH_SET_IDLE:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_IDLE-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x21,0x0A,report_id,duration,interface_id,0,0,0
-    call GET_USB_DESCRIPTOR_SLTWRK
+    call GET_SCRATCH
     pop bc
 
     ld ix, hl
@@ -1191,7 +1177,7 @@ CH_SET_ADDRESS:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_ADDRESS-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x00,0x05,target_device_address,0,0,0,0,0
-    call GET_USB_DESCRIPTOR_SLTWRK
+    call GET_SCRATCH
     pop bc
     
     ld ix, hl
