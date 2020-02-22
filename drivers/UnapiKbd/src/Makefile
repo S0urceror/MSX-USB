@@ -2,10 +2,10 @@ ASM = sjasmplus
 ASMFLAGS = --raw=$@ --sym=$(basename $@).sym
 OUTPUT_DIR = ../dist
 
-all: $(OUTPUT_DIR)/unapikbd.com
+all: $(OUTPUT_DIR)/unapikbd.bin
 .PHONY: all clean copy
 
-$(OUTPUT_DIR)/unapikbd.com: main.asm
+$(OUTPUT_DIR)/unapikbd.bin: main.asm keyboard.asm tsr.asm usb.asm
 	$(ASM) $(ASMFLAGS) $< 
 	
 clean:

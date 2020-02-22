@@ -81,7 +81,7 @@ LOOP:
     ret
 
 DO_EXTBIO2:
-    ;A=1: Return A=Slot, B=Segment, HL=UNAPI entry address
+    ;A=Implementation Nr: Return A=Slot, B=Segment, HL=UNAPI entry address
     ; check which implementation?
     dec  a
     jr  nz,DO_EXTBIO3

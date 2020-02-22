@@ -70,6 +70,23 @@ ALLOC_SCRATCH:
     pop hl,de,bc,af
     ret 
 
+; return USB descriptor stored in scratch-area pointed to by SLTWRK+5 in HL for this ROM page
+GET_SCRATCH:
+    push de, af
+    push bc
+    call GETSLT
+    call GETWRK
+    ld de, 5
+    add hl, de
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ex de, hl
+    pop bc
+    add hl, bc
+    pop af, de
+    ret 
+
 ;       Subroutine      Print nul-terminated text with the BIOS routine
 ;       Inputs          HL - pointer to text to print
 ;       Outputs         -------------------------------
@@ -144,6 +161,14 @@ JN_5:
     rst 30h
     db 0 ; to be replaced with current slot id
     dw HW_DATA_OUT_TRANSFER
+    ret
+    nop 
+    nop 
+    nop
+JN_6:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw GET_SCRATCH
     ret
     nop 
     nop 
@@ -243,6 +268,7 @@ FN_JUMP_TABLE:
     ld (ix+JN_3-JUMP_TABLE+1),a
     ld (ix+JN_4-JUMP_TABLE+1),a
     ld (ix+JN_5-JUMP_TABLE+1),a
+    ld (ix+JN_6-JUMP_TABLE+1),a
     ret 
 
     include "usb_descriptors.asm"
