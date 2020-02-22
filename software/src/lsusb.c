@@ -1,6 +1,21 @@
-/* USB UNAPI - list the USB descriptors
-   By S0urceror 2/2010
-   
+/*
+; lsusb.c - list the USB descriptors
+; Copyright (c) 2020 Mario Smit (S0urceror)
+; 
+; This program is free software: you can redistribute it and/or modify  
+; it under the terms of the GNU General Public License as published by  
+; the Free Software Foundation, version 3.
+;
+; This program is distributed in the hope that it will be useful, but 
+; WITHOUT ANY WARRANTY; without even the implied warranty of 
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+; General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License 
+; along with this program. If not, see <http://www.gnu.org/licenses/>.
+;
+*/
+/*
     Compilation command line:
    
    sdcc --code-loc 0x170 --data-loc 0 -mz80 --disable-warning 196
