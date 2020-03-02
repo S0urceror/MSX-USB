@@ -10,23 +10,23 @@
             "group": "build"
         },
         {
-            "label": "make USB HID Keyboard",
+            "label": "make USB HID Keyboard (archive)",
             "type": "shell",
-            "command": "make -C ./drivers/keyboard/src/",
+            "command": "make -C ./drivers/archive/keyboard/src/",
             "group": {
                 "kind": "build"
             }
         },
         {
-            "label": "make UNAPI USB",
+            "label": "make UNAPI Usb Host",
             "type": "shell",
-            "command": "make -C ./drivers/UnapiUsb/src/",
+            "command": "make -C ./drivers/UsbHost/src/",
             "group": "build"
         },
         {
-            "label": "make UNAPI Keyboard",
+            "label": "make UNAPI Usb Keyboard",
             "type": "shell",
-            "command": "make -C ./drivers/UnapiKbd/src/",
+            "command": "make -C ./drivers/UsbKeyboard/src/",
             "group": "build"
         },
         {

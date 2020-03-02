@@ -43,8 +43,14 @@ For the flash drive I created a NEXTOR driver that looks for a file called NEXTO
 
 I created some routines in MSX-Basic to show the flash directory itself and to eject and insert images. Since the CH376s is capable of using FAT32 you can have multiple FAT16 images on one flash drive. I settled for 128Mb FAT16 because of cluster size and optimum storage use.
 
+## UNAPI USB
+I wrote a UNAPI USB specification and implemented the Usb Host driver according to this. The next version of this Host driver will also implement the Usb Hub specification and enumerate and initialise all devices connected.
+
 ## USB HID Keyboard
-I wrote a driver that you can start from BASIC and nestles itself in page 3. It then hooks itself to CHGET. It works good but I have to add special keys (STOP/GRAPH/CODE) and do more testing before I consider it final. I also want to turn it into a Nextor driver or UNAPI driver in the end.
+The Usb Keyboard driver connects to Unapi Usb driver and hooks itself to H.CHGE. From that moment on it replaces your trusted MSX keyboard by a shiny new USB Keyboard. Or a wireless one if you have inserted the appropriate Logitech receiver.
+
+## USB Ethernet
+Work has started on the USB Ethernet driver. It will use Unapi USB and conforms to the Unapi Ethernet standard. Internestor Lite will then be able to connect and use your USB Ethernet device. Please note that currently we only support USB CDC ECM. Make sure your Ethernet device supports this.
 
 # Collaboration
 Do you want to help with the development of MSX USB? Write drivers for other devices? Or contribute in other ways?
