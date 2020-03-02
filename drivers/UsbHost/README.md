@@ -1,4 +1,4 @@
-# USB - UNAPI DRIVER
+# USB - Host UNAPI DRIVER
 Below the specification of an UNAPI compliant USB driver. Other, more specialised, drivers can rely on this base driver to return the basic information and low-level routines.
 
 ## API Information Routine (UNAPI:0)
