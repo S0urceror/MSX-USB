@@ -28,8 +28,15 @@
 #include <thread>
 #include <chrono>
 
-#define   B115200 0010002
-#define   B230400 0010003
+#define DEV_ADDRESS 1
+#define BOOT_PROTOCOL 0
+#define HID_CLASS 0x03
+#define HID_BOOT 0x01
+#define HID_KEYBOARD 0x01
+#define HID_MOUSE 0x02
+
+//#define   B115200 0010002
+//#define   B230400 0010003
 #define   B460800 0010004
 #define   B500000 0010005
 #define   B576000 0010006
@@ -53,9 +60,9 @@ int serial=-1;
 #define CH375_CMD_SET_USB_ADDR 0x13
 #define CH375_CMD_SET_ENDP6 0x1C
 #define CH375_CMD_SET_ENDP7 0x1D
-#define CH375_CMD_RD_USB_DATA0 0x27
-#define CH375_CMD_RD_USB_DATA 0x28
-#define CH375_CMD_WR_USB_DATA7 0x2B
+#define CH375_CMD_RD_USB_DATA 0x27
+//#define CH375_CMD_RD_USB_DATA 0x28
+//#define CH375_CMD_WR_USB_DATA7 0x2B
 #define CH375_CMD_WR_HOST_DATA 0x2C
 #define CH375_CMD_SET_ADDRESS 0x45
 #define CH375_CMD_GET_DESCR 0x46
@@ -63,6 +70,7 @@ int serial=-1;
 #define CH375_CMD_ISSUE_TOKEN 0x4F
 #define CH375_CMD_ISSUE_TKN_X 0x4E
 #define CH375_CMD_ABORT_NAK 0x17
+#define CH376_CMD_SET_RETRY 0x0B
 
 #define CH375_USB_MODE_HOST 0x06
 #define CH375_USB_MODE_HOST_RESET 0x07
@@ -99,7 +107,7 @@ typedef struct __attribute__((packed)) _USB_DEVICE_DESCRIPTOR {
      uint16_t bcdDevice;
      uint8_t iManufacturer;
      uint8_t iProduct;
-     uint8_t iSerialNumber;
+     uint8_t iSerial;
      uint8_t bNumConfigurations;
 } USB_DEVICE_DESCRIPTOR;
 USB_DEVICE_DESCRIPTOR device;
@@ -114,7 +122,6 @@ USB_DEVICE_DESCRIPTOR device;
      uint8_t bmAttributes;
      uint8_t bMaxPower;
  } USB_CONFIG_DESCRIPTOR;
-std::vector <USB_CONFIG_DESCRIPTOR> configs;
 
 typedef struct __attribute__((packed)) _USB_HID_DESCRIPTOR {
     uint8_t bLength;
@@ -125,7 +132,6 @@ typedef struct __attribute__((packed)) _USB_HID_DESCRIPTOR {
     uint8_t descriptor_type;
     uint16_t descriptor_length;
 } USB_HID_DESCRIPTOR;
-std::vector <USB_HID_DESCRIPTOR> hids;
 
  typedef struct __attribute__((packed)) _USB_INTERF_DESCRIPTOR {
      uint8_t bLength;
@@ -138,7 +144,6 @@ std::vector <USB_HID_DESCRIPTOR> hids;
      uint8_t bInterfaceProtocol;
      uint8_t iInterface;
  } USB_INTERF_DESCRIPTOR;
-std::vector <USB_INTERF_DESCRIPTOR> interfaces;
 
  typedef struct __attribute__((packed)) _USB_ENDPOINT_DESCRIPTOR {
      uint8_t bLength;
@@ -148,7 +153,6 @@ std::vector <USB_INTERF_DESCRIPTOR> interfaces;
      uint16_t wMaxPacketSize;
      uint8_t bInterval;
  } USB_ENDPOINT_DESCRIPTOR;
-std::vector <USB_ENDPOINT_DESCRIPTOR> endpoints;
 
 typedef struct __attribute__((packed)) _USB_ETHERNET_DESCRIPTOR {
      uint8_t bLength;
@@ -160,7 +164,75 @@ typedef struct __attribute__((packed)) _USB_ETHERNET_DESCRIPTOR {
      uint16_t wNumberMCFilters;
      uint8_t bNumberPowerFilters;
  } USB_ETHERNET_DESCRIPTOR;
-std::vector <USB_ETHERNET_DESCRIPTOR> ethernets;
+
+typedef struct __attribute__((packed)) _USB_ETHERNET_HEADER_DESCRIPTOR {
+     uint8_t bLength;
+     uint8_t bDescriptorType;
+     uint8_t bDescriptorSubType;
+     uint16_t bcdCDC;
+ } USB_ETHERNET_HEADER_DESCRIPTOR;
+
+typedef struct __attribute__((packed)) _USB_ETHERNET_UNION_DESCRIPTOR {
+     uint8_t bLength;
+     uint8_t bDescriptorType;
+     uint8_t bDescriptorSubType;
+     uint8_t bControlInterface;
+     uint8_t bSubordinateInterface0;
+     uint8_t bSubordinateInterface1;
+     uint8_t bSubordinateInterface2;
+     uint8_t bSubordinateInterface3;
+ } USB_ETHERNET_UNION_DESCRIPTOR;
+
+typedef struct __attribute__((packed)) _USB_HUB_DESCRIPTOR 
+{
+     uint8_t bLength;
+     uint8_t bDescriptorType;
+     uint8_t bNrPorts;
+     uint16_t wHubCharacteristics;
+     uint8_t bPwrOn2PwrGood;
+     uint8_t bHubContrCurrent;
+     uint8_t DeviceRemovable;
+     uint8_t PortPwrCtrlMask;
+} USB_HUB_DESCRIPTOR;
+
+struct _hid_info 
+{
+    uint8_t mouse_endpoint,mouse_millis,mouse_interface=255;
+    uint16_t mouse_packetsize;
+    uint8_t keyboard_endpoint,keyboard_millis,keyboard_interface=255;
+    uint16_t keyboard_packetsize;
+    uint8_t hid_configuration_id=0;
+}* hid_info=NULL;
+struct _ethernet_info 
+{
+    uint8_t ethernet_data_interface=255,ethernet_control_interface=255;
+    uint8_t ethernet_interrupt_endpoint,ethernet_bulk_in_endpoint,ethernet_bulk_out_endpoint;
+    uint8_t ethernet_interrupt_millis;
+    uint16_t ethernet_interrupt_packetsize,ethernet_bulk_in_packetsize,ethernet_bulk_out_packetsize;
+    uint8_t ethernet_configuration_id=0;
+    uint8_t ethernet_alternate_setting;
+}* ethernet_info=NULL;
+struct _hub_info
+{
+    uint8_t hub_interface=255;
+    uint8_t hub_configuration_id=0;
+    uint8_t hub_interrupt_endpoint;
+    uint16_t hub_interrupt_packetsize;
+    uint8_t hub_interrupt_millis;
+}* hub_info=NULL;
+
+void print_buffer (uint8_t* data, uint16_t length)
+{
+    for (int i=0;i<length;i++)
+    {
+        if ((i%16)==0)
+            printf ("\n");
+        if ((i%4)==0)
+            printf (" ");
+        printf ("%02x ",*(data+i));
+    }
+    printf ("\n");
+}
 
 void error (char const * msg)
 {
@@ -196,6 +268,9 @@ void init_serial ()
     tcflush(serial, TCIFLUSH);
     tcsetattr(serial, TCSANOW, &config);
 }
+
+// LOW_LEVEL serial communication to CH376
+///////////////////////////////////////////////////////////////////////////
 const uint8_t WR_COMMAND = 1;
 const uint8_t RD_STATUS = 2;
 const uint8_t WR_DATA = 3;
@@ -204,8 +279,6 @@ const uint8_t RD_INT = 5;
 const uint8_t RD_DATA_MULTIPLE = 6;
 const uint8_t WR_DATA_MULTIPLE = 7;
 
-// LOW_LEVEL serial communication to CH376
-///////////////////////////////////////////////////////////////////////////
 void writeCommand (uint8_t command)
 {
     uint8_t cmd[] = {WR_COMMAND,command};
@@ -280,6 +353,7 @@ void check_exists ()
     if (bytes!=1 || (new_value != value))
         error ("Device does not exist\n");
 }
+
 // CH376 built-in commands
 ///////////////////////////////////////////////////////////////////////////
 void reset_all ()
@@ -291,7 +365,7 @@ void set_target_device_address (uint8_t address)
 {
     writeCommand (CH375_CMD_SET_USB_ADDR);
     writeData(address);
-    sleep (0.2);
+    usleep (2000);
 }
 
 bool set_usb_host_mode (uint8_t mode)
@@ -309,6 +383,20 @@ bool set_usb_host_mode (uint8_t mode)
     }
     return false;
 }
+
+//Bits 7 and 6:
+//  0x: Don't retry NAKs
+//  10: Retry NAKs indefinitely (default)
+//  11: Retry NAKs for 3s
+//Bits 5-0: Number of retries after device timeout
+//Default after reset and SET_USB_MODE is 8Fh
+void set_retry (uint8_t mode)
+{
+    writeCommand (CH376_CMD_SET_RETRY);
+    writeData (0x25); // fixed value, required
+    writeData (mode);
+}
+
 void set_speed (uint8_t speed)
 {
     writeCommand (CH375_CMD_SET_USB_SPEED);
@@ -352,7 +440,7 @@ bool get_device_descriptor ()
         error ("ERROR: USB device descriptor not read 3\n");
     return true;
 }
-
+/*
 void get_configuration_descriptor ()
 {
     uint8_t value;
@@ -405,7 +493,7 @@ void get_configuration_descriptor ()
         }
     }
 }
-
+*/
 
 // Higher level USB read/write
 ///////////////////////////////////////////////////////////////////////////
@@ -416,16 +504,16 @@ void write_usb_data (uint8_t* message,uint8_t length)
     for (int i=0;i<length;i++)
         writeData(message[i]);
 }
-void issue_token (uint8_t endpoint, uint8_t pid, uint8_t in_toggle, uint8_t out_toggle)
+void issue_token (uint8_t endpoint_number, uint8_t pid, uint8_t in_toggle, uint8_t out_toggle)
 {
     writeCommand(CH375_CMD_ISSUE_TKN_X);
     writeData(in_toggle<<7 | out_toggle<<6);
-    writeData(endpoint << 4 | pid);
+    writeData(endpoint_number << 4 | pid);
 }
 ssize_t read_usb_data (uint8_t* pBuffer)
 {
     uint8_t value = 0;
-    writeCommand(CH375_CMD_RD_USB_DATA0);
+    writeCommand(CH375_CMD_RD_USB_DATA);
     ssize_t bytes = readData(&value);
     if (bytes==0)
         error ("no data available");
@@ -436,9 +524,10 @@ ssize_t read_usb_data (uint8_t* pBuffer)
         error("did not receive enough bytes");
     return bytes;
 }
+
 // USB data packet input
 ///////////////////////////////////////////////////////////////////////////
-uint8_t* data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& direction)
+uint8_t* data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle)
 {
     uint16_t remaining_data_length = length;
     uint8_t* pBuffer = (uint8_t*) malloc (length);
@@ -450,10 +539,31 @@ uint8_t* data_in_transfer (uint16_t length, uint8_t target_device_address, uint8
     
     while (remaining_data_length>0)
     {
-        issue_token(endpoint_number, CH_PID_IN, direction, 0);
-        direction = direction ^ 1;
+        issue_token(endpoint_number, CH_PID_IN, endpoint_toggle, 0);
+        endpoint_toggle = endpoint_toggle ^ 1;
         if ((status=waitInterrupt())!=CH375_USB_INT_SUCCESS)
-            break;
+        {
+            if ((status&0x2f)==0b00101010) // 2A
+            {
+                printf (">> NAK <<\n");
+                free (pBuffer);
+                return NULL;
+            }
+            if ((status&0x2f)==0b00101110) // 2E
+            {
+                printf (">> STALL <<\n");
+                free (pBuffer);
+                return NULL;
+            }
+            if ((status&0x23)==0b00100000) // 20
+            {
+                printf (">> OVER TIME <<\n");
+                free (pBuffer);
+                return NULL;
+            }
+            printf (">> UNEXPECTED 0x%x <<\n",status);
+            endpoint_toggle = endpoint_toggle ^ 1; // extra toggle, maybe out of sync?
+        }; 
         ssize_t bytes = read_usb_data (pTemp);
         remaining_data_length -= bytes;
         pTemp += bytes;
@@ -463,9 +573,10 @@ uint8_t* data_in_transfer (uint16_t length, uint8_t target_device_address, uint8
     }
     return pBuffer;
 }
+
 // USB data packet output
 ///////////////////////////////////////////////////////////////////////////
-uint8_t* data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t direction)
+void data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t endpoint_toggle)
 {
     uint8_t* pTemp = pBuffer;
     uint16_t remaining_data_length = length;
@@ -477,39 +588,43 @@ uint8_t* data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_dev
         write_usb_data(pTemp, amountwritten);
         pTemp+=amountwritten;
         remaining_data_length-=amountwritten;
-        direction = direction ^ 1;
+        endpoint_toggle = endpoint_toggle ^ 1;
         
-        issue_token(endpoint_number, CH_PID_OUT, 0, direction);
+        issue_token(endpoint_number, CH_PID_OUT, 0, endpoint_toggle);
         while ((waitInterrupt()&0x2f)==0x2a); // absorb NAK
     }
-    return NULL;
 }
 
 #define IN 1
 #define OUT 0
 // USB command execution via SETUP, DATA, STATUS stages
 ///////////////////////////////////////////////////////////////////////////
-uint8_t* execute_control_transfer (uint8_t target_device_address,uint8_t message[8],uint8_t* senddata, uint8_t endpoint_packet_size)
+bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],uint8_t* senddata, uint8_t endpoint_packet_size,uint8_t endpoint,uint8_t* &result)
 {
-    uint8_t* result;
     uint16_t requested_length = (*(message + 6))+((*(message +7))<<8);
     uint8_t data_direction = message[0]&0b10000000?IN:OUT;
+
+    //print_buffer (message,8);
     set_target_device_address(target_device_address);
     
     //Setup stage
     write_usb_data (message,8);
-    uint8_t endpoint = 0;
+    //uint8_t endpoint = 0;
     issue_token (endpoint, CH_PID_SETUP,0,0);
     uint8_t interrupt = waitInterrupt();
     if (interrupt != CH375_USB_INT_SUCCESS)
-        return NULL;//error ("execute_control_transfer 0");
+        return false;//error ("execute_control_transfer 0");
     
     //Data stage
-    uint8_t direction = 1;
+    uint8_t endpoint_toggle = 1;
     if (data_direction==IN)
-        result = data_in_transfer(requested_length, target_device_address, 0, endpoint_packet_size, direction);
+    {
+        result = data_in_transfer(requested_length, target_device_address, 0, endpoint_packet_size, endpoint_toggle);
+        if (result==NULL)
+            return false;
+    }
     else
-        result = data_out_transfer (senddata,requested_length, target_device_address, 0, endpoint_packet_size, direction);
+        data_out_transfer (senddata,requested_length, target_device_address, 0, endpoint_packet_size, endpoint_toggle);
     
     // Status stage
     if (data_direction==OUT || requested_length==0)
@@ -517,7 +632,9 @@ uint8_t* execute_control_transfer (uint8_t target_device_address,uint8_t message
         issue_token(endpoint, CH_PID_IN, 1, 0);
         while ((waitInterrupt()&0x2f)==0x2a); // absorb NAK
         uint8_t tmp[endpoint_packet_size];
+        bzero (tmp,endpoint_packet_size);
         ssize_t bytes = read_usb_data((uint8_t*)&tmp);
+        //print_buffer (tmp,endpoint_packet_size);
     }
     else
     {
@@ -531,148 +648,59 @@ uint8_t* execute_control_transfer (uint8_t target_device_address,uint8_t message
             break;
         };
         if (interrupt!=CH375_USB_INT_SUCCESS)
-            return NULL;//error ("ERROR: execute_control_transfer 2");
+            return false;//error ("ERROR: execute_control_transfer 2");
     }
-    return result;
+    return true;
 }
+
 // DESCRIPTOR commands
 ///////////////////////////////////////////////////////////////////////////
-uint8_t max_packet_size = 8;
-bool get_device_descriptor2 ()
+uint8_t max_packet_size;
+bool get_device_descriptor2 (uint8_t target_device_address,uint8_t* buffer, int& buffer_length)
 {
     uint8_t cmd[] = {0x80,6,0,1,0,0,18,0};
-    uint8_t* data = execute_control_transfer(0,cmd,NULL,max_packet_size);
-    if (data==NULL)
-        return false;
-    memcpy(&device, data, 18);
-    free(data);
-    max_packet_size = device.bMaxPacketSize0;
-    return true;
-}
+    uint8_t* data=NULL;
+    max_packet_size = 8;
 
-void print_buffer (uint8_t* data, uint16_t length)
-{
-    for (int i=0;i<length;i++)
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    if (result)
     {
-        if ((i%16)==0)
-            printf ("\n");
-        if ((i%4)==0)
-            printf (" ");
-        printf ("%02x ",*(data+i));
+        print_buffer (data,*(data));
+        memcpy(buffer, data, *(data));
+        memcpy(&device, data, *(data));
+        buffer_length=*(data);
+        max_packet_size = device.bMaxPacketSize0;
     }
+    free(data);
+    return result;
 }
-
-bool get_configuration_descriptor2 (uint8_t target_device_address,uint8_t config_id)
+bool get_configuration_descriptor2 (uint8_t target_device_address,uint8_t config_id,uint8_t* buffer,int &buffer_length)
 {
     uint8_t cmd[] = {0x80,6,config_id,2,0,0,sizeof(USB_CONFIG_DESCRIPTOR),0};
-    uint8_t* data = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size);
-    if (data==NULL)
-        return false;
-    USB_CONFIG_DESCRIPTOR config;
-    memcpy(&config, data, sizeof(USB_CONFIG_DESCRIPTOR));
-    configs.push_back(config);
-    free (data);
-    
-    uint8_t cmd2[] = {0x80,6,config_id,2,0,0,(uint8_t)config.wTotalLength,0};
-    uint8_t* data2 = execute_control_transfer(target_device_address,cmd2,NULL,max_packet_size);
-    if (data2==NULL)
-        return false;
-    print_buffer (data2,config.wTotalLength);
-    uint8_t* pointer = data2+sizeof(USB_CONFIG_DESCRIPTOR);
-
-    USB_INTERF_DESCRIPTOR interface;
-    USB_ENDPOINT_DESCRIPTOR endpoint;
-    USB_HID_DESCRIPTOR hid;
-    USB_ETHERNET_DESCRIPTOR ethernet;
-    while ((pointer-data2) < config.wTotalLength)
+    uint8_t* data=NULL;
+    bool result2 = false;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    if (result)
     {
-        switch (*(pointer+1))
+        USB_CONFIG_DESCRIPTOR* config = (USB_CONFIG_DESCRIPTOR*) data;
+        uint8_t cmd2[] = {0x80,6,config_id,2,0,0,(uint8_t)config->wTotalLength,0};
+        uint8_t* data2=NULL;
+        result2 = execute_control_transfer(target_device_address,cmd2,NULL,max_packet_size,0,data2);
+        if (result2)
         {
-            case 0x04: // interface descriptor
-                memcpy (&interface,pointer,sizeof(USB_INTERF_DESCRIPTOR));
-                if (interface.bLength!=sizeof(USB_INTERF_DESCRIPTOR))
-                    error ("USB interface descriptor not read");
-                interfaces.push_back(interface);
-                pointer += *(pointer);
-                break;
-            case 0x05: // endpoint descriptor
-                memcpy (&endpoint,pointer,sizeof(USB_ENDPOINT_DESCRIPTOR));
-                if (endpoint.bLength!=sizeof(USB_ENDPOINT_DESCRIPTOR))
-                    error ("USB endpoint descriptor not read");
-                endpoints.push_back(endpoint);
-                pointer += *(pointer);
-                break;
-            case 0x21: // HID descriptor
-                memcpy (&hid,pointer,sizeof(USB_HID_DESCRIPTOR));
-                if (hid.bLength!=sizeof(USB_HID_DESCRIPTOR))
-                    error ("USB HID descriptor not read");
-                hids.push_back(hid);
-                pointer += *(pointer);
-                break;
-            case 0x24: // CDC ECM / CS_INTERFACE
-                switch (*(pointer+2)) // subtype
-                {
-                    case 0x00: // header
-                        break;
-                    case 0x06: // union
-                        break;
-                    case 0x0f: // ethernet
-                        memcpy (&ethernet,pointer,sizeof(USB_ETHERNET_DESCRIPTOR));
-                        if (ethernet.bLength!=sizeof(USB_ETHERNET_DESCRIPTOR))
-                            error ("USB Ethernet descriptor not read");
-                        ethernets.push_back(ethernet);
-                        break;
-                }
-                pointer += *(pointer);
-                break;
-            default: 
-                pointer += *(pointer);
-                break;
+            memcpy (buffer, data2,config->wTotalLength);
+            buffer_length += config->wTotalLength;
+            print_buffer (data2,config->wTotalLength);
         }
+        free (data2);
     }
-
-/*
-
-    for (int i=0;i<config.bNumInterfaces;i++)
-    {
-        USB_INTERF_DESCRIPTOR interface;
-        memcpy (&interface,pointer,sizeof(USB_INTERF_DESCRIPTOR));
-        if (interface.bLength!=sizeof(USB_INTERF_DESCRIPTOR))
-            error ("USB interface descriptor not read");
-        interfaces.push_back(interface);
-        pointer+=sizeof(USB_INTERF_DESCRIPTOR);
-        while (*(pointer+1)!=0x05) // not an interface? then we'll have a class-specific desciptor following
-        {
-            if (interface.bInterfaceClass==0x03 && *(pointer+1)==0x21) // HID
-            {
-                USB_HID_DESCRIPTOR hid;
-                memcpy (&hid,pointer,sizeof(USB_HID_DESCRIPTOR));
-                if (hid.bLength!=sizeof(USB_HID_DESCRIPTOR))
-                    error ("USB HID descriptor not read");
-                hids.push_back(hid);
-                pointer+=sizeof(USB_HID_DESCRIPTOR);
-            }
-            else // not recognized
-                pointer += *(pointer);
-        }
-        for (int j=0;j<interface.bNumEndpoints;j++)
-        {
-            USB_ENDPOINT_DESCRIPTOR endpoint;
-            memcpy (&endpoint,pointer,sizeof(USB_ENDPOINT_DESCRIPTOR));
-            if (endpoint.bLength!=sizeof(USB_ENDPOINT_DESCRIPTOR))
-                error ("USB endpoint descriptor not read");
-            endpoints.push_back(endpoint);
-            pointer+=sizeof(USB_ENDPOINT_DESCRIPTOR);
-        }
-    }*/
-    free (data2);
-    return true;
+    free (data);
+    return result && result2;
 }
 
 std::string utf16_to_utf8(std::u16string const& s)
 {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff,
-        std::codecvt_mode::little_endian>, char16_t> cnv;
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t, 0x10ffff>, char16_t> cnv;
     std::string utf8 = cnv.to_bytes(s);
     if(cnv.converted() < s.size())
         throw std::runtime_error("incomplete conversion");
@@ -686,59 +714,175 @@ std::string get_string2 (uint8_t target_device_address,uint8_t string_id)
         return no_data;
     
     uint8_t cmd[] = {0x80,6,string_id,3,0,0,255,0};
-    uint8_t* data = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size);
-    if (data==NULL)
-           return no_data;
-    uint8_t len = data[0];
-    uint8_t type = data[1];
-    std::u16string str = (char16_t*) (data+2);
-    std::string str8 = utf16_to_utf8(str);
+    uint8_t* data=NULL;
+    std::string str8;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    if (result)
+    {
+        uint8_t len = data[0];
+        uint8_t type = data[1];
+        std::u16string str = (char16_t*) (data+2);
+        str8 = utf16_to_utf8(str);
+    }
+    free (data);
     return str8;
 }
+
 // USB HID COMMANDS
 ///////////////////////////////////////////////////////////////////////////
 bool set_protocol2 (uint8_t target_device_address,uint8_t protocol_id,uint8_t interface)
 {
     uint8_t cmd[] = {0x21,0x0B,protocol_id,0,interface,0,0,0};
-    uint8_t* data = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size);
-    if (data==NULL)
-        return false;
-    return true;
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
 }
 bool set_idle2 (uint8_t target_device_address,uint8_t duration,uint8_t report_id, uint8_t interface)
 {
     uint8_t cmd[] = {0x21,0x0A,report_id,duration,interface,0,0,0};
-    uint8_t* data = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size);
-    if (data==NULL)
-        return false;
-    return true;
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
 }
+
 // USB COMMANDS
 ///////////////////////////////////////////////////////////////////////////
 bool set_address2 (uint8_t target_device_address)
 {
     uint8_t cmd[] = {0x00,0x05,target_device_address,0,0,0,0,0};
-    uint8_t* data = execute_control_transfer(0,cmd,NULL,max_packet_size);
-    if (data==NULL)
-        return false;
-    return true;
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(0,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
 }
 bool set_configuration2 (uint8_t target_device_address,uint8_t configuration_id)
 {
     uint8_t cmd[] = {0x00,0x09,configuration_id,0,0,0,0,0};
-    uint8_t* data = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size);
-    if (data==NULL)
-        return false;
-    return true;
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
 }
-// USB HID BOOT DEVICE INTERRUPT READOUT
+bool set_interface2 (uint8_t target_device_address,uint8_t interface_id,uint8_t alternative_setting)
+{
+    uint8_t cmd[] = {0x01,11,alternative_setting,0,interface_id,0,0,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
+}
+bool set_packet_filter2 (uint8_t target_device_address,uint8_t interface_id,uint8_t packet_filter)
+{
+    uint8_t cmd[] = {0b00100001,0x43,packet_filter,0,interface_id,0,0,0}; // set ethernet packet filter
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
+    }
+
 ///////////////////////////////////////////////////////////////////////////
+// USB HUB commands
+bool get_hub_descriptor2 (uint8_t target_device_address,uint8_t* buffer, int& buffer_length)
+{
+    //bmRequestType, bRequest, wValue, wIndex, wLength
+    uint8_t cmd[] = {0b10100000,6,0,0x29,0,0,sizeof(USB_HUB_DESCRIPTOR),0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    if (result)
+    {
+        print_buffer (data,*(data));
+        memcpy(buffer, data, *(data));
+        buffer_length+=*(data);
+    }
+    free(data);
+    return result;
+}
+uint32_t get_hub_portstatus (uint8_t target_device_address,uint8_t portnr)
+{
+    //bmRequestType, bRequest, wValue, wIndex, wLength
+    uint8_t cmd[] = {0b10100011,0,0,0,portnr,0,4,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint32_t retval = 0;
+    if (result)
+    {
+        //print_buffer (data,4);
+        memcpy (&retval,data,4);
+
+        uint16_t portstatus = 0;
+        memcpy (&portstatus,data,2);
+        printf ("Port %d status: ",portnr);
+        std::string status="";
+        if (portstatus & 0b1)
+            status += "connected,";
+        if (portstatus & 0b10)
+            status += "enabled,";
+        if (portstatus & 0b100)
+            status += "suspended,";
+        if (portstatus & 0b1000)
+            status += "reset,";
+        if (portstatus & 0b100000000)
+            status += "powered,";
+        if (portstatus & 0b1000000000)
+            status += "low-speed,";
+        if (portstatus & 0b10000000000)
+            status += "high-speed,";
+        if (portstatus & 0b1000000000000)
+            status += "indicator control";
+        printf ("%s\n",status.c_str());
+
+        uint16_t portchange = 0;
+        memcpy (&portchange,data+2,2);
+        printf ("Port %d change: ",portnr);
+        status="";
+        if (portchange & 0b1)
+            status += "C_PORT_CONNECTION,";
+        if (portchange & 0b10)
+            status += "C_PORT_ENABLE,";
+        if (portchange & 0b100)
+            status += "C_PORT_SUSPEND,";
+        if (portchange & 0b1000)
+            status += "C_PORT_OVER_CURRENT,";
+        if (portchange & 0b10000)
+            status += "C_PORT_RESET,";
+        printf ("%s\n",status.c_str());
+
+    }
+    free(data);
+    return retval;
+}
+bool set_hub_port_feature2 (uint8_t target_device_address,uint8_t feature_selector,uint8_t port,uint8_t value)
+{
+    //bmRequestType, bRequest, wValue, wIndex, wLength
+    uint8_t cmd[] = {0b00100011,0x03,feature_selector,0,port,value,0,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
+}
+bool clear_hub_port_feature2 (uint8_t target_device_address,uint8_t feature_selector,uint8_t port,uint8_t value)
+{
+    //bmRequestType, bRequest, wValue, wIndex, wLength
+    uint8_t cmd[] = {0b00100011,0x01,feature_selector,0,port,value,0,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
+}
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// USB HID BOOT DEVICE INTERRUPT READOUT
 bool read_boot_mouse (uint8_t target_device_address,uint8_t mouse_endpoint_id,uint8_t mouse_millis,uint16_t mouse_in_packetsize)
 {
-    uint8_t direction = 0;
+    uint8_t endpoint_toggle = 0;
     while (true)
     {
-        uint8_t* buffer = data_in_transfer(mouse_in_packetsize, target_device_address,mouse_endpoint_id, max_packet_size, direction);
+        uint8_t* buffer = data_in_transfer(mouse_in_packetsize, target_device_address,mouse_endpoint_id, max_packet_size, endpoint_toggle);
+        if (buffer==NULL)
+            return false;
         uint8_t buttonstate = buffer[0];
         uint8_t x = buffer[1];
         uint8_t y = buffer[2];
@@ -752,10 +896,12 @@ bool read_boot_mouse (uint8_t target_device_address,uint8_t mouse_endpoint_id,ui
 }
 bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8_t millis,uint16_t in_packetsize)
 {
-    uint8_t direction = 0;
+    uint8_t endpoint_toggle = 0;
     while (true)
     {
-        uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, direction);
+        uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
+        if (buffer==NULL)
+            return false;
         uint8_t modifier_keys = buffer[0];
         uint8_t reserved = buffer[1];
         uint8_t keycode1 = buffer[2];
@@ -772,126 +918,536 @@ bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8
     }
     return true;
 }
+///////////////////////////////////////////////////////////////////////////
+// USB ETHERNET DEVICE INTERRUPT READOUT
+bool check_network_connection (uint8_t target_device_address,uint8_t endpoint_id,uint8_t millis,uint16_t in_packetsize)
+{
+    uint8_t endpoint_toggle = 0;
+    int count = 500;
+    bool result = false;
 
-#define DEV_ADDRESS 1
-#define BOOT_PROTOCOL 0
-#define HID_CLASS 0x03
-#define HID_BOOT 0x01
-#define HID_KEYBOARD 0x01
-#define HID_MOUSE 0x02
-int main(int argc, const char * argv[]) {
-    init_serial();
-    reset_all();
-    check_exists();
-    
-    //if (!set_usb_host_mode(CH375_USB_MODE_HOST))
-    //    error ("ERROR: host mode not succeeded\n");
-    bool result;
-    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
-    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
-        error ("ERROR: host mode not succeeded\n");
-    result = get_device_descriptor2();
+    struct _ecm_notification_event
+    {
+        uint8_t bmRequestType;
+        uint8_t bNotificationCode;
+        uint16_t wValue;
+        uint16_t wIndex;
+        uint16_t wLength;
+    } ecm_notification_event;
+    while (--count > 0 && !result)
+    {
+        uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
+        if (buffer==NULL)
+            return false;
+        memcpy (&ecm_notification_event,buffer,sizeof (_ecm_notification_event));
+        print_buffer (buffer,in_packetsize);
+        if (ecm_notification_event.bmRequestType == 0b10100001) // device to host, class, endpoint communication
+        {
+            switch (ecm_notification_event.bNotificationCode)
+            {
+                case 0x00: // NETWORK_CONNECTION
+                    //if (ecm_notification_event.wValue==0)
+                    //    printf ("network cable DISCONNECTED on interface %d\n",*(buffer+4));
+                    if (ecm_notification_event.wValue==1)
+                        result = true;
+                    //    printf ("network cable CONNECTED on interface %d\n",*(buffer+4));
+                    break;
+                case 0x01: // RESPONSE_AVAILABLE
+                    //printf ("response available on interface %d\n",*(buffer+4));
+                    break;
+                case 0x2A: // CONNECTION_SPEED_CHANGE
+                    //long speed_down = *(buffer+8) + *(buffer+9)*256+ *(buffer+10)*65536 + *(buffer+11)*4294967296;
+                    //long speed_up = *(buffer+12) + *(buffer+13)*256+ *(buffer+14)*65536 + *(buffer+15)*4294967296;
+                    //printf ("connection speed change on interface %d, %ld Mbps down / %ld Mbps up\n",*(buffer+4),speed_down/(8*1024*1024),speed_up/(8*1024*1024));
+                    break;
+            }
+        }
+        free (buffer);
+        std::this_thread::sleep_for(std::chrono::milliseconds(millis));
+    }
+    return result;
+}
+
+void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t in_packetsize)
+{
+    uint8_t endpoint_toggle = 0;
+    int count = 100;
+    while (--count)
+    {
+        printf ("\n%d:",count);
+        uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
+        if (buffer==NULL)
+            return;
+        if (buffer)
+            print_buffer (buffer,in_packetsize);
+        free (buffer);   
+    }
+}
+///////////////////////////////////////////////////////////////////////////
+// USB HUB DEVICE INTERRUPT READOUT
+uint8_t get_hub_change (uint8_t target_device_address,uint8_t endpoint_id,uint8_t millis,uint16_t in_packetsize)
+{
+    uint8_t value = 0;
+    uint8_t endpoint_toggle = 0;
+    uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
+    if (buffer==NULL)
+            return 0;
+    //print_buffer (buffer,in_packetsize);
+    value = buffer[0];
+    free (buffer);   
+    std::this_thread::sleep_for(std::chrono::milliseconds(millis));
+
+    return value;
+}
+
+bool get_descriptors (uint8_t address, uint8_t* buffer, int& buffer_length)
+{
+    uint8_t* buffer_ptr;
+
+    bool result = get_device_descriptor2(0,buffer, buffer_length);
     if (!result)
     {
         // 2-set to 1.5 Mhz low-speed mode, 0-set to 12 Mhz high-speed mode (default)
         set_speed(2);
-        result = get_device_descriptor2();
+        result = get_device_descriptor2(address,buffer, buffer_length);
     }
     if (!result)
         error("unable to get device descriptor");
-    
-    printf ("Manufacturer ID: %s\n",get_string2 (DEV_ADDRESS,device.iManufacturer).c_str());
-    printf ("Product ID: %s\n",get_string2 (DEV_ADDRESS,device.iProduct).c_str());
-    printf ("VID:PID: %04X:%04X\n",device.idVendor,device.idProduct);
-    printf ("Serial: %s\n",get_string2 (DEV_ADDRESS,device.iSerialNumber).c_str());
-    printf ("Device Class: %02X\n",device.bDeviceClass);
-    printf ("Device SubClass: %02X\n",device.bDeviceSubClass);
-    printf ("Device Protocol: %02X\n",device.bDeviceProtocol);
-    printf ("Number configurations: %02d\n",device.bNumConfigurations);
 
-    set_address2 (DEV_ADDRESS);
+    if (!set_address2 (address))
+            error ("error setting address");
+
     for (int i=0;i<device.bNumConfigurations;i++)
-        get_configuration_descriptor2(DEV_ADDRESS,i);
-    
-    int interface_nr = 0;
-    int hid_nr = 0;
-    int endpoint_nr = 0;
-    int ethernet_nr = 0;
-    uint8_t mouse_endpoint,mouse_millis,mouse_interface=255;
-    uint16_t mouse_packetsize;
-    uint8_t keyboard_endpoint,keyboard_millis,keyboard_interface=255;
-    uint16_t keyboard_packetsize;
-    for (int j=0;j<configs.size();j++)
     {
-        printf ("\nCONFIGURATION: %d\n",j);
-        printf ("Serial: %s\n",get_string2 (DEV_ADDRESS,configs[j].iConfiguration).c_str());
-        printf ("Configuration ID: %d\n",configs[j].bConfigurationvalue);
-        for (int i=0;i<configs[j].bNumInterfaces;i++)
+        buffer_ptr = buffer+buffer_length;
+        result = get_configuration_descriptor2(address,i,buffer_ptr,buffer_length);
+        if (!result)
+            error("unable to get config descriptor");
+    }
+    return true;
+}
+void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_length)
+{ 
+    USB_DEVICE_DESCRIPTOR* device;
+    USB_CONFIG_DESCRIPTOR* config;
+    USB_INTERF_DESCRIPTOR* interface;
+    USB_ENDPOINT_DESCRIPTOR* endpoint;
+    USB_HID_DESCRIPTOR* hid;
+    USB_ETHERNET_HEADER_DESCRIPTOR* header;
+    USB_ETHERNET_UNION_DESCRIPTOR* unione;
+    USB_ETHERNET_DESCRIPTOR* ethernet;
+    USB_HUB_DESCRIPTOR* hub;
+
+    uint8_t *ptr = buffer;
+    while (ptr<buffer+buffer_length)
+    {
+        std::string endpoint_type;
+        std::string endpoint_address_type;
+        std::string interface_class_name;
+        std::string interface_protocol_name;
+        std::string interface_subclass_name;
+        std::string device_class_name;
+        printf ("\n");
+        switch (*(ptr+1))
         {
-            printf ("\n\tINTERFACE: %d\n",interfaces[interface_nr].bInterfaceNumber);
-            printf ("\tName: %s\n",get_string2(DEV_ADDRESS, interfaces[interface_nr].iInterface).c_str());
-            printf ("\tInterface Class: %02X\n",interfaces[interface_nr].bInterfaceClass);
-            printf ("\tInterface SubClass: %02X\n",interfaces[interface_nr].bInterfaceSubClass);
-            printf ("\tInterface Protocol: %02X\n",interfaces[interface_nr].bInterfaceProtocol);
-            
-            if (interfaces[interface_nr].bInterfaceClass==HID_CLASS) // HID
-            {
-                const char* boot = interfaces[interface_nr].bInterfaceSubClass==HID_BOOT?"BOOT":"";
-                if (interfaces[interface_nr].bInterfaceProtocol==HID_KEYBOARD)
-                    printf ("\tHID Keyboard %s\n",boot);
-                if (interfaces[interface_nr].bInterfaceProtocol==HID_MOUSE)
-                    printf ("\tHID Mouse %s\n",boot);
-                printf ("\tHID: %d\n",hid_nr);
-                printf ("\tHID descriptor type: %0x\n",hids[hid_nr].descriptor_type);
-                printf ("\tHID descriptor length: %d\n",hids[hid_nr++].descriptor_length);
-            }
-            if (interfaces[interface_nr].bInterfaceClass==0x02 &&
-                interfaces[interface_nr].bInterfaceSubClass==0x06) // CDC, ECM
-            {
-                printf ("\tEthernet package size: %d\n",ethernets[ethernet_nr].wMaxSegmentSize);
-                printf ("\tMAC: %s\n",get_string2(DEV_ADDRESS, ethernets[ethernet_nr].iMACAddress).c_str());
-                ethernet_nr++;
-            }
-            for (int i=0;i<interfaces[interface_nr].bNumEndpoints;i++)
-            {
-                const char* direction = endpoints[endpoint_nr].bEndpointAddress&0b10000000?"IN":"OUT";
-                printf ("\tENDPOINT: %d %s\n",endpoint_nr,direction);
-                printf ("\tEndpoint address: %02X\n",endpoints[endpoint_nr].bEndpointAddress);
-                
-                if (interfaces[interface_nr].bInterfaceSubClass==HID_BOOT &&
-                    interfaces[interface_nr].bInterfaceProtocol==HID_MOUSE) {
-                    mouse_endpoint = endpoints[endpoint_nr].bEndpointAddress&0x0f;
-                    mouse_millis = endpoints[endpoint_nr].bInterval;
-                    mouse_packetsize = endpoints[endpoint_nr].wMaxPacketSize;
-                    mouse_interface = interfaces[interface_nr].bInterfaceNumber;
+            case 0x01: // DEVICE_DESCRIPTOR
+                device = (USB_DEVICE_DESCRIPTOR*) ptr;
+                printf ("Device Descriptor:\n");
+                printf ("  bLength\t\t\t%d\n",device->bLength);
+                printf ("  bDescriptorType\t\t%d\n",device->bDescriptorType);
+                printf ("  bcdUSB\t\t\t%d.%d\n",(device->bcdUSB & 0xff00)>>8, device->bcdUSB & 0xff);
+                if (device->bDeviceClass==0xff)
+                    device_class_name = "Vendor Specific Class";
+                if (device->bDeviceClass==0x02)
+                    device_class_name = "Communications";
+                if (device->bDeviceClass==0x03)
+                    device_class_name = "HID";
+                if (device->bDeviceClass==0x09)
+                    device_class_name = "Hub";
+                if (device->bDeviceClass==0x0A)
+                    device_class_name = "CDC Data";
+                printf ("  bDeviceClass\t\t\t%d\t%s\n",device->bDeviceClass,device_class_name.c_str());
+                printf ("  bDeviceSubClass\t\t%d\n",device->bDeviceSubClass);
+                printf ("  bDeviceProtocol\t\t%d\n",device->bDeviceProtocol);
+                printf ("  bMaxPacketSize0\t\t%d\n",device->bMaxPacketSize0);
+                printf ("  idVendor\t\t\t0x%04x\n",device->idVendor);
+                printf ("  idProduct\t\t\t0x%04x\n",device->idProduct);
+                printf ("  bcdDevice\t\t\t%d.%d\n",(device->bcdDevice & 0xff00)>>8, device->bcdDevice & 0xff);
+                printf ("  iManufacturer\t\t\t%d\n",device->iManufacturer);
+                printf ("  iProduct\t\t\t%d\t%s\n",device->iProduct,get_string2 (device_address,device->iProduct).c_str());
+                printf ("  iSerial\t\t\t%d\t%s\n",device->iSerial,get_string2 (device_address,device->iSerial).c_str());
+                printf ("  bNumConfigurations\t\t%d\n",device->bNumConfigurations);
+                ptr += *ptr;
+                break;
+            case 0x02: // CONFIG_DESCRIPTOR
+                config = (USB_CONFIG_DESCRIPTOR*) ptr;
+                printf ("  Configuration Descriptor:\n");
+                printf ("    bLength\t\t\t%d\n",config->bLength);
+                printf ("    bDescriptorType\t\t%d\n",config->bDescriptorType);
+                printf ("    wTotalLength\t\t%d\n",config->wTotalLength);
+                printf ("    bNumInterfaces\t\t%d\n",config->bNumInterfaces);
+                printf ("    bConfigurationvalue\t\t%d\n",config->bConfigurationvalue);
+                printf ("    iConfiguration\t\t%d\t%s\n",config->iConfiguration,get_string2 (device_address,config->iConfiguration).c_str());
+                printf ("    bmAttributes\t\t%d\n",config->bmAttributes);
+                printf ("    bMaxPower\t\t\t%d\n",config->bMaxPower);
+                device->bNumConfigurations--;
+                ptr += *ptr;
+                break;
+            case 0x04: // interface descriptor
+                interface = (USB_INTERF_DESCRIPTOR*) ptr;
+                printf ("    Interface Descriptor:\n");
+                printf ("      bLength\t\t\t%d\n",interface->bLength);
+                printf ("      bDescriptorType\t\t%d\n",interface->bDescriptorType);
+                printf ("      bInterfaceNumber\t\t%d\n",interface->bInterfaceNumber);
+                printf ("      bAlternateSetting\t\t%d\n",interface->bAlternateSetting);
+                printf ("      bNumEndpoints\t\t%d\n",interface->bNumEndpoints);
+                if (interface->bInterfaceClass==0xff)
+                    interface_class_name = "Vendor Specific Class";
+                if (interface->bInterfaceClass==0x02)
+                    interface_class_name = "Communications";
+                if (interface->bInterfaceClass==0x03)
+                    interface_class_name = "HID";
+                if (interface->bInterfaceClass==0x09)
+                    interface_class_name = "Hub";
+                if (interface->bInterfaceClass==0x0A)
+                    interface_class_name = "CDC Data";
+                printf ("      bInterfaceClass\t\t%d\t%s\n",interface->bInterfaceClass,interface_class_name.c_str());
+                if (interface->bInterfaceClass==0x03 && interface->bInterfaceSubClass==0x01)
+                    interface_subclass_name = "Boot";
+                if (interface->bInterfaceClass==0x02 && interface->bInterfaceSubClass==0x06)
+                {
+                    interface_subclass_name = "Ethernet Networking Control Model";
+                    ethernet_info = new _ethernet_info();
+                    ethernet_info->ethernet_control_interface = interface->bInterfaceNumber;
                 }
-                if (interfaces[interface_nr].bInterfaceSubClass==HID_BOOT &&
-                    interfaces[interface_nr].bInterfaceProtocol==HID_KEYBOARD) {
-                    keyboard_endpoint = endpoints[endpoint_nr].bEndpointAddress&0x0f;
-                    keyboard_millis = endpoints[endpoint_nr].bInterval;
-                    keyboard_packetsize = endpoints[endpoint_nr].wMaxPacketSize;
-                    keyboard_interface = interfaces[interface_nr].bInterfaceNumber;
+                if (interface->bInterfaceClass==0x0A && interface->bInterfaceSubClass==0x00)
+                {
+                    ethernet_info->ethernet_data_interface = interface->bInterfaceNumber;
+                    if (interface->bAlternateSetting!=0)
+                        ethernet_info->ethernet_alternate_setting = interface->bAlternateSetting;
                 }
-                endpoint_nr++;
-            }
-            
-            interface_nr++;
+                printf ("      bInterfaceSubClass\t%d\t%s\n",interface->bInterfaceSubClass,interface_subclass_name.c_str());
+                if (interface->bInterfaceClass==0x03 && interface->bInterfaceProtocol==0x01)
+                {
+                    interface_protocol_name = "Keyboard";
+                    if (!hid_info) hid_info = new _hid_info();
+                    hid_info->keyboard_interface = interface->bInterfaceNumber;
+                }
+                if (interface->bInterfaceClass==0x03 && interface->bInterfaceProtocol==0x02)
+                {
+                    interface_protocol_name = "Mouse";
+                    if (!hid_info) hid_info = new _hid_info();
+                    hid_info->mouse_interface = interface->bInterfaceNumber;
+                }
+                if (interface->bInterfaceClass==0x09 && interface->bInterfaceProtocol==0x00)
+                {
+                    interface_protocol_name = "No TT";
+                    if (!hub_info) hub_info = new _hub_info();
+                    hub_info->hub_interface = interface->bInterfaceNumber;
+                }
+                if (interface->bInterfaceClass==0x09 && interface->bInterfaceProtocol==0x01)
+                {
+                    interface_protocol_name = "Single TT";
+                    if (!hub_info) hub_info = new _hub_info();
+                    hub_info->hub_interface = interface->bInterfaceNumber;
+                }
+                if (interface->bInterfaceClass==0x09 && interface->bInterfaceProtocol==0x02)
+                {
+                    interface_protocol_name = "Multi TT";
+                    if (!hub_info) hub_info = new _hub_info();
+                    hub_info->hub_interface = interface->bInterfaceNumber;
+                }
+                printf ("      bInterfaceProtocol\t%d\t%s\n",interface->bInterfaceProtocol,interface_protocol_name.c_str());
+                printf ("      iInterface\t\t%d\t%s\n",interface->iInterface,get_string2 (device_address,interface->iInterface).c_str());
+                ptr += *ptr;
+                break;
+            case 0x05: // endpoint descriptor
+                endpoint = (USB_ENDPOINT_DESCRIPTOR*) ptr;
+                printf ("    Endpoint Descriptor:\n");
+                printf ("      bLength\t\t\t%d\n",endpoint->bLength);
+                printf ("      bDescriptorType\t\t%d\n",endpoint->bDescriptorType);
+                endpoint_address_type = endpoint->bEndpointAddress&0b10000000 ? "IN" : "OUT";
+                printf ("      bEndpointAddress\t\t%d\t%s\n",endpoint->bEndpointAddress&0b01111111,endpoint_address_type.c_str());
+                if ((endpoint->bmAttributes&0b00000011) == 0b00)
+                    endpoint_type = "Control";
+                if ((endpoint->bmAttributes&0b00000011) == 0b01)
+                    endpoint_type = "Isochronous";
+                if ((endpoint->bmAttributes&0b00000011) == 0b10)
+                    endpoint_type = "Bulk";
+                if ((endpoint->bmAttributes&0b00000011) == 0b11)
+                    endpoint_type = "Interrupt";
+                printf ("      bmAttributes\t\t%d\t%s\n",endpoint->bmAttributes,endpoint_type.c_str());
+                printf ("      wMaxPacketSize\t\t%d\n",endpoint->wMaxPacketSize);
+                printf ("      bInterval\t\t\t%d\n",endpoint->bInterval);
+                if (interface->bInterfaceClass==0x03 && interface->bInterfaceProtocol==0x01) // keyboard
+                {
+                    hid_info->keyboard_endpoint = endpoint->bEndpointAddress&0b01111111;
+                    hid_info->keyboard_packetsize = endpoint->wMaxPacketSize;
+                    hid_info->keyboard_millis = endpoint->bInterval;
+                    hid_info->hid_configuration_id = config->bConfigurationvalue;
+                }
+                if (interface->bInterfaceClass==0x03 && interface->bInterfaceProtocol==0x02) // mouse
+                {
+                    hid_info->mouse_endpoint = endpoint->bEndpointAddress&0b01111111;
+                    hid_info->mouse_packetsize = endpoint->wMaxPacketSize;
+                    hid_info->mouse_millis = endpoint->bInterval;
+                    hid_info->hid_configuration_id = config->bConfigurationvalue;
+                }
+                if (interface->bInterfaceClass==0x02 && interface->bInterfaceSubClass==0x06) // ethernet control
+                {
+                    if ((endpoint->bmAttributes&0b00000011) == 0b11) // interrupt
+                    {
+                        ethernet_info->ethernet_interrupt_endpoint = endpoint->bEndpointAddress&0b01111111;
+                        ethernet_info->ethernet_interrupt_millis = endpoint->bInterval;
+                        ethernet_info->ethernet_interrupt_packetsize = endpoint->wMaxPacketSize;
+                    }
+                    ethernet_info->ethernet_configuration_id = config->bConfigurationvalue;
+                }
+                if (interface->bInterfaceClass==0x0a && interface->bInterfaceSubClass==0x00) // ethernet data
+                {
+                    if ((endpoint->bmAttributes&0b00000011) == 0b10 && endpoint->bEndpointAddress&0b10000000) // bulk IN
+                    {
+                        ethernet_info->ethernet_bulk_in_endpoint = endpoint->bEndpointAddress&0b01111111;
+                        ethernet_info->ethernet_bulk_in_packetsize = endpoint->wMaxPacketSize;
+                    }      
+                    if ((endpoint->bmAttributes&0b00000011) == 0b10 && !(endpoint->bEndpointAddress&0b10000000)) // bulk OUT
+                    {
+                        ethernet_info->ethernet_bulk_out_endpoint = endpoint->bEndpointAddress&0b01111111;
+                        ethernet_info->ethernet_bulk_out_packetsize = endpoint->wMaxPacketSize;
+                    }                     
+                }
+                if (interface->bInterfaceClass==0x09 && (endpoint->bmAttributes&0b00000011) == 0b11) // interrupt
+                {
+                    hub_info->hub_interrupt_endpoint = endpoint->bEndpointAddress&0b01111111;
+                    hub_info->hub_interrupt_packetsize = endpoint->wMaxPacketSize;
+                    hub_info->hub_interrupt_millis = endpoint->bInterval;
+                    hub_info->hub_configuration_id = config->bConfigurationvalue;
+                }
+                ptr += *ptr;
+                break;
+            case 0x21: // HID descriptor
+                hid = (USB_HID_DESCRIPTOR*) ptr;
+                printf ("      HID Descriptor:\n");
+                printf ("        bLength\t\t\t%d\n",hid->bLength);
+                printf ("        bDescriptorType\t\t%d\n",hid->bDescriptorType);
+                printf ("        bcdHID\t\t\t%d.%d\n",(hid->hid_version & 0xff00)>>8, hid->hid_version & 0xff);
+                printf ("        bCountryCode\t\t%d\n",hid->country_code);
+                printf ("        bNumDescriptors\t\t%d\n",hid->num_descriptors);
+                printf ("        bDescriptorType\t\t%d\n",hid->descriptor_type);
+                printf ("        wDescriptorLength\t%d\n",hid->descriptor_length);
+                ptr += *ptr;
+                break;
+            case 0x24: // CDC ECM / CS_INTERFACE
+                printf ("    CDC ECM ");
+                switch (*(ptr+2)) // subtype
+                {
+                    case 0x00: // header
+                        printf ("header\n");
+                        header = (USB_ETHERNET_HEADER_DESCRIPTOR*) ptr;
+                        printf ("      bcdCDC\t\t\t%d.%d\n",(header->bcdCDC & 0xff00)>>8, header->bcdCDC & 0xff);
+                        break;
+                    case 0x06: // union
+                        printf ("union\n");
+                        unione = (USB_ETHERNET_UNION_DESCRIPTOR*) ptr;
+                        printf ("      bControlInterface\t\t%d\n",unione->bControlInterface);
+                        printf ("      bSubordinateInterface0\t%d\n",unione->bSubordinateInterface0);
+                        break;
+                    case 0x0f: // ethernet
+                        printf ("ethernet\n");
+                        ethernet = (USB_ETHERNET_DESCRIPTOR*) ptr;
+                        printf ("      MAC\t\t\t%s\n",get_string2(device_address, ethernet->iMACAddress).c_str());
+                        printf ("      wMaxSegmentSize\t\t%d\n",ethernet->wMaxSegmentSize);
+                        break;
+                    default:
+                        printf ("unknown %02x\n",*(ptr+2));
+                }
+                ptr += *(ptr);
+                break;
+            case 0x29: // HUB
+                hub = (USB_HUB_DESCRIPTOR*) ptr;
+                printf ("  Hub Descriptor:\n");
+                printf ("    bLength\t\t\t%d\n",hub->bLength);
+                printf ("    bDescriptorType\t\t%x\n",hub->bDescriptorType);
+                printf ("    bNrPorts\t\t\t%d\n",hub->bNrPorts);
+                printf ("    wHubCharacteristics\t\t%x\n",hub->wHubCharacteristics);
+                printf ("    bPwrOn2PwrGood\t\t%d\n",hub->bPwrOn2PwrGood);
+                printf ("    bHubContrCurrent\t\t%d\n",hub->bHubContrCurrent);
+                ptr += *(ptr);
+                break;
+            default:
+                printf ("Unknown type: %02x\n",*(ptr+1));
+                ptr += *ptr;
+                break;
         }
     }
+}
+void do_hid (uint8_t device_address);
+void do_ethernet (uint8_t device_address);
+void do_hub (uint8_t device_address);
+
+void init_device (uint8_t device_address)
+{
+    uint8_t buffer[1024];
+    int buffer_length;
+    hid_info=NULL;
+    hub_info=NULL;
+    ethernet_info=NULL;
+
+    memset (buffer, 0, 1024);
+    bool result = get_descriptors (device_address,buffer, buffer_length);
+    if (!result)
+        error("unable to get descriptors");
+
+    print_descriptors (device_address, buffer, buffer_length);
+    
+    if (hid_info)
+        do_hid (device_address);
+    if (ethernet_info)
+        do_ethernet (device_address);
+    if (hub_info)
+        do_hub (device_address);
+}
+void do_hid (uint8_t device_address)
+{
     // USB HID?
-    if (mouse_interface!=255 && keyboard_interface!=255)
+    if (hid_info && hid_info->hid_configuration_id>0)
     {
-        // enable device configuration
-        set_configuration2(DEV_ADDRESS,configs[0].bConfigurationvalue);
-        // set boot protocol for mouse and read it
-        set_protocol2 (DEV_ADDRESS,BOOT_PROTOCOL,mouse_interface); // select boot protocol for our device
-        //set_idle2(DEV_ADDRESS, 0x0, 0,mouse_interface); // wait on change
-        // set boot protocol for keyboard and read it
-        set_protocol2 (DEV_ADDRESS,BOOT_PROTOCOL,keyboard_interface); // select boot protocol for our device
-        set_idle2(DEV_ADDRESS, 0x80, 0,keyboard_interface); // scan every ~500ms
-        
-        read_boot_keyboard (DEV_ADDRESS,keyboard_endpoint,keyboard_millis,keyboard_packetsize); // assume endpoint 2
-        //read_boot_mouse (DEV_ADDRESS,mouse_endpoint,mouse_millis,mouse_packetsize); // assume endpoint 2
+        printf ("\nWe found an USB HID device, lets start using it.\n");
+        if (hid_info->mouse_interface!=255 && hid_info->keyboard_interface!=255)
+        {
+            // enable device configuration
+            if (!set_configuration2(device_address,hid_info->hid_configuration_id))
+                error ("error setting HID configuration");
+            // set boot protocol for mouse and read it
+            //if (!set_protocol2 (device_address,BOOT_PROTOCOL,hid_info->mouse_interface)) // select boot protocol for our device
+            //    error ("error setting boot protocol for mouse");
+            //set_idle2(device_address, 0x0, 0,mouse_interface); // wait on change
+            // set boot protocol for keyboard and read it
+            if (!set_protocol2 (device_address,BOOT_PROTOCOL,hid_info->keyboard_interface)) // select boot protocol for our device
+                error ("error setting boot protocol for keyboard");
+            set_idle2(device_address, 0x80, 0,hid_info->keyboard_interface); // scan every ~500ms
+            
+            read_boot_keyboard (device_address,hid_info->keyboard_endpoint,hid_info->keyboard_millis,hid_info->keyboard_packetsize); // assume endpoint 2
+            //read_boot_mouse (device_address,mouse_endpoint,mouse_millis,mouse_packetsize); // assume endpoint 2
+        }
     }
+}
+void do_ethernet (uint8_t device_address)
+{
+    if (ethernet_info && ethernet_info->ethernet_configuration_id>0)
+    {
+        printf ("\nWe found an USB CDC ECM device, lets start using it.\n");
+        if (ethernet_info->ethernet_control_interface==255 || ethernet_info->ethernet_data_interface==255)
+            return; 
+        // enable device configuration
+        if (!set_configuration2(device_address,ethernet_info->ethernet_configuration_id))
+            error ("error setting Ethernet configuration");
+        // set alternate interface
+        if (!set_interface2 (device_address,ethernet_info->ethernet_data_interface,ethernet_info->ethernet_alternate_setting))
+            error ("error setting alternate interface");
+
+        //set_retry (0xff);    
+        // check if the network cable is connected
+        bool result = check_network_connection (device_address,ethernet_info->ethernet_interrupt_endpoint,ethernet_info->ethernet_interrupt_millis,ethernet_info->ethernet_interrupt_packetsize);
+        if (!result)
+            error ("please connect a network cable");
+        else
+        {
+            printf ("network cable connected\n");
+            const uint8_t PACKET_TYPE_MULTICAST =       0b00010000;
+            const uint8_t PACKET_TYPE_BROADCAST =       0b00001000;
+            const uint8_t PACKET_TYPE_DIRECTED =        0b00000100;
+            const uint8_t PACKET_TYPE_ALL_MULTICAST =   0b00000010;
+            const uint8_t PACKET_TYPE_PROMISCUOUS =     0b00000001;
+            if (!set_packet_filter2 (device_address,ethernet_info->ethernet_control_interface,PACKET_TYPE_PROMISCUOUS))
+                error ("error setting packet filter");
+            dump_in_packets (device_address,ethernet_info->ethernet_bulk_in_endpoint,ethernet_info->ethernet_bulk_in_packetsize);
+        }
+        //set_retry (0x8f);
+    }
+}
+
+void do_hub (uint8_t device_address)
+{
+    if (hub_info && hub_info->hub_configuration_id>0)
+    {
+        if (hub_info->hub_interface==255)
+            return;
+        // enable device configuration
+        if (!set_configuration2(device_address,hub_info->hub_configuration_id))
+            error ("error setting Hub configuration");
+
+        int length;
+        USB_HUB_DESCRIPTOR* hub = new USB_HUB_DESCRIPTOR();
+        bool result = get_hub_descriptor2(device_address,(uint8_t*) hub,length);
+        if (!result)
+            error("unable to get hub descriptor");
+        printf ("  Hub Descriptor:\n");
+        printf ("    bLength\t\t\t%d\n",hub->bLength);
+        printf ("    bDescriptorType\t\t%x\n",hub->bDescriptorType);
+        printf ("    bNrPorts\t\t\t%d\n",hub->bNrPorts);
+        printf ("    wHubCharacteristics\t\t%x\n",hub->wHubCharacteristics);
+        printf ("    bPwrOn2PwrGood\t\t%d\n",hub->bPwrOn2PwrGood);
+        printf ("    bHubContrCurrent\t\t%d\n",hub->bHubContrCurrent);
+        printf ("    DeviceRemovable\t\t%x\n",hub->DeviceRemovable);
+        printf ("    PortPwrCtrlMask\t\t%x\n",hub->PortPwrCtrlMask);
+
+        uint32_t status;
+        const int PORT_POWER = 8;
+        const int PORT_RESET = 4;
+        const int PORT_LOW_SPEED = 9;
+        const int C_PORT_RESET = 0x14;
+        const int C_PORT_CONNECTION = 0x10;
+        const int HUB_PORT_NUMBER = 1;
+        const uint8_t HUB_PORT_BITMASK = (1 << (HUB_PORT_NUMBER));
+        for (int i=1;i<=hub->bNrPorts;i++)
+        {
+            if (!set_hub_port_feature2 (device_address,PORT_POWER,i,0)) // power all ports
+                error ("error powering Hub port");
+        }   
+        //if (!set_hub_port_feature2 (device_address,PORT_POWER,HUB_PORT_NUMBER,0)) // power all ports
+        //        error ("error powering Hub port");
+        delete hub;
+
+        // wait something happens on any of the powered ports
+        while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
+        if (!clear_hub_port_feature2 (device_address,C_PORT_CONNECTION,HUB_PORT_NUMBER,0))// clear C_PORT_CONNECTION feature
+            error ("error clearing feature Hub port");
+        usleep (100000); // wait 100msec
+
+        // check if low speed
+        status = get_hub_portstatus (device_address,HUB_PORT_NUMBER)&0xffff;
+        if (status&0x0200) // low speed
+        {
+            // no idea to handle this...
+        }
+
+        if (!set_hub_port_feature2 (device_address,PORT_RESET,HUB_PORT_NUMBER,0)) // reset port 1
+            error ("error resetting Hub port 1");
+        // wait for change of port 1 => bit 2
+        while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
+        status = get_hub_portstatus (device_address,HUB_PORT_NUMBER);
+        if (!clear_hub_port_feature2 (device_address,C_PORT_RESET,HUB_PORT_NUMBER,0))// clear C_PORT_RESET feature
+            error ("error clearing feature Hub port");
+        
+        // endpoint 0 should now be equal to the resetted device
+        init_device (device_address+1);
+    }
+}
+
+int main(int argc, const char * argv[]) 
+{
+    init_serial();
+    reset_all();
+    check_exists();
+
+    bool result;
+    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
+    sleep (1);
+    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
+        error ("ERROR: host mode not succeeded\n");
+
+    init_device (DEV_ADDRESS);
+        
     return 0;
 }
