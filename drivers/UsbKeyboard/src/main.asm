@@ -65,8 +65,6 @@ START_BASIC:
     ; hook the TSR to H.CHGE
     call HOOK_TSR_HCHGE
     ret c
-    ; hook the TSR to UNAPI
-    ;call HOOK_TSR_UNAPI
     
     ret 
 
@@ -311,38 +309,7 @@ ALLOC_SEG:
     or a
     ret 
 
-READSLT_P1:
- 	CALL	RSLREG	;read primary slot #
-	RRCA			;move it to bit 0,1 of [Acc]
-	RRCA
-	AND	00000011B
-	LD	C,A
-	LD	B,0
-	LD	HL,EXPTBL	;see if this slot is expanded or not
-	ADD	HL,BC
-	LD	C,A		    ;save primary slot #
-	LD	A,(HL)		;See if the slot is expanded or not
-	AND	80H
-	OR	C		    ;set MSB if so
-	LD	C,A		    ;save it to [C]
-	INC	HL		    ;Point to same page in SLTTBL entry
-	INC	HL
-	INC	HL
-	INC	HL
-	LD	A,(HL)		;Get what is currently output
-				    ;to expansion slot register
-	AND	00001100B
-	OR	C		    ;Finally form slot address
-    ret
-
 COPY_TSR_SEG:
-    ; current slot in page 1?
-    ;call READSLT_P1
-    ;push af
-    ; select mapper in page 1
-    ;ld a, (MAPPER_SLOT)
-    ;ld h, 40h
-    ;call ENASLT
     ; check old segment in page 1
     call _GET_P2
     push af
@@ -362,21 +329,11 @@ COPY_TSR_SEG:
     ; map old segment into page 2
     pop af
     call _PUT_P2
-    ; old slot back in page 1
-    ;pop af
-    ;ld h, 40h
-    ;call ENASLT
 
     ld hl, TXT_TSR_COPIED
     call PRINT
     or a
     ret 
-    
-;HOOK_TSR_UNAPI:
-;    ld hl, TXT_UNAPI_HOOKED
-;    call PRINT
-;    or a
-;    ret
 
 HOOK_TSR_HCHGE:
     ; Get MSX USB scratch area

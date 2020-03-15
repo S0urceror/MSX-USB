@@ -1,5 +1,5 @@
 ;
-; unapi.ASM - UNAPI compliant MSX USB driver
+; unapi.ASM - UNAPI entry point made to work with memory mapper
 ; Copyright (c) 2020 Mario Smit (S0urceror)
 ; 
 ; This program is free software: you can redistribute it and/or modify  
@@ -14,43 +14,6 @@
 ; You should have received a copy of the GNU General Public License 
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 ;
-ARG:    equ  0F847h
-HOKVLD: equ  0FB20h
-EXPTBL: equ  0FCC1h
-EXTBIO: equ  0FFCAh
-SLTWRK: equ  0FD09h
-
-HOOK_EXTBIO:
-    ld  a,(HOKVLD)
-    bit  0,a
-    jr  nz,OK_INIEXTB
-    ; overwrite EXTBIO with RET's
-    ld  hl,EXTBIO
-    ld  de,EXTBIO+1
-    ld  bc,5-1
-    ld  (hl),0C9h  ;code for RET
-    ldir
-    or  1
-    ld  (HOKVLD),a
-OK_INIEXTB:
-    ;--- Save previous EXTBIO hook
-    call  GETSLT
-    call  GETWRK
-    ex  de,hl
-    ld  hl,EXTBIO
-    ld  bc,5
-    ldir
-
-    ;--- Patch EXTBIO hook
-    di
-    ld  a,0F7h  ;code for "RST 30h"
-    ld  (EXTBIO),a
-    call  GETSLT
-    ld  (EXTBIO+1),a
-    ld  hl,DO_EXTBIO
-    ld  (EXTBIO+2),hl
-    ei
-    ret
 
 DO_EXTBIO:
     push  hl
@@ -81,8 +44,8 @@ LOOP:
     push  af
     inc  a
     jr  z,JUMP_OLD2
-    call  GETSLT
-    call  GETWRK
+
+    ld hl, TSR_OLD_EXTBIO
     pop  af
     pop  bc
     or  a
@@ -101,9 +64,10 @@ DO_EXTBIO2:
     jr  nz,DO_EXTBIO3
     ; our implementation, return address and slot
     pop  hl
-    call  GETSLT
-    ld  b,0FFh
-    ld  hl,UNAPI_ENTRY
+    ld  a, (TSR_MAPPER_SEGMENT)
+    ld  b,a
+    ld  a, (TSR_MAPPER_SLOT)
+    ld  hl, UNAPI_ENTRY
     ld  de,2222h
     ret
 
@@ -120,10 +84,7 @@ JUMP_OLD2:
     ld  de,2222h
 JUMP_OLD:  
     ;Assumes "push hl,bc,af" done
-    push  de
-    call  GETSLT
-    call  GETWRK
-    pop  de
+    ld hl, TSR_OLD_EXTBIO
     pop  af
     pop  bc
     ex  (sp),hl
@@ -161,7 +122,6 @@ UNAPI_UNDEFINED:
     pop  hl
     ret
 
-
 ;****************************
 ;***  AUXILIARY ROUTINES  ***
 ;****************************
@@ -174,58 +134,3 @@ TOUPPER:
   ret  nc
   and  0DFh
   ret
-
-    ;--- Get slot connected on page 1
-    ;    Input:  -
-    ;    Output: A = Slot number
-    ;    Modifies: AF, HL, E, BC
-GETSLT:
-    di
-    exx
-    in  a,(0A8h)
-    ld  e,a
-    and  00001100b
-    sra  a
-    sra  a
-    ld  c,a  ;C = Slot
-    ld  b,0
-    ld  hl,EXPTBL
-    add  hl,bc
-    bit  7,(hl)
-    jr  z,NOEXP1
-EXP1:  
-    inc  hl
-    inc  hl
-    inc  hl
-    inc  hl
-    ld  a,(hl)
-    and  00001100b
-    or  c
-    or  80h
-    ld  c,a
-NOEXP1:  
-    ld  a,c
-    exx
-    ei
-    ret
-
-    ;--- Obtain slot work area (8 bytes) on SLTWRK
-    ;    Input:  A  = Slot number
-    ;    Output: HL = Work area address
-    ;    Modifies: AF, BC
-GETWRK:
-    ld  b,a
-    rrca
-    rrca
-    rrca
-    and  01100000b
-    ld  c,a  ;C = Slot * 32
-    ld  a,b
-    rlca
-    and  00011000b  ;A = Subslot * 8
-    or  c
-    ld  c,a
-    ld  b,0
-    ld  hl,SLTWRK
-    add  hl,bc
-    ret

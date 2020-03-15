@@ -59,6 +59,7 @@ HL+0018: ExecuteControlTransfer
 HL+0020: DataInTransfer
 HL+0028: DataOutTransfer
 HL+0030: ScratchArea
+HL+0038: SetNAKRetry
 ```
 ## Check (UNAPI:2/JT:00h)
 Check if specialised USB hardware is present, like RookieDrive or MSXUSB cartridge.
@@ -121,4 +122,18 @@ Get a pointer to the scratch area allocated by moving HIMEM down. Scratch area i
 ```
 Input:  BC = delta in bytes should >0 and < size of scratch area (8*8 bytes currently)
 Output: HL = pointer to scratch area in page 3
+```
+
+## SetNAKRetry (JT:38h)
+Tell USB interface how to handle NAK's. NAK's mostly happen when the device is not yet ready. 
+By default the CH376s hardware will automatically retry NAK's until the device is ready and gives back the requested data. But what if the device takes a long time? This will potentially lead to a blocking operation. If you want to avoid this you can set retry's to off or to 3 seconds.
+```
+Input:  A = retry mode
+        Bits 7 and 6:
+          0x: Don't retry NAKs
+          10: Retry NAKs indefinitely (default)
+          11: Retry NAKs for 3s
+        Bits 5-0: Number of retries after device timeout
+        Default after reset and SET_USB_MODE is 8Fh
+Output: (none)
 ```

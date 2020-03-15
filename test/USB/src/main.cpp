@@ -396,13 +396,11 @@ void set_retry (uint8_t mode)
     writeData (0x25); // fixed value, required
     writeData (mode);
 }
-
 void set_speed (uint8_t speed)
 {
     writeCommand (CH375_CMD_SET_USB_SPEED);
     writeData(speed);
 }
-
 void set_address (uint8_t address)
 {
      writeCommand (CH375_CMD_SET_ADDRESS);
@@ -440,60 +438,6 @@ bool get_device_descriptor ()
         error ("ERROR: USB device descriptor not read 3\n");
     return true;
 }
-/*
-void get_configuration_descriptor ()
-{
-    uint8_t value;
-    ssize_t bytes;
-    
-    writeCommand(CH375_CMD_GET_DESCR);
-    writeData(CH375_USB_CONFIGURATION_DESCRIPTOR);
-    uint8_t interrupt = waitInterrupt();
-    if (interrupt==CH375_USB_INT_BUF_OVER)
-        error ("ERROR: USB config descriptor is too large [1]\n");
-    if (interrupt!=CH375_USB_INT_SUCCESS)
-        error ("ERROR: USB config descriptor not read [1]\n");
-    writeCommand(CH375_CMD_RD_USB_DATA);
-    // read length of return package
-    value = 0;
-    bytes = readData(&value);
-    USB_CONFIG_DESCRIPTOR config;
-    if (bytes==1 && value >= sizeof (USB_CONFIG_DESCRIPTOR))
-    {
-        bytes = readDataMultiple ((uint8_t*)&config,sizeof (USB_CONFIG_DESCRIPTOR));
-        if (bytes!=sizeof (USB_CONFIG_DESCRIPTOR))
-            error ("ERROR: USB config descriptor not read [2]\n");
-        configs.push_back(config);
-    }
-    else
-        error ("ERROR: USB config descriptor not read [3]\n");
-    for (int i=0;i<config.bNumInterfaces;i++)
-    {
-        USB_INTERF_DESCRIPTOR interface;
-        bytes = readDataMultiple ((uint8_t*)&interface,sizeof (USB_INTERF_DESCRIPTOR));
-        if (bytes!=sizeof(USB_INTERF_DESCRIPTOR))
-            error ("ERROR: USB interface descriptor not read");
-        interfaces.push_back(interface);
-        
-        if (interface.bInterfaceClass==0x03) // HID
-        {
-            USB_HID_DESCRIPTOR hid;
-            bytes = readDataMultiple ((uint8_t*)&hid,sizeof (USB_HID_DESCRIPTOR));
-            if (bytes!=sizeof(USB_HID_DESCRIPTOR))
-                error ("ERROR: USB HID descriptor not read");
-            hids.push_back(hid);
-        }
-        for (int j=0;j<interface.bNumEndpoints;j++)
-        {
-            USB_ENDPOINT_DESCRIPTOR endpoint;
-            bytes = readDataMultiple ((uint8_t*)&endpoint,sizeof (USB_ENDPOINT_DESCRIPTOR));
-            if (bytes!=sizeof(USB_ENDPOINT_DESCRIPTOR))
-                error ("ERROR: USB endpoint descriptor not read");
-            endpoints.push_back(endpoint);
-        }
-    }
-}
-*/
 
 // Higher level USB read/write
 ///////////////////////////////////////////////////////////////////////////
@@ -527,13 +471,14 @@ ssize_t read_usb_data (uint8_t* pBuffer)
 
 // USB data packet input
 ///////////////////////////////////////////////////////////////////////////
-uint8_t* data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle)
+int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle,uint8_t* &result)
 {
     uint16_t remaining_data_length = length;
-    uint8_t* pBuffer = (uint8_t*) malloc (length);
-    bzero(pBuffer, length);
-    uint8_t* pTemp = pBuffer;
+    result = (uint8_t*) malloc (length);
+    bzero(result, length);
+    uint8_t* pTemp = result;
     uint8_t status;
+    int bytes_read=0;
     
     set_target_device_address(target_device_address);
     
@@ -546,32 +491,35 @@ uint8_t* data_in_transfer (uint16_t length, uint8_t target_device_address, uint8
             if ((status&0x2f)==0b00101010) // 2A
             {
                 printf (">> NAK <<\n");
-                free (pBuffer);
-                return NULL;
+                free (result);
+                result = NULL;
+                return 0;
             }
             if ((status&0x2f)==0b00101110) // 2E
             {
                 printf (">> STALL <<\n");
-                free (pBuffer);
-                return NULL;
+                free (result);
+                result = NULL;
+                return 0;
             }
             if ((status&0x23)==0b00100000) // 20
             {
                 printf (">> OVER TIME <<\n");
-                free (pBuffer);
-                return NULL;
+                free (result);
+                result = NULL;
+                return 0;
             }
             printf (">> UNEXPECTED 0x%x <<\n",status);
             endpoint_toggle = endpoint_toggle ^ 1; // extra toggle, maybe out of sync?
         }; 
-        ssize_t bytes = read_usb_data (pTemp);
-        remaining_data_length -= bytes;
-        pTemp += bytes;
+        bytes_read = read_usb_data (pTemp);
+        remaining_data_length -= bytes_read;
+        pTemp += bytes_read;
         
-        if (bytes<endpoint_packetsize)
+        if (bytes_read<endpoint_packetsize)
             break;
     }
-    return pBuffer;
+    return bytes_read;
 }
 
 // USB data packet output
@@ -619,7 +567,7 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
     uint8_t endpoint_toggle = 1;
     if (data_direction==IN)
     {
-        result = data_in_transfer(requested_length, target_device_address, 0, endpoint_packet_size, endpoint_toggle);
+        int bytes_read = data_in_transfer(requested_length, target_device_address, 0, endpoint_packet_size, endpoint_toggle,result);
         if (result==NULL)
             return false;
     }
@@ -880,8 +828,9 @@ bool read_boot_mouse (uint8_t target_device_address,uint8_t mouse_endpoint_id,ui
     uint8_t endpoint_toggle = 0;
     while (true)
     {
-        uint8_t* buffer = data_in_transfer(mouse_in_packetsize, target_device_address,mouse_endpoint_id, max_packet_size, endpoint_toggle);
-        if (buffer==NULL)
+        uint8_t* buffer=NULL;
+        int bytes_read = data_in_transfer(mouse_in_packetsize, target_device_address,mouse_endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        if (bytes_read==0 || buffer==NULL)
             return false;
         uint8_t buttonstate = buffer[0];
         uint8_t x = buffer[1];
@@ -899,8 +848,9 @@ bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8
     uint8_t endpoint_toggle = 0;
     while (true)
     {
-        uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
-        if (buffer==NULL)
+        uint8_t* buffer = NULL;
+        int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        if (bytes_read==0 || buffer==NULL)
             return false;
         uint8_t modifier_keys = buffer[0];
         uint8_t reserved = buffer[1];
@@ -936,8 +886,9 @@ bool check_network_connection (uint8_t target_device_address,uint8_t endpoint_id
     } ecm_notification_event;
     while (--count > 0 && !result)
     {
-        uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
-        if (buffer==NULL)
+        uint8_t* buffer = NULL; 
+        int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        if (bytes_read==0 || buffer==NULL)
             return false;
         memcpy (&ecm_notification_event,buffer,sizeof (_ecm_notification_event));
         print_buffer (buffer,in_packetsize);
@@ -971,17 +922,40 @@ bool check_network_connection (uint8_t target_device_address,uint8_t endpoint_id
 void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t in_packetsize)
 {
     uint8_t endpoint_toggle = 0;
-    int count = 100;
-    while (--count)
+    int count = 20;
+    int packet_nr = 1;
+    bool first_packet = true;
+    set_retry (0x0f);
+    while (count)
     {
-        printf ("\n%d:",count);
-        uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
+        uint8_t* buffer = NULL;
+        int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
         if (buffer==NULL)
-            return;
-        if (buffer)
+            continue;
+        if (first_packet)
+        {
+            printf ("\n%d - dst: %02x:%02x:%02x:%02x:%02x:%02x - src: %02x:%02x:%02x:%02x:%02x:%02x - type: %04x",
+                packet_nr,
+                *(buffer+0),*(buffer+1),*(buffer+2),*(buffer+3),*(buffer+4),*(buffer+5), // dst
+                *(buffer+6),*(buffer+7),*(buffer+8),*(buffer+9),*(buffer+10),*(buffer+11), // src
+                ((*(buffer+12))<<8)+((*(buffer+13)))); // EtherType
+        }
+        if (!(bytes_read == 0 || buffer==NULL))
+        {
             print_buffer (buffer,in_packetsize);
-        free (buffer);   
+            free (buffer);   
+        }
+        // more following or next packet?
+        if (bytes_read < in_packetsize)
+        {
+            first_packet = true;
+            packet_nr++;
+            count --;
+        }
+        else 
+            first_packet = false;
     }
+    set_retry (0x8f);
 }
 ///////////////////////////////////////////////////////////////////////////
 // USB HUB DEVICE INTERRUPT READOUT
@@ -989,14 +963,14 @@ uint8_t get_hub_change (uint8_t target_device_address,uint8_t endpoint_id,uint8_
 {
     uint8_t value = 0;
     uint8_t endpoint_toggle = 0;
-    uint8_t* buffer = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle);
-    if (buffer==NULL)
-            return 0;
+    uint8_t* buffer = NULL;
+    int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+    if (bytes_read == 0 || buffer==NULL)
+        return 0;
     //print_buffer (buffer,in_packetsize);
     value = buffer[0];
     free (buffer);   
     std::this_thread::sleep_for(std::chrono::milliseconds(millis));
-
     return value;
 }
 
@@ -1359,7 +1333,7 @@ void do_ethernet (uint8_t device_address)
             const uint8_t PACKET_TYPE_DIRECTED =        0b00000100;
             const uint8_t PACKET_TYPE_ALL_MULTICAST =   0b00000010;
             const uint8_t PACKET_TYPE_PROMISCUOUS =     0b00000001;
-            if (!set_packet_filter2 (device_address,ethernet_info->ethernet_control_interface,PACKET_TYPE_PROMISCUOUS))
+            if (!set_packet_filter2 (device_address,ethernet_info->ethernet_control_interface,PACKET_TYPE_BROADCAST|PACKET_TYPE_DIRECTED))
                 error ("error setting packet filter");
             dump_in_packets (device_address,ethernet_info->ethernet_bulk_in_endpoint,ethernet_info->ethernet_bulk_in_packetsize);
         }
@@ -1398,7 +1372,7 @@ void do_hub (uint8_t device_address)
         const int PORT_LOW_SPEED = 9;
         const int C_PORT_RESET = 0x14;
         const int C_PORT_CONNECTION = 0x10;
-        const int HUB_PORT_NUMBER = 1;
+        const int HUB_PORT_NUMBER = 4;
         const uint8_t HUB_PORT_BITMASK = (1 << (HUB_PORT_NUMBER));
         for (int i=1;i<=hub->bNrPorts;i++)
         {

@@ -190,6 +190,14 @@ JN_6:
     nop 
     nop 
     nop
+JN_7:
+    rst 30h
+    db 0 ; to be replaced with current slot id
+    dw HW_CONFIGURE_NAK_RETRY_2
+    ret
+    nop 
+    nop 
+    nop
 END_JUMP_TABLE: DB 0
 
 ;************************
@@ -247,6 +255,9 @@ FN_GETDESCRIPTORS:
     call CH_GET_DEVICE_DESCRIPTOR
     ret c
 _INIT_USBHID_NEXT:
+    ; store number of configurations
+    ld a, (ix+DEVICE_DESCRIPTOR.bNumConfigurations)
+    ld iyh, a
     ; set address (1)
     ld a, USB_DEVICE_ADDRESS ; address to assign to attached USB device
     ld b, (ix+DEVICE_DESCRIPTOR.bMaxPacketSize0)
@@ -254,19 +265,27 @@ _INIT_USBHID_NEXT:
     ret c
     ; from now on the device only listens to address given
     ; get config descriptor
+    ld iy, ix
     ld bc, DEVICE_DESCRIPTOR ; sizeof
-    ld hl, ix
-    add hl, bc ; config lies after device descriptor
-    ld a, 0 ; first configuration
+    add iy, bc ; config lies after device descriptor
+    ld e, 0 ; first configuration
+_INIT_USBHID_AGAIN:
+    ld a, e
     ld b, (ix+DEVICE_DESCRIPTOR.bMaxPacketSize0)
     ld c, CONFIG_DESCRIPTOR ; sizeof
     ld d, USB_DEVICE_ADDRESS ; assigned address
+    ld hl, iy 
     call CH_GET_CONFIG_DESCRIPTOR ; call first with max packet size to discover real size
     ret c
-    ld a, 0 ; first configuration
-    ld ix, hl
-    ld c, (ix+CONFIG_DESCRIPTOR.wTotalLength) ; lower 8 bits
+    ld a, e
+    ld c, (iy+CONFIG_DESCRIPTOR.wTotalLength) ; lower 8 bits
     call CH_GET_CONFIG_DESCRIPTOR ; call again with real size
+    ld b, 0
+    add iy, bc
+    inc e
+    ld a, (ix+DEVICE_DESCRIPTOR.bNumConfigurations)
+    cp e
+    jr nz, _INIT_USBHID_AGAIN
     ret
 
 FN_JUMP_TABLE:
@@ -286,6 +305,7 @@ FN_JUMP_TABLE:
     ld (ix+JN_4-JUMP_TABLE+1),a
     ld (ix+JN_5-JUMP_TABLE+1),a
     ld (ix+JN_6-JUMP_TABLE+1),a
+    ld (ix+JN_7-JUMP_TABLE+1),a
     ret 
 
     include "usb_descriptors.asm"
