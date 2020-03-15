@@ -8,21 +8,25 @@
             "name": "(lldb) Launch",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/test/HID/dist/main",
+            "program": "${workspaceFolder}/test/USB/dist/main",
             "args": [],
-            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb",
-            "preLaunchTask": "make CH376s USB HID debug/test"
+            "preLaunchTask": "make CH376s USB debug/test"
         },
         {
-            "name": "(lldb) Launch OpenMSX",
+            "name": "(lldb) Launch OpenMSX ETH",
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
-            "args": ["-machine", "Philips_NMS_8250_MSM", "-cart", "${workspaceFolder}/drivers/UnapiUsb/dist/unapiusb.rom", "-diska", "${workspaceFolder}/drivers/UnapiKbd/dist"],
+            "args": ["-machine", "Philips_NMS_8250_MSM", "-cart", "${workspaceFolder}/drivers/UsbHost/dist/unapiusb.rom", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
+            "cwd": "../Emulators/OpenMSX/share"
+        },
+        {
+            "name": "(lldb) Launch OpenMSX KBD",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_MSM", "-cart", "${workspaceFolder}/drivers/UsbHost/dist/unapiusb.rom", "-diska", "${workspaceFolder}/drivers/UsbKeyboard/dist"],
             "cwd": "../Emulators/OpenMSX/share"
         }
     ]

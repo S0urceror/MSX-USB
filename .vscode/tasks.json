@@ -13,9 +13,7 @@
             "label": "make USB HID Keyboard (archive)",
             "type": "shell",
             "command": "make -C ./drivers/archive/keyboard/src/",
-            "group": {
-                "kind": "build"
-            }
+            "group": "build"
         },
         {
             "label": "make UNAPI Usb Host",
@@ -30,13 +28,19 @@
             "group": "build"
         },
         {
-            "label": "make CH376s USB HID debug/test",
+            "label": "make UNAPI Usb Ethernet",
             "type": "shell",
-            "command": "make -C ./test/HID/src/",
+            "command": "make -C ./drivers/UsbEthernet/src/",
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "make CH376s USB debug/test",
+            "type": "shell",
+            "command": "make -C ./test/USB/src/",
+            "group": "build"
         },
         {
             "label": "make client software",

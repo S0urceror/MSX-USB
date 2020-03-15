@@ -533,9 +533,9 @@ _CH_CONFIGURE_RETRIES:
 
 HW_CONFIGURE_NAK_RETRY:
     ld a,0FFh
-    jr nc,_HW_CONFIGURE_NAK_RETRY_2
+    jr nc,HW_CONFIGURE_NAK_RETRY_2
     ld a,0BFh
-_HW_CONFIGURE_NAK_RETRY_2:
+HW_CONFIGURE_NAK_RETRY_2:
     push af
     ld a,CH_CMD_SET_RETRY
     out (CH_COMMAND_PORT),a
@@ -1041,7 +1041,7 @@ CH_GET_DEVICE_DESCRIPTOR:
 ;        D=device address 
 ; Output: Cy=0 no error, Cy=1 error
 CH_GET_CONFIG_DESCRIPTOR:
-    push ix,hl,de,bc
+    push iy,ix,hl,de,bc
     ld iy, hl ; Address of the input or output data buffer
 
     ; get SLTWRK in HL for this ROM page
@@ -1056,7 +1056,7 @@ CH_GET_CONFIG_DESCRIPTOR:
     ld a, d ; device address
     ld de, iy ; Address of the input or output data buffer
     call HW_CONTROL_TRANSFER
-    pop bc,de,hl,ix
+    pop bc,de,hl,ix,iy
     cp CH_USB_INT_SUCCESS
     ret z ; no error
     scf ; error
