@@ -24,6 +24,10 @@ BDOS        EQU 5
 MSXUSB_UNAPI_P:    equ  0
 MSXUSB_UNAPI_S:    equ  1
 
+; TODO: Reevaluate if this needs to be a RAM based driver (now) or a ROM based driver
+; TODO: When ROM, smart to merge all drivers with USB Host driver?
+; TODO: When RAM, use RAM helper in stead of direct MSX2 mapper => MSX1 compatible?
+
     org 0100h
 BEGIN:
 START_BASIC:

@@ -31,10 +31,7 @@
             "label": "make UNAPI Usb Ethernet",
             "type": "shell",
             "command": "make -C ./drivers/UsbEthernet/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "make CH376s USB debug/test",
@@ -45,8 +42,11 @@
         {
             "label": "make client software",
             "type": "shell",
-            "command": "make -C ./software/src/",
-            "group": "build"
+            "command": "make -C ./software/",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
