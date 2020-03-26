@@ -572,13 +572,13 @@ F 3 "" H 7200 4450 50  0001 C CNN
 $EndComp
 $Comp
 L 74xx:74LS32 U?
-U 2 1 5DBB94CC
+U 3 1 5DBB94CC
 P 6500 1850
 F 0 "U?" H 6500 2175 50  0000 C CNN
 F 1 "74LS32" H 6500 2084 50  0000 C CNN
 F 2 "" H 6500 1850 50  0001 C CNN
 F 3 "http://www.ti.com/lit/gpn/sn74LS32" H 6500 1850 50  0001 C CNN
-	2    6500 1850
+	3    6500 1850
 	1    0    0    -1  
 $EndComp
 Text GLabel 2300 2900 2    50   Input ~ 0
