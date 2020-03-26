@@ -490,7 +490,7 @@ int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t en
         {
             if ((status&0x2f)==0b00101010) // 2A
             {
-                printf (">> NAK <<\n");
+                //printf (">> NAK <<\n");
                 free (result);
                 result = NULL;
                 return 0;
@@ -519,7 +519,7 @@ int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t en
         if (bytes_read<endpoint_packetsize)
             break;
     }
-    return bytes_read;
+    return length-remaining_data_length;
 }
 
 // USB data packet output
@@ -891,7 +891,7 @@ bool check_network_connection (uint8_t target_device_address,uint8_t endpoint_id
         if (bytes_read==0 || buffer==NULL)
             return false;
         memcpy (&ecm_notification_event,buffer,sizeof (_ecm_notification_event));
-        print_buffer (buffer,in_packetsize);
+        //print_buffer (buffer,in_packetsize);
         if (ecm_notification_event.bmRequestType == 0b10100001) // device to host, class, endpoint communication
         {
             switch (ecm_notification_event.bNotificationCode)
@@ -923,39 +923,31 @@ void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t
 {
     uint8_t endpoint_toggle = 0;
     int count = 20;
-    int packet_nr = 1;
-    bool first_packet = true;
-    set_retry (0x0f);
+    in_packetsize=1514;
+
+    //set_retry (0x0f);    
     while (count)
     {
         uint8_t* buffer = NULL;
         int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
         if (buffer==NULL)
             continue;
-        if (first_packet)
-        {
-            printf ("\n%d - dst: %02x:%02x:%02x:%02x:%02x:%02x - src: %02x:%02x:%02x:%02x:%02x:%02x - type: %04x",
-                packet_nr,
-                *(buffer+0),*(buffer+1),*(buffer+2),*(buffer+3),*(buffer+4),*(buffer+5), // dst
-                *(buffer+6),*(buffer+7),*(buffer+8),*(buffer+9),*(buffer+10),*(buffer+11), // src
-                ((*(buffer+12))<<8)+((*(buffer+13)))); // EtherType
-        }
+        
+        printf ("\n%d - dst: %02x:%02x:%02x:%02x:%02x:%02x - src: %02x:%02x:%02x:%02x:%02x:%02x - type: %04x",
+            count,
+            *(buffer+0),*(buffer+1),*(buffer+2),*(buffer+3),*(buffer+4),*(buffer+5), // dst
+            *(buffer+6),*(buffer+7),*(buffer+8),*(buffer+9),*(buffer+10),*(buffer+11), // src
+            ((*(buffer+12))<<8)+((*(buffer+13))));// EtherType
+
         if (!(bytes_read == 0 || buffer==NULL))
         {
-            print_buffer (buffer,in_packetsize);
+            print_buffer (buffer,bytes_read);
             free (buffer);   
         }
-        // more following or next packet?
-        if (bytes_read < in_packetsize)
-        {
-            first_packet = true;
-            packet_nr++;
-            count --;
-        }
-        else 
-            first_packet = false;
+        printf ("length: %d\n",bytes_read);
+        count --;
     }
-    set_retry (0x8f);
+    //set_retry (0x8f);
 }
 ///////////////////////////////////////////////////////////////////////////
 // USB HUB DEVICE INTERRUPT READOUT
@@ -1320,7 +1312,6 @@ void do_ethernet (uint8_t device_address)
         if (!set_interface2 (device_address,ethernet_info->ethernet_data_interface,ethernet_info->ethernet_alternate_setting))
             error ("error setting alternate interface");
 
-        //set_retry (0xff);    
         // check if the network cable is connected
         bool result = check_network_connection (device_address,ethernet_info->ethernet_interrupt_endpoint,ethernet_info->ethernet_interrupt_millis,ethernet_info->ethernet_interrupt_packetsize);
         if (!result)
@@ -1337,7 +1328,6 @@ void do_ethernet (uint8_t device_address)
                 error ("error setting packet filter");
             dump_in_packets (device_address,ethernet_info->ethernet_bulk_in_endpoint,ethernet_info->ethernet_bulk_in_packetsize);
         }
-        //set_retry (0x8f);
     }
 }
 

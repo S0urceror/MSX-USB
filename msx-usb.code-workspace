@@ -84,7 +84,10 @@
 			"CH375PRT.C": "cpp",
 			"CH375BLK.C": "cpp",
 			"BULKTEST.C": "cpp",
-			"CH375451.C": "cpp"
+			"CH375451.C": "cpp",
+			"stdio.h": "c",
+			"asm.h": "c",
+			"unapihelper.h": "c"
 		}
 	}
 }

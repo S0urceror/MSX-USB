@@ -2,7 +2,7 @@ CC = zcc
 CCFLAGS = +msx
 OUTPUT_DIR = ../dist
 
-all: $(OUTPUT_DIR)/lsusb.bin
+all: $(OUTPUT_DIR)/lsusb.bin $(OUTPUT_DIR)/netecho.com
 .PHONY: all clean copy
 
 $(OUTPUT_DIR)/lsusb.bin: lsusb.c lsusb.h

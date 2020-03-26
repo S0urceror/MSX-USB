@@ -838,7 +838,7 @@ _CH_DATA_IN_ERR:
 ;         D  = Maximum packet size for the endpoint
 ;         E  = Endpoint number
 ;         Cy = Current state of the toggle bit
-; Output: A  = USB error code
+; Output: A contains 00h when okay or CH376 error code
 ;         Cy = New state of the toggle bit (even on error)
 
 HW_DATA_OUT_TRANSFER:
@@ -912,7 +912,7 @@ _CH_DATA_OUT_DONE_2:
     pop af
     rla ;Toggle back to Cy
     rla
-    ld a,d
+    ld a,d ; A contains zero when okay or CH376 error code
     ret
 
 ; -----------------------------------------------------------------------------

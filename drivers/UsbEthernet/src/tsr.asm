@@ -26,7 +26,9 @@ ETHERNET_IMPLEMENTATION_S:  equ  1
 
 ARG:    equ  0F847h
 EXTBIO: equ  0FFCAh
-ETH_WORK_AREA: equ 0A000h
+
+;TODO: this place seems not to clash with INL but better to reserve from HIMEM at boot
+ETH_WORK_AREA: equ 0B800h
 
 PACKET_TYPE_MULTICAST equ 00010000b
 PACKET_TYPE_BROADCAST equ 00001000b
@@ -99,7 +101,9 @@ ETH_RESET:
    ;   11: Retry NAKs for 3s
    ; Bits 5-0: Number of retries after device timeout
    ; Default after reset and SET_USB_MODE is 8Fh
-   ld a, 10001111b ; default
+   ;ld a, 10001111b ; default
+   ;call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
+   ld a, 00001111b ; return within immediately
    call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
    ret
 
@@ -117,6 +121,10 @@ ETH_GET_HWADD:
 ;    Output: A  = 0 if NOT connected to an active network
 ;                 1 if connected to an active network
 ETH_GET_NETSTAT:
+   ;
+   ld a, 10001111b ; default
+   call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
+   ;
    ld a, (ETH_INT_READ_TOGGLE) ; get stored toggle value
    rla ; high bit shifted to Cy
    ;
@@ -128,17 +136,18 @@ ETH_GET_NETSTAT:
    ld e, a
    ld a, USB_DEVICE_ADDRESS
    call TSR_JUMP_TABLE+20h ; HW_DATA_IN_TRANSFER ; A=USB result code, Cy=toggle bit
-   ;
+
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
    rra ; Cy stored in high bit of A
-   ld (ETH_INT_READ_TOGGLE),a ; stored in memory
-   pop af
+   ld (ETH_INT_READ_TOGGLE),a ; stored in memory   
    ;
+   ld a, 00001111b ; return immediately
+   call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
+   ;
+   pop af
    cp CH_USB_INT_SUCCESS
-   jr z, _READ_ETH_CONTINUE
-   xor a; clear A and Cy
-   ret
+   jr nz, _READ_ETH_ERROR
 _READ_ETH_CONTINUE:
    ld ix,ETH_WORK_AREA ;ECM_NOTIFICATION_EVENT_BUFFER
    ld a, (ix+ECM_NOTIFICATION_EVENT.bmRequestType)
@@ -149,6 +158,9 @@ _READ_ETH_CONTINUE:
    jr nz,ETH_GET_NETSTAT
    ; network connection event
    ld a, (ix+ECM_NOTIFICATION_EVENT.wValue)
+   ret
+_READ_ETH_ERROR:
+   xor a; clear A and Cy
    ret
 
 ;--- ETH_NET_ONOFF: Enable or disable networking
@@ -260,9 +272,7 @@ GET_BULK_IN_PACKET:
    rla ; high bit shifted to Cy
    ;
    ; request max size
-   ld a, (TSR_ETHERNET_MAX_PACKET_SIZE)
-   ld c, a
-   ld b, 0
+   ld bc, (TSR_ETHERNET_MAX_SEGMENT_SIZE)
    ld a, (TSR_ETHERNET_MAX_PACKET_SIZE)
    ld d, a
    ld a, (TSR_DATA_BULK_IN_ENDPOINT_ID)
@@ -290,39 +300,23 @@ GET_ETHERNET_FRAME:
    ld bc, (FRAME_SIZE)
    ret
 _GET_NEW_FRAME:
-   ;
-   ld a, 00001111b ; return immediately
-   call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
-   ;
    ld hl, ETH_WORK_AREA
 _GET_NEXT_PACKET:
-   call GET_BULK_IN_PACKET
+   call GET_BULK_IN_PACKET ; BC holds amount of data retrieved
    cp CH_USB_INT_SUCCESS
-   jr z, _GET_ETHERNET_FRAME_SUCCESS
-   xor a
-   ld (FRAME_IN_MEMORY),a
-   jr _GET_ETHERNET_FRAME_DONE
+   jr nz, _GET_ETHERNET_FRAME_NO_SUCCESS
 _GET_ETHERNET_FRAME_SUCCESS:
+   ld a, b
+   or c
+   jr z, _GET_ETHERNET_FRAME_NO_SUCCESS ; empty frame
+   ld (FRAME_SIZE),bc
    ld a, 1
    ld (FRAME_IN_MEMORY),a
-   ld a, (TSR_ETHERNET_MAX_PACKET_SIZE)
-   dec a ; packet minus 1 byte prepending for length on CH376s
-   ld b, a
-   ld a, c
-   cp b
-   jr c, _GET_ETHERNET_FRAME_DONE ; <= MAX_PACKET_SIZE? We're done
-   jr _GET_NEXT_PACKET
-_GET_ETHERNET_FRAME_DONE:
-   ld bc, ETH_WORK_AREA
-   sbc hl, bc
-   inc hl ; size is last byte - start address + 1
-   ld (FRAME_SIZE),hl
-   ld bc, hl
-   ;
-   ld a, 10001111b ; default
-   call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
-   ;
-   ld a, (FRAME_IN_MEMORY)
+   ret
+_GET_ETHERNET_FRAME_NO_SUCCESS:
+   xor a
+   ld (FRAME_IN_MEMORY),a
+   ld bc, 0
    ret
 
 ;--- ETH_IN_STATUS: Check for received frames availability
