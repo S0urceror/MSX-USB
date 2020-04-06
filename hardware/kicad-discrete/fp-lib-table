@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "MSX cartridge")(type KiCad)(uri ${KIPRJMOD})(options "")(descr ""))
+  (lib (name msx-con)(type Legacy)(uri ${KIPRJMOD}/msx-con.mod)(options "")(descr ""))
+)

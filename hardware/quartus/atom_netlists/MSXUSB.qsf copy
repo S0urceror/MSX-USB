@@ -1,0 +1,41 @@
+set_location_assignment PIN_6 -to busdir
+set_location_assignment PIN_5 -to cs_ch376s_n
+set_location_assignment PIN_8 -to data[5]
+set_location_assignment PIN_9 -to data[4]
+set_location_assignment PIN_11 -to data[3]
+set_location_assignment PIN_12 -to data[2]
+set_location_assignment PIN_14 -to data[1]
+set_location_assignment PIN_16 -to data[0]
+set_location_assignment PIN_18 -to in_a7_a0[7]
+set_location_assignment PIN_19 -to in_a7_a0[6]
+set_location_assignment PIN_20 -to in_a7_a0[5]
+set_location_assignment PIN_21 -to in_a7_a0[4]
+set_location_assignment PIN_24 -to in_a7_a0[3]
+set_location_assignment PIN_25 -to in_a7_a0[2]
+set_location_assignment PIN_26 -to in_a7_a0[1]
+set_location_assignment PIN_27 -to in_a7_a0[0]
+set_location_assignment PIN_28 -to in_a15_a13[1]
+set_location_assignment PIN_29 -to in_a15_a13[0]
+set_location_assignment PIN_4 -to iorq_n
+set_location_assignment PIN_1 -to rd_n
+set_location_assignment PIN_44 -to reset_n
+set_location_assignment PIN_41 -to sltsl_n
+set_location_assignment PIN_40 -to wr_n
+set_location_assignment PIN_39 -to out_a13_a18[0]
+set_location_assignment PIN_31 -to out_a13_a18[5]
+set_location_assignment PIN_33 -to out_a13_a18[4]
+set_location_assignment PIN_34 -to out_a13_a18[3]
+set_location_assignment PIN_36 -to out_a13_a18[2]
+set_location_assignment PIN_37 -to out_a13_a18[1]
+set_global_assignment -name FAMILY MAX7000S
+set_global_assignment -name DEVICE "EPM7064SLC44-10"
+set_global_assignment -name TOP_LEVEL_ENTITY msxusb
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "14:26:27  MARCH 28, 2020"
+set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MAX7000_DEVICE_IO_STANDARD TTL
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (Verilog)"
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
+set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name VERILOG_FILE msxusb.v
