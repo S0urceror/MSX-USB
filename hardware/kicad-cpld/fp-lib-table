@@ -1,0 +1,6 @@
+(fp_lib_table
+  (lib (name "MSX cartridge")(type KiCad)(uri ${KIPRJMOD})(options "")(descr "")(disabled))
+  (lib (name msx-con)(type Legacy)(uri ${KIPRJMOD}/msx-con.mod)(options "")(descr "")(disabled))
+  (lib (name PLCC44)(type KiCad)(uri ${KIPRJMOD}/PLCC44.kicad_mod)(options "")(descr "")(disabled))
+  (lib (name msx-usb-kicad-cpld)(type KiCad)(uri ${KIPRJMOD}/msx-usb-kicad-cpld.pretty)(options "")(descr ""))
+)

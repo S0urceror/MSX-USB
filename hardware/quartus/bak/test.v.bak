@@ -1,0 +1,23 @@
+// Testbench Code Goes here
+module test;
+	reg [7:0] address;
+	reg iorq_n, rd_n;
+	reg i;
+	
+	msxusb TST (address,iorq_n,rd_n);
+	
+	initial
+	begin
+		address = 0;
+		iorq_n = 1;
+		rd_n = 1;
+		for (i = 0; i < 16; i = i +1) begin
+			#5 address = i;
+		end
+		iorq_n = 0;
+		for (i = 0; i < 16; i = i +1) begin
+			#5 address = i;
+		end
+	end
+
+endmodule

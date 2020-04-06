@@ -1,0 +1,266 @@
+# Reading C:/altera/13.0sp1/modelsim_ase/tcl/vsim/pref.tcl 
+# do MSXUSB_run_msim_rtl_verilog.do 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Copying C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini
+# Modifying modelsim.ini
+# ** Warning: Copied C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini.
+#          Updated modelsim.ini.
+# 
+# vlog -vlog01compat -work work +incdir+Y:/Development/msx/USB/hardware/quartus {Y:/Development/msx/USB/hardware/quartus/msxusb.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module msxusb
+# -- Compiling module ch376
+# -- Compiling module t_ch376
+# -- Compiling module scc_rom_mapper
+# -- Compiling module t_scc_rom_mapper
+# 
+# Top level modules:
+# 	msxusb
+# 	t_ch376
+# 	t_scc_rom_mapper
+# 
+vsim work.t_scc_rom_mapper
+# vsim work.t_scc_rom_mapper 
+# Loading work.t_scc_rom_mapper
+# Loading work.scc_rom_mapper
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/address_upper
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+# 
+#           File in use by: mario  Hostname: MARIOSMITB3D5  ProcessID: 5116
+# 
+#           Attempting to use alternate WLF file "./wlft29x5fk".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+# 
+#           Using alternate file: ./wlft29x5fk
+# 
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/wr_n
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/sltsl_n
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/reset_n
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/data
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/a15_a13
+run
+# 11x x 0
+# 100 x 0
+# 101 x 1
+# 102 x 2
+# 103 x 3
+# 000 0 3
+# 001 4 3
+# 002 8 3
+# 00312 3
+# 10012 0
+# 10112 4
+# 10212 8
+# 1031212
+# 10012 0
+# 10112 4
+# 10212 8
+# 1031212
+# 010 012
+# 011 112
+# 012 212
+# 013 312
+# 110 312
+# 111 312
+# 112 312
+# 113 312
+vsim work.t_scc_rom_mapper
+# vsim work.t_scc_rom_mapper 
+# Loading work.t_scc_rom_mapper
+# Loading work.scc_rom_mapper
+vlog -vlog01compat -work work +incdir+Y:/Development/msx/USB/hardware/quartus -O0 Y:/Development/msx/USB/hardware/quartus/msxusb.v
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module msxusb
+# -- Compiling module ch376
+# -- Compiling module t_ch376
+# -- Compiling module scc_rom_mapper
+# -- Compiling module t_scc_rom_mapper
+# 
+# Top level modules:
+# 	msxusb
+# 	t_ch376
+# 	t_scc_rom_mapper
+vsim work.t_scc_rom_mapper
+# vsim work.t_scc_rom_mapper 
+# Loading work.t_scc_rom_mapper
+# Loading work.scc_rom_mapper
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/address_upper
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+# 
+#           File in use by: mario  Hostname: MARIOSMITB3D5  ProcessID: 5116
+# 
+#           Attempting to use alternate WLF file "./wlft4785s7".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+# 
+#           Using alternate file: ./wlft4785s7
+# 
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/wr_n
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/sltsl_n
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/reset_n
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/data
+add wave -position insertpoint  \
+sim:/t_scc_rom_mapper/a15_a13
+run
+# 11x x 0
+# 100 x 0
+# 101 x 1
+# 102 x 2
+# 103 x 3
+# 000 0 3
+# 001 4 3
+# 002 8 3
+# 00312 3
+# 10012 0
+# 10112 1
+# 10212 2
+# 10312 3
+# 10012 0
+# 10112 1
+# 10212 2
+# 10312 3
+# 010 0 3
+# 011 1 3
+# 012 2 3
+# 013 3 3
+# 110 3 3
+# 111 3 3
+# 112 3 3
+# 113 3 3
+vlog -vlog01compat -work work +incdir+Y:/Development/msx/USB/hardware/quartus -O0 Y:/Development/msx/USB/hardware/quartus/msxusb.v
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module msxusb
+# -- Compiling module ch376
+# -- Compiling module t_ch376
+# -- Compiling module scc_rom_mapper
+# -- Compiling module t_scc_rom_mapper
+# 
+# Top level modules:
+# 	msxusb
+# 	t_ch376
+# 	t_scc_rom_mapper
+vsim work.t_scc_rom_mapper
+# vsim work.t_scc_rom_mapper 
+# Loading work.t_scc_rom_mapper
+# Loading work.scc_rom_mapper
+run
+# 11x x 0
+# 100 x 0
+# 101 x 1
+# 102 x 2
+# 103 x 3
+# 000 0 3
+# 001 4 3
+# 002 8 3
+# 00312 3
+# 10012 0
+# 10112 4
+# 10212 8
+# 1031212
+# 10012 0
+# 10112 4
+# 10212 8
+# 1031212
+# 010 012
+# 011 112
+# 012 212
+# 013 312
+# 110 312
+# 111 312
+# 112 312
+# 113 312
+vlog -vlog01compat -work work +incdir+Y:/Development/msx/USB/hardware/quartus -O0 Y:/Development/msx/USB/hardware/quartus/msxusb.v
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module msxusb
+# -- Compiling module ch376
+# -- Compiling module t_ch376
+# -- Compiling module scc_rom_mapper
+# -- Compiling module t_scc_rom_mapper
+# 
+# Top level modules:
+# 	msxusb
+# 	t_ch376
+# 	t_scc_rom_mapper
+vsim work.t_scc_rom_mapper
+# vsim work.t_scc_rom_mapper 
+# Loading work.t_scc_rom_mapper
+# Loading work.scc_rom_mapper
+run
+# 111x x 0
+# 1010 x 0
+# 1011 x 1
+# 1012 x 2
+# 1013 x 3
+# 0010 0 3
+# 0011 4 3
+# 0012 8 3
+# 001312 3
+# 101012 0
+# 101112 4
+# 101212 8
+# 10131212
+# 101012 0
+# 101112 4
+# 101212 8
+# 10131212
+# 0110 012
+# 0111 112
+# 0112 212
+vlog -vlog01compat -work work +incdir+Y:/Development/msx/USB/hardware/quartus -O0 Y:/Development/msx/USB/hardware/quartus/msxusb.v
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module msxusb
+# -- Compiling module ch376
+# -- Compiling module t_ch376
+# -- Compiling module scc_rom_mapper
+# -- Compiling module t_scc_rom_mapper
+# 
+# Top level modules:
+# 	msxusb
+# 	t_ch376
+# 	t_scc_rom_mapper
+vsim work.t_scc_rom_mapper
+# vsim work.t_scc_rom_mapper 
+# Loading work.t_scc_rom_mapper
+# Loading work.scc_rom_mapper
+run
+# 111x x 0
+# 1010 x 0
+# 1011 x 1
+# 1012 x 2
+# 1013 x 3
+# 0010 0 3
+# 0011 4 3
+# 0012 8 3
+# 001312 3
+# 101012 0
+# 101112 4
+# 101212 8
+# 10131212
+# 10031212
+# 101312 3
+# 101012 0
+# 101112 1
+# 101212 2
+# 101312 3
+# 0110 0 3
+# 0111 1 3
+# 0112 2 3
+# 0113 3 3
+# 1110 3 3
+# 1111 3 3
+# 1112 3 3
+# 1113 3 3

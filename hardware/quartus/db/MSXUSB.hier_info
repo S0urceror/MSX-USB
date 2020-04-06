@@ -1,0 +1,92 @@
+|msxusb
+in_a7_a0[0] => in_a7_a0[0].IN1
+in_a7_a0[1] => in_a7_a0[1].IN1
+in_a7_a0[2] => in_a7_a0[2].IN1
+in_a7_a0[3] => in_a7_a0[3].IN1
+in_a7_a0[4] => in_a7_a0[4].IN1
+in_a7_a0[5] => in_a7_a0[5].IN1
+in_a7_a0[6] => in_a7_a0[6].IN1
+in_a7_a0[7] => in_a7_a0[7].IN1
+in_a15_a13[0] => in_a15_a13[0].IN1
+in_a15_a13[1] => in_a15_a13[1].IN1
+data[0] => data[0].IN1
+data[1] => data[1].IN1
+data[2] => data[2].IN1
+data[3] => data[3].IN1
+data[4] => data[4].IN1
+data[5] => data[5].IN1
+iorq_n => iorq_n.IN1
+rd_n => rd_n.IN1
+wr_n => wr_n.IN1
+sltsl_n => sltsl_n.IN1
+reset_n => reset_n.IN1
+cs_ch376s_n <= ch376:CH376.port3
+busdir <= ch376:CH376.port4
+out_a13_a18[0] <= scc_rom_mapper:ROM_MAPPER.port5
+out_a13_a18[1] <= scc_rom_mapper:ROM_MAPPER.port5
+out_a13_a18[2] <= scc_rom_mapper:ROM_MAPPER.port5
+out_a13_a18[3] <= scc_rom_mapper:ROM_MAPPER.port5
+out_a13_a18[4] <= scc_rom_mapper:ROM_MAPPER.port5
+out_a13_a18[5] <= scc_rom_mapper:ROM_MAPPER.port5
+
+
+|msxusb|ch376:CH376
+io_address[0] => Equal0.IN15
+io_address[1] => Equal0.IN14
+io_address[2] => Equal0.IN13
+io_address[3] => Equal0.IN12
+io_address[4] => Equal0.IN11
+io_address[5] => Equal0.IN10
+io_address[6] => Equal0.IN9
+io_address[7] => Equal0.IN8
+iorq_n => cs_ch376s_n.IN0
+rd_n => busdir.IN0
+cs_ch376s_n <= cs_ch376s_n.DB_MAX_OUTPUT_PORT_TYPE
+busdir <= busdir.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|msxusb|scc_rom_mapper:ROM_MAPPER
+wr_n => always0.IN0
+wr_n => address_upper[5].IN1
+sltsl_n => always0.IN0
+reset_n => always0.IN0
+a15_a13[0] => Equal0.IN3
+a15_a13[0] => Equal1.IN3
+a15_a13[0] => Equal2.IN3
+a15_a13[0] => Equal3.IN3
+a15_a13[1] => Equal0.IN2
+a15_a13[1] => Equal1.IN2
+a15_a13[1] => Equal2.IN2
+a15_a13[1] => Equal3.IN2
+data[0] => mem3[0].DATAB
+data[0] => mem2[0].DATAB
+data[0] => mem1[0].DATAB
+data[0] => mem0[0].DATAB
+data[1] => mem3[1].DATAB
+data[1] => mem2[1].DATAB
+data[1] => mem1[1].DATAB
+data[1] => mem0[1].DATAB
+data[2] => mem3[2].DATAB
+data[2] => mem2[2].DATAB
+data[2] => mem1[2].DATAB
+data[2] => mem0[2].DATAB
+data[3] => mem3[3].DATAB
+data[3] => mem2[3].DATAB
+data[3] => mem1[3].DATAB
+data[3] => mem0[3].DATAB
+data[4] => mem3[4].DATAB
+data[4] => mem2[4].DATAB
+data[4] => mem1[4].DATAB
+data[4] => mem0[4].DATAB
+data[5] => mem3[5].DATAB
+data[5] => mem2[5].DATAB
+data[5] => mem1[5].DATAB
+data[5] => mem0[5].DATAB
+address_upper[0] <= address_upper[0]$latch.DB_MAX_OUTPUT_PORT_TYPE
+address_upper[1] <= address_upper[1]$latch.DB_MAX_OUTPUT_PORT_TYPE
+address_upper[2] <= address_upper[2]$latch.DB_MAX_OUTPUT_PORT_TYPE
+address_upper[3] <= address_upper[3]$latch.DB_MAX_OUTPUT_PORT_TYPE
+address_upper[4] <= address_upper[4]$latch.DB_MAX_OUTPUT_PORT_TYPE
+address_upper[5] <= address_upper[5]$latch.DB_MAX_OUTPUT_PORT_TYPE
+
+

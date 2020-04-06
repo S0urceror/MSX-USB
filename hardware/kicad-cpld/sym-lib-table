@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name msx-con)(type Legacy)(uri ${KIPRJMOD}/msx-con.lib)(options "")(descr ""))
+  (lib (name "EPM7064_(44-PLCC)")(type Legacy)(uri "${KIPRJMOD}/EPM7064 (44-PLCC).lib")(options "")(descr ""))
+)

@@ -1,0 +1,408 @@
+TimeQuest Timing Analyzer report for MSXUSB
+Sat Apr 04 14:49:29 2020
+Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. TimeQuest Timing Analyzer Summary
+  3. Parallel Compilation
+  4. Clocks
+  5. Fmax Summary
+  6. Setup Summary
+  7. Hold Summary
+  8. Recovery Summary
+  9. Removal Summary
+ 10. Minimum Pulse Width Summary
+ 11. Propagation Delay
+ 12. Minimum Propagation Delay
+ 13. Clock Transfers
+ 14. Report TCCS
+ 15. Report RSKM
+ 16. Unconstrained Paths
+ 17. TimeQuest Timing Analyzer Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 1991-2013 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+
+
+
++----------------------------------------------------------------------------------------+
+; TimeQuest Timing Analyzer Summary                                                      ;
++--------------------+-------------------------------------------------------------------+
+; Quartus II Version ; Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition ;
+; Revision Name      ; MSXUSB                                                            ;
+; Device Family      ; MAX7000S                                                          ;
+; Device Name        ; EPM7064SLC44-10                                                   ;
+; Timing Models      ; Final                                                             ;
+; Delay Model        ; Slow Model                                                        ;
+; Rise/Fall Delays   ; Unavailable                                                       ;
++--------------------+-------------------------------------------------------------------+
+
+
+Parallel compilation was disabled, but you have multiple processors available. Enable parallel compilation to reduce compilation time.
++-------------------------------------+
+; Parallel Compilation                ;
++----------------------------+--------+
+; Processors                 ; Number ;
++----------------------------+--------+
+; Number detected on machine ; 2      ;
+; Maximum allowed            ; 1      ;
++----------------------------+--------+
+
+
+----------
+; Clocks ;
+----------
+No clocks to report.
+
+
+----------------
+; Fmax Summary ;
+----------------
+No paths to report.
+
+
+-----------------
+; Setup Summary ;
+-----------------
+No paths to report.
+
+
+----------------
+; Hold Summary ;
+----------------
+No paths to report.
+
+
+--------------------
+; Recovery Summary ;
+--------------------
+No paths to report.
+
+
+-------------------
+; Removal Summary ;
+-------------------
+No paths to report.
+
+
+-------------------------------
+; Minimum Pulse Width Summary ;
+-------------------------------
+No paths to report.
+
+
++--------------------------------------------------------------------+
+; Propagation Delay                                                  ;
++---------------+----------------+--------+--------+--------+--------+
+; Input Port    ; Output Port    ; RR     ; RF     ; FR     ; FF     ;
++---------------+----------------+--------+--------+--------+--------+
+; data[0]       ; out_a13_a18[0] ; 26.000 ;        ;        ; 26.000 ;
+; data[1]       ; out_a13_a18[1] ; 26.000 ;        ;        ; 26.000 ;
+; data[2]       ; out_a13_a18[2] ; 26.000 ;        ;        ; 26.000 ;
+; data[3]       ; out_a13_a18[3] ; 26.000 ;        ;        ; 26.000 ;
+; data[4]       ; out_a13_a18[4] ; 26.000 ;        ;        ; 26.000 ;
+; data[5]       ; out_a13_a18[5] ; 26.000 ;        ;        ; 26.000 ;
+; in_a7_a0[0]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[0]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[1]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[1]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[2]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[2]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[3]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[3]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[4]   ; busdir         ; 10.000 ;        ;        ; 10.000 ;
+; in_a7_a0[4]   ; cs_ch376s_n    ; 10.000 ;        ;        ; 10.000 ;
+; in_a7_a0[5]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[5]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[6]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[6]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[7]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[7]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a15_a13[0] ; out_a13_a18[0] ; 26.000 ; 27.600 ; 27.600 ; 26.000 ;
+; in_a15_a13[0] ; out_a13_a18[1] ; 27.600 ; 27.600 ; 27.600 ; 27.600 ;
+; in_a15_a13[0] ; out_a13_a18[2] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; in_a15_a13[0] ; out_a13_a18[3] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; in_a15_a13[0] ; out_a13_a18[4] ; 31.000 ; 31.000 ; 31.000 ; 31.000 ;
+; in_a15_a13[0] ; out_a13_a18[5] ; 31.000 ; 31.000 ; 31.000 ; 31.000 ;
+; in_a15_a13[1] ; out_a13_a18[0] ; 27.600 ; 27.600 ; 27.600 ; 27.600 ;
+; in_a15_a13[1] ; out_a13_a18[1] ; 26.800 ; 27.600 ; 27.600 ; 26.800 ;
+; in_a15_a13[1] ; out_a13_a18[2] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; in_a15_a13[1] ; out_a13_a18[3] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; in_a15_a13[1] ; out_a13_a18[4] ; 31.000 ; 31.000 ; 31.000 ; 31.000 ;
+; in_a15_a13[1] ; out_a13_a18[5] ; 31.000 ; 31.000 ; 31.000 ; 31.000 ;
+; iorq_n        ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; iorq_n        ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; rd_n          ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; reset_n       ; out_a13_a18[0] ; 26.000 ; 27.600 ; 27.600 ; 26.000 ;
+; reset_n       ; out_a13_a18[1] ; 26.000 ; 27.600 ; 27.600 ; 26.000 ;
+; reset_n       ; out_a13_a18[2] ; 26.000 ;        ;        ; 26.000 ;
+; reset_n       ; out_a13_a18[3] ; 26.000 ;        ;        ; 26.000 ;
+; reset_n       ; out_a13_a18[4] ; 26.000 ;        ;        ; 26.000 ;
+; reset_n       ; out_a13_a18[5] ; 26.000 ;        ;        ; 26.000 ;
+; sltsl_n       ; out_a13_a18[0] ; 26.800 ; 26.800 ; 26.800 ; 26.800 ;
+; sltsl_n       ; out_a13_a18[1] ; 26.800 ; 26.800 ; 26.800 ; 26.800 ;
+; sltsl_n       ; out_a13_a18[2] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; sltsl_n       ; out_a13_a18[3] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; sltsl_n       ; out_a13_a18[4] ; 31.000 ; 26.000 ; 26.000 ; 31.000 ;
+; sltsl_n       ; out_a13_a18[5] ; 31.000 ; 26.000 ; 26.000 ; 31.000 ;
+; wr_n          ; out_a13_a18[0] ; 26.800 ; 26.800 ; 26.800 ; 26.800 ;
+; wr_n          ; out_a13_a18[1] ; 26.800 ; 26.800 ; 26.800 ; 26.800 ;
+; wr_n          ; out_a13_a18[2] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; wr_n          ; out_a13_a18[3] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; wr_n          ; out_a13_a18[4] ; 31.000 ; 26.000 ; 26.000 ; 31.000 ;
+; wr_n          ; out_a13_a18[5] ; 31.000 ; 26.000 ; 26.000 ; 31.000 ;
++---------------+----------------+--------+--------+--------+--------+
+
+
++--------------------------------------------------------------------+
+; Minimum Propagation Delay                                          ;
++---------------+----------------+--------+--------+--------+--------+
+; Input Port    ; Output Port    ; RR     ; RF     ; FR     ; FF     ;
++---------------+----------------+--------+--------+--------+--------+
+; data[0]       ; out_a13_a18[0] ; 26.000 ;        ;        ; 26.000 ;
+; data[1]       ; out_a13_a18[1] ; 26.000 ;        ;        ; 26.000 ;
+; data[2]       ; out_a13_a18[2] ; 26.000 ;        ;        ; 26.000 ;
+; data[3]       ; out_a13_a18[3] ; 26.000 ;        ;        ; 26.000 ;
+; data[4]       ; out_a13_a18[4] ; 26.000 ;        ;        ; 26.000 ;
+; data[5]       ; out_a13_a18[5] ; 26.000 ;        ;        ; 26.000 ;
+; in_a7_a0[0]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[0]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[1]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[1]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[2]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[2]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[3]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[3]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[4]   ; busdir         ; 10.000 ;        ;        ; 10.000 ;
+; in_a7_a0[4]   ; cs_ch376s_n    ; 10.000 ;        ;        ; 10.000 ;
+; in_a7_a0[5]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[5]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[6]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[6]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[7]   ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; in_a7_a0[7]   ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; in_a15_a13[0] ; out_a13_a18[0] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[0] ; out_a13_a18[1] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[0] ; out_a13_a18[2] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[0] ; out_a13_a18[3] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[0] ; out_a13_a18[4] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[0] ; out_a13_a18[5] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[1] ; out_a13_a18[0] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[1] ; out_a13_a18[1] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[1] ; out_a13_a18[2] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[1] ; out_a13_a18[3] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[1] ; out_a13_a18[4] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; in_a15_a13[1] ; out_a13_a18[5] ; 18.000 ; 18.000 ; 18.000 ; 18.000 ;
+; iorq_n        ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; iorq_n        ; cs_ch376s_n    ;        ; 10.000 ; 10.000 ;        ;
+; rd_n          ; busdir         ;        ; 10.000 ; 10.000 ;        ;
+; reset_n       ; out_a13_a18[0] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; reset_n       ; out_a13_a18[1] ; 26.000 ; 26.000 ; 26.000 ; 26.000 ;
+; reset_n       ; out_a13_a18[2] ; 26.000 ;        ;        ; 26.000 ;
+; reset_n       ; out_a13_a18[3] ; 26.000 ;        ;        ; 26.000 ;
+; reset_n       ; out_a13_a18[4] ; 26.000 ;        ;        ; 26.000 ;
+; reset_n       ; out_a13_a18[5] ; 26.000 ;        ;        ; 26.000 ;
+; sltsl_n       ; out_a13_a18[0] ; 15.000 ; 10.000 ; 10.000 ; 15.000 ;
+; sltsl_n       ; out_a13_a18[1] ; 15.000 ; 10.000 ; 10.000 ; 15.000 ;
+; sltsl_n       ; out_a13_a18[2] ; 15.000 ; 10.000 ; 10.000 ; 15.000 ;
+; sltsl_n       ; out_a13_a18[3] ; 15.000 ; 10.000 ; 10.000 ; 15.000 ;
+; sltsl_n       ; out_a13_a18[4] ; 15.000 ; 10.000 ; 10.000 ; 15.000 ;
+; sltsl_n       ; out_a13_a18[5] ; 15.000 ; 10.000 ; 10.000 ; 15.000 ;
+; wr_n          ; out_a13_a18[0] ; 10.000 ; 15.000 ; 15.000 ; 10.000 ;
+; wr_n          ; out_a13_a18[1] ; 10.000 ; 15.000 ; 15.000 ; 10.000 ;
+; wr_n          ; out_a13_a18[2] ; 10.000 ; 15.000 ; 15.000 ; 10.000 ;
+; wr_n          ; out_a13_a18[3] ; 10.000 ; 15.000 ; 15.000 ; 10.000 ;
+; wr_n          ; out_a13_a18[4] ; 10.000 ; 15.000 ; 15.000 ; 10.000 ;
+; wr_n          ; out_a13_a18[5] ; 10.000 ; 15.000 ; 15.000 ; 10.000 ;
++---------------+----------------+--------+--------+--------+--------+
+
+
+-------------------
+; Clock Transfers ;
+-------------------
+Nothing to report.
+
+
+---------------
+; Report TCCS ;
+---------------
+No dedicated SERDES Transmitter circuitry present in device or used in design
+
+
+---------------
+; Report RSKM ;
+---------------
+No dedicated SERDES Receiver circuitry present in device or used in design
+
+
++------------------------------------------------+
+; Unconstrained Paths                            ;
++---------------------------------+-------+------+
+; Property                        ; Setup ; Hold ;
++---------------------------------+-------+------+
+; Illegal Clocks                  ; 0     ; 0    ;
+; Unconstrained Clocks            ; 0     ; 0    ;
+; Unconstrained Input Ports       ; 21    ; 21   ;
+; Unconstrained Input Port Paths  ; 55    ; 55   ;
+; Unconstrained Output Ports      ; 8     ; 8    ;
+; Unconstrained Output Port Paths ; 55    ; 55   ;
++---------------------------------+-------+------+
+
+
++------------------------------------+
+; TimeQuest Timing Analyzer Messages ;
++------------------------------------+
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit TimeQuest Timing Analyzer
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+    Info: Processing started: Sat Apr 04 14:49:28 2020
+Info: Command: quartus_sta MSXUSB -c MSXUSB
+Info: qsta_default_script.tcl version: #1
+Warning (20028): Parallel compilation is not licensed and has been disabled
+Info (306004): Started post-fitting delay annotation
+Info (306005): Delay annotation completed successfully
+Warning (335095): TimeQuest Timing Analyzer does not support the analysis of latches as synchronous elements for the currently selected device family.
+Critical Warning (332012): Synopsys Design Constraints File file not found: 'MSXUSB.sdc'. A Synopsys Design Constraints File is required by the TimeQuest Timing Analyzer to get proper timing constraints. Without it, the Compiler will not properly optimize the design.
+Info (332142): No user constrained base clocks found in the design. Calling "derive_clocks -period 1.0"
+Info (332096): The command derive_clocks did not find any clocks to derive.  No clocks were created or changed.
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|address_upper[5]~140|[1]"
+    Warning (332126): Node "ROM_MAPPER|address_upper[5]~140|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|address_upper[4]~136|[1]"
+    Warning (332126): Node "ROM_MAPPER|address_upper[4]~136|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|address_upper[3]~132|[1]"
+    Warning (332126): Node "ROM_MAPPER|address_upper[3]~132|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|address_upper[2]~128|[1]"
+    Warning (332126): Node "ROM_MAPPER|address_upper[2]~128|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|address_upper[1]~124|[1]"
+    Warning (332126): Node "ROM_MAPPER|address_upper[1]~124|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|address_upper[0]~120|[1]"
+    Warning (332126): Node "ROM_MAPPER|address_upper[0]~120|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem1[5]~77|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem1[5]~77|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem3[5]~76|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem3[5]~76|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem2[5]~76|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem2[5]~76|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem0[5]~78|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem0[5]~78|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem1[4]~73|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem1[4]~73|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem3[4]~72|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem3[4]~72|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem2[4]~72|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem2[4]~72|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem0[4]~74|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem0[4]~74|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem1[3]~69|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem1[3]~69|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem3[3]~68|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem3[3]~68|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem2[3]~68|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem2[3]~68|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem0[3]~70|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem0[3]~70|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem1[2]~65|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem1[2]~65|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem3[2]~64|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem3[2]~64|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem2[2]~64|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem2[2]~64|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem0[2]~66|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem0[2]~66|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem1[1]~61|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem1[1]~61|dataout"
+Warning (332125): Found combinational loop of 5 nodes
+    Warning (332126): Node "ROM_MAPPER|mem3[1]~60|pexpin"
+    Warning (332126): Node "ROM_MAPPER|mem3[1]~60|dataout"
+    Warning (332126): Node "ROM_MAPPER|mem3[1]~99|[1]"
+    Warning (332126): Node "ROM_MAPPER|mem3[1]~99|pexpout"
+    Warning (332126): Node "ROM_MAPPER|mem3[1]~60|[0]"
+Warning (332125): Found combinational loop of 5 nodes
+    Warning (332126): Node "ROM_MAPPER|mem2[1]~60|pexpin"
+    Warning (332126): Node "ROM_MAPPER|mem2[1]~60|dataout"
+    Warning (332126): Node "ROM_MAPPER|mem2[1]~85|[1]"
+    Warning (332126): Node "ROM_MAPPER|mem2[1]~85|pexpout"
+    Warning (332126): Node "ROM_MAPPER|mem2[1]~60|[0]"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem0[1]~62|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem0[1]~62|dataout"
+Warning (332125): Found combinational loop of 5 nodes
+    Warning (332126): Node "ROM_MAPPER|mem1[0]~57|pexpin"
+    Warning (332126): Node "ROM_MAPPER|mem1[0]~57|dataout"
+    Warning (332126): Node "ROM_MAPPER|mem1[0]~82|[1]"
+    Warning (332126): Node "ROM_MAPPER|mem1[0]~82|pexpout"
+    Warning (332126): Node "ROM_MAPPER|mem1[0]~57|[0]"
+Warning (332125): Found combinational loop of 5 nodes
+    Warning (332126): Node "ROM_MAPPER|mem3[0]~56|pexpin"
+    Warning (332126): Node "ROM_MAPPER|mem3[0]~56|dataout"
+    Warning (332126): Node "ROM_MAPPER|mem3[0]~81|[1]"
+    Warning (332126): Node "ROM_MAPPER|mem3[0]~81|pexpout"
+    Warning (332126): Node "ROM_MAPPER|mem3[0]~56|[0]"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem2[0]~56|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem2[0]~56|dataout"
+Warning (332125): Found combinational loop of 2 nodes
+    Warning (332126): Node "ROM_MAPPER|mem0[0]~58|[0]"
+    Warning (332126): Node "ROM_MAPPER|mem0[0]~58|dataout"
+Warning (332068): No clocks defined in design.
+Info: Found TIMEQUEST_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
+Info (332159): No clocks to report
+Info (332140): No fmax paths to report
+Info (332140): No Setup paths to report
+Info (332140): No Hold paths to report
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332140): No Minimum Pulse Width paths to report
+Info (332001): The selected device family is not supported by the report_metastability command.
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+Info: Quartus II 64-Bit TimeQuest Timing Analyzer was successful. 0 errors, 106 warnings
+    Info: Peak virtual memory: 4514 megabytes
+    Info: Processing ended: Sat Apr 04 14:49:29 2020
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:01
+
+

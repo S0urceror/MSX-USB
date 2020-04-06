@@ -1,0 +1,277 @@
+Analysis & Synthesis report for MSXUSB
+Sat Apr 04 14:49:25 2020
+Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Analysis & Synthesis Summary
+  3. Analysis & Synthesis Settings
+  4. Parallel Compilation
+  5. Analysis & Synthesis Source Files Read
+  6. Analysis & Synthesis Resource Usage Summary
+  7. Analysis & Synthesis Resource Utilization by Entity
+  8. User-Specified and Inferred Latches
+  9. Analysis & Synthesis Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 1991-2013 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+
+
+
++-------------------------------------------------------------------------------+
+; Analysis & Synthesis Summary                                                  ;
++-----------------------------+-------------------------------------------------+
+; Analysis & Synthesis Status ; Successful - Sat Apr 04 14:49:25 2020           ;
+; Quartus II 64-Bit Version   ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
+; Revision Name               ; MSXUSB                                          ;
+; Top-level Entity Name       ; msxusb                                          ;
+; Family                      ; MAX7000S                                        ;
+; Total macrocells            ; 46                                              ;
+; Total pins                  ; 29                                              ;
++-----------------------------+-------------------------------------------------+
+
+
++--------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Settings                                                                                ;
++----------------------------------------------------------------------------+-----------------+---------------+
+; Option                                                                     ; Setting         ; Default Value ;
++----------------------------------------------------------------------------+-----------------+---------------+
+; Device                                                                     ; EPM7064SLC44-10 ;               ;
+; Top-level entity name                                                      ; msxusb          ; MSXUSB        ;
+; Family name                                                                ; MAX7000S        ; Cyclone IV GX ;
+; Use smart compilation                                                      ; Off             ; Off           ;
+; Enable parallel Assembler and TimeQuest Timing Analyzer during compilation ; On              ; On            ;
+; Enable compact report table                                                ; Off             ; Off           ;
+; Create Debugging Nodes for IP Cores                                        ; Off             ; Off           ;
+; Preserve fewer node names                                                  ; On              ; On            ;
+; Disable OpenCore Plus hardware evaluation                                  ; Off             ; Off           ;
+; Verilog Version                                                            ; Verilog_2001    ; Verilog_2001  ;
+; VHDL Version                                                               ; VHDL_1993       ; VHDL_1993     ;
+; State Machine Processing                                                   ; Auto            ; Auto          ;
+; Safe State Machine                                                         ; Off             ; Off           ;
+; Extract Verilog State Machines                                             ; On              ; On            ;
+; Extract VHDL State Machines                                                ; On              ; On            ;
+; Ignore Verilog initial constructs                                          ; Off             ; Off           ;
+; Iteration limit for constant Verilog loops                                 ; 5000            ; 5000          ;
+; Iteration limit for non-constant Verilog loops                             ; 250             ; 250           ;
+; Add Pass-Through Logic to Inferred RAMs                                    ; On              ; On            ;
+; Infer RAMs from Raw Logic                                                  ; On              ; On            ;
+; Parallel Synthesis                                                         ; On              ; On            ;
+; NOT Gate Push-Back                                                         ; On              ; On            ;
+; Power-Up Don't Care                                                        ; On              ; On            ;
+; Remove Duplicate Registers                                                 ; On              ; On            ;
+; Ignore CARRY Buffers                                                       ; Off             ; Off           ;
+; Ignore CASCADE Buffers                                                     ; Off             ; Off           ;
+; Ignore GLOBAL Buffers                                                      ; Off             ; Off           ;
+; Ignore ROW GLOBAL Buffers                                                  ; Off             ; Off           ;
+; Ignore LCELL Buffers                                                       ; Auto            ; Auto          ;
+; Ignore SOFT Buffers                                                        ; Off             ; Off           ;
+; Limit AHDL Integers to 32 Bits                                             ; Off             ; Off           ;
+; Optimization Technique                                                     ; Speed           ; Speed         ;
+; Allow XOR Gate Usage                                                       ; On              ; On            ;
+; Auto Logic Cell Insertion                                                  ; On              ; On            ;
+; Parallel Expander Chain Length                                             ; 4               ; 4             ;
+; Auto Parallel Expanders                                                    ; On              ; On            ;
+; Auto Open-Drain Pins                                                       ; On              ; On            ;
+; Auto Resource Sharing                                                      ; Off             ; Off           ;
+; Maximum Fan-in Per Macrocell                                               ; 100             ; 100           ;
+; Use LogicLock Constraints during Resource Balancing                        ; On              ; On            ;
+; Ignore translate_off and synthesis_off directives                          ; Off             ; Off           ;
+; Report Parameter Settings                                                  ; On              ; On            ;
+; Report Source Assignments                                                  ; On              ; On            ;
+; Report Connectivity Checks                                                 ; On              ; On            ;
+; HDL message level                                                          ; Level2          ; Level2        ;
+; Suppress Register Optimization Related Messages                            ; Off             ; Off           ;
+; Number of Removed Registers Reported in Synthesis Report                   ; 5000            ; 5000          ;
+; Number of Swept Nodes Reported in Synthesis Report                         ; 5000            ; 5000          ;
+; Number of Inverted Registers Reported in Synthesis Report                  ; 100             ; 100           ;
+; Block Design Naming                                                        ; Auto            ; Auto          ;
+; Synthesis Effort                                                           ; Auto            ; Auto          ;
+; Shift Register Replacement - Allow Asynchronous Clear Signal               ; On              ; On            ;
+; Pre-Mapping Resynthesis Optimization                                       ; Off             ; Off           ;
+; Analysis & Synthesis Message Level                                         ; Medium          ; Medium        ;
+; Disable Register Merging Across Hierarchies                                ; Auto            ; Auto          ;
+; Synthesis Seed                                                             ; 1               ; 1             ;
++----------------------------------------------------------------------------+-----------------+---------------+
+
+
+Parallel compilation was disabled, but you have multiple processors available. Enable parallel compilation to reduce compilation time.
++-------------------------------------+
+; Parallel Compilation                ;
++----------------------------+--------+
+; Processors                 ; Number ;
++----------------------------+--------+
+; Number detected on machine ; 2      ;
+; Maximum allowed            ; 1      ;
++----------------------------+--------+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Source Files Read                                                                                                   ;
++----------------------------------+-----------------+------------------------+--------------------------------------------------+---------+
+; File Name with User-Entered Path ; Used in Netlist ; File Type              ; File Name with Absolute Path                     ; Library ;
++----------------------------------+-----------------+------------------------+--------------------------------------------------+---------+
+; msxusb.v                         ; yes             ; User Verilog HDL File  ; Y:/Development/msx/USB/hardware/quartus/msxusb.v ;         ;
++----------------------------------+-----------------+------------------------+--------------------------------------------------+---------+
+
+
++---------------------------------------------+
+; Analysis & Synthesis Resource Usage Summary ;
++----------------------+----------------------+
+; Resource             ; Usage                ;
++----------------------+----------------------+
+; Logic cells          ; 46                   ;
+; Total registers      ; 0                    ;
+; I/O pins             ; 29                   ;
+; Shareable expanders  ; 5                    ;
+; Parallel expanders   ; 8                    ;
+; Maximum fan-out node ; in_a15_a13[0]        ;
+; Maximum fan-out      ; 42                   ;
+; Total fan-out        ; 327                  ;
+; Average fan-out      ; 4.09                 ;
++----------------------+----------------------+
+
+
++-------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Resource Utilization by Entity                                                   ;
++--------------------------------+------------+------+-----------------------------------+--------------+
+; Compilation Hierarchy Node     ; Macrocells ; Pins ; Full Hierarchy Name               ; Library Name ;
++--------------------------------+------------+------+-----------------------------------+--------------+
+; |msxusb                        ; 46         ; 29   ; |msxusb                           ; work         ;
+;    |ch376:CH376|               ; 2          ; 0    ; |msxusb|ch376:CH376               ; work         ;
+;    |scc_rom_mapper:ROM_MAPPER| ; 44         ; 0    ; |msxusb|scc_rom_mapper:ROM_MAPPER ; work         ;
++--------------------------------+------------+------+-----------------------------------+--------------+
+
+
++---------------------------------------------------------------------------------------------------------------------------+
+; User-Specified and Inferred Latches                                                                                       ;
++-----------------------------------------------------+--------------------------------------------+------------------------+
+; Latch Name                                          ; Latch Enable Signal                        ; Free of Timing Hazards ;
++-----------------------------------------------------+--------------------------------------------+------------------------+
+; scc_rom_mapper:ROM_MAPPER|address_upper[0]          ; scc_rom_mapper:ROM_MAPPER|address_upper[5] ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[1]          ; scc_rom_mapper:ROM_MAPPER|address_upper[5] ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[2]          ; scc_rom_mapper:ROM_MAPPER|address_upper[5] ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[3]          ; scc_rom_mapper:ROM_MAPPER|address_upper[5] ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[4]          ; scc_rom_mapper:ROM_MAPPER|address_upper[5] ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[5]          ; scc_rom_mapper:ROM_MAPPER|address_upper[5] ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem0[0]                   ; scc_rom_mapper:ROM_MAPPER|mem0[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem2[0]                   ; scc_rom_mapper:ROM_MAPPER|mem2[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem1[0]                   ; scc_rom_mapper:ROM_MAPPER|mem1[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem3[0]                   ; scc_rom_mapper:ROM_MAPPER|mem3[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem0[1]                   ; scc_rom_mapper:ROM_MAPPER|mem0[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem2[1]                   ; scc_rom_mapper:ROM_MAPPER|mem2[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem1[1]                   ; scc_rom_mapper:ROM_MAPPER|mem1[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem3[1]                   ; scc_rom_mapper:ROM_MAPPER|mem3[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem0[2]                   ; scc_rom_mapper:ROM_MAPPER|mem0[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem2[2]                   ; scc_rom_mapper:ROM_MAPPER|mem2[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem1[2]                   ; scc_rom_mapper:ROM_MAPPER|mem1[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem3[2]                   ; scc_rom_mapper:ROM_MAPPER|mem3[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem0[3]                   ; scc_rom_mapper:ROM_MAPPER|mem0[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem2[3]                   ; scc_rom_mapper:ROM_MAPPER|mem2[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem1[3]                   ; scc_rom_mapper:ROM_MAPPER|mem1[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem3[3]                   ; scc_rom_mapper:ROM_MAPPER|mem3[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem0[4]                   ; scc_rom_mapper:ROM_MAPPER|mem0[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem2[4]                   ; scc_rom_mapper:ROM_MAPPER|mem2[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem1[4]                   ; scc_rom_mapper:ROM_MAPPER|mem1[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem3[4]                   ; scc_rom_mapper:ROM_MAPPER|mem3[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem0[5]                   ; scc_rom_mapper:ROM_MAPPER|mem0[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem2[5]                   ; scc_rom_mapper:ROM_MAPPER|mem2[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem1[5]                   ; scc_rom_mapper:ROM_MAPPER|mem1[0]          ; yes                    ;
+; scc_rom_mapper:ROM_MAPPER|mem3[5]                   ; scc_rom_mapper:ROM_MAPPER|mem3[0]          ; yes                    ;
+; Number of user-specified and inferred latches = 30  ;                                            ;                        ;
++-----------------------------------------------------+--------------------------------------------+------------------------+
+Note: All latches listed above may not be present at the end of synthesis due to various synthesis optimizations.
+
+
++-------------------------------+
+; Analysis & Synthesis Messages ;
++-------------------------------+
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Analysis & Synthesis
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+    Info: Processing started: Sat Apr 04 14:49:24 2020
+Info: Command: quartus_map --read_settings_files=on --write_settings_files=off MSXUSB -c MSXUSB
+Warning (20028): Parallel compilation is not licensed and has been disabled
+Info (12021): Found 5 design units, including 5 entities, in source file msxusb.v
+    Info (12023): Found entity 1: msxusb
+    Info (12023): Found entity 2: ch376
+    Info (12023): Found entity 3: t_ch376
+    Info (12023): Found entity 4: scc_rom_mapper
+    Info (12023): Found entity 5: t_scc_rom_mapper
+Info (12127): Elaborating entity "msxusb" for the top level hierarchy
+Info (12128): Elaborating entity "ch376" for hierarchy "ch376:CH376"
+Info (12128): Elaborating entity "scc_rom_mapper" for hierarchy "scc_rom_mapper:ROM_MAPPER"
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(83): variable "data" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(86): variable "data" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(89): variable "data" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(92): variable "data" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(96): variable "mem0" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(99): variable "mem1" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(102): variable "mem2" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10235): Verilog HDL Always Construct warning at msxusb.v(105): variable "mem3" is read inside the Always Construct but isn't in the Always Construct's Event Control
+Warning (10240): Verilog HDL Always Construct warning at msxusb.v(71): inferring latch(es) for variable "mem0", which holds its previous value in one or more paths through the always construct
+Warning (10240): Verilog HDL Always Construct warning at msxusb.v(71): inferring latch(es) for variable "mem1", which holds its previous value in one or more paths through the always construct
+Warning (10240): Verilog HDL Always Construct warning at msxusb.v(71): inferring latch(es) for variable "mem2", which holds its previous value in one or more paths through the always construct
+Warning (10240): Verilog HDL Always Construct warning at msxusb.v(71): inferring latch(es) for variable "mem3", which holds its previous value in one or more paths through the always construct
+Warning (10240): Verilog HDL Always Construct warning at msxusb.v(71): inferring latch(es) for variable "address_upper", which holds its previous value in one or more paths through the always construct
+Info (10041): Inferred latch for "address_upper[0]" at msxusb.v(71)
+Info (10041): Inferred latch for "address_upper[1]" at msxusb.v(71)
+Info (10041): Inferred latch for "address_upper[2]" at msxusb.v(71)
+Info (10041): Inferred latch for "address_upper[3]" at msxusb.v(71)
+Info (10041): Inferred latch for "address_upper[4]" at msxusb.v(71)
+Info (10041): Inferred latch for "address_upper[5]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem3[0]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem3[1]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem3[2]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem3[3]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem3[4]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem3[5]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem2[0]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem2[1]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem2[2]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem2[3]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem2[4]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem2[5]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem1[0]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem1[1]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem1[2]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem1[3]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem1[4]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem1[5]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem0[0]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem0[1]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem0[2]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem0[3]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem0[4]" at msxusb.v(71)
+Info (10041): Inferred latch for "mem0[5]" at msxusb.v(71)
+Info (21057): Implemented 80 device resources after synthesis - the final resource count might be different
+    Info (21058): Implemented 21 input pins
+    Info (21059): Implemented 8 output pins
+    Info (21063): Implemented 46 macrocells
+    Info (21073): Implemented 5 shareable expanders
+Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 14 warnings
+    Info: Peak virtual memory: 4560 megabytes
+    Info: Processing ended: Sat Apr 04 14:49:25 2020
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:01
+
+
