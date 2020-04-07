@@ -9,12 +9,12 @@ Cartridges were connected via a standard 50pin connector that remained the same 
 Standardisation offers a big advantage because everything that adheres to the standard can connect to it.
 
 ## USB
-USB was designed in the 90's to something similar. To standardize the connection of peripherals to personal computers, both to communicate with and to supply electric power. It has now largely replaced interfaces such as serial ports and parallel ports, and has become commonplace on a wide range of devices. Like USB flash drives, keyboards, mice, wifi, serial, camera's, etc.
+USB was designed in the 90's to do something similar. To standardize the connection of peripherals to personal computers, both to communicate with and to supply electric power. It has now largely replaced interfaces such as serial ports and parallel ports, and has become commonplace on a wide range of devices. Like USB flash drives, keyboards, mice, wifi, serial, camera's, etc.
 
 What if the MSX would have an USB connection? And if the BIOS/MSX DOS would automatically recognize devices connected to it?
 
 ## Meet MSX-USB
-Inspired by the work of Xavirompe and his RookieDrive I set out to do exactly this. And since I'm a big believer of open standards and open source I'm opening up my work to everyone.
+Inspired by the work of Xavirompe and his [RookieDrive](http://rookiedrive.com/en/) I set out to do exactly this. And since I'm a big believer of open standards and open source I'm opening up my work to everyone.
 
 On this GitHub page you can find:
 * Schematics (KiCAD), that interfaces a cheap USB CH376s board to the MSX cartridge port.
@@ -50,7 +50,12 @@ I wrote a UNAPI USB specification and implemented the Usb Host driver according 
 The Usb Keyboard driver connects to Unapi Usb driver and hooks itself to H.CHGE. From that moment on it replaces your trusted MSX keyboard by a shiny new USB Keyboard. Or a wireless one if you have inserted the appropriate Logitech receiver.
 
 ## USB Ethernet
-Work has started on the USB Ethernet driver. It will use Unapi USB and conforms to the Unapi Ethernet standard. Internestor Lite will then be able to connect and use your USB Ethernet device. Please note that currently we only support USB CDC ECM. Make sure your Ethernet device supports this.
+The USB Ethernet driver is finished. It uses the Unapi USB and conforms to the Unapi Ethernet standard. Internestor Lite will then be able to connect and use your USB Ethernet device. Please note that currently we only support USB CDC ECM. Make sure your Ethernet device supports this.
+
+All USB Ethernet devices built around the **RTL8153** chipset support USB CDC ECM. They usually cost around 20 euro.
+
+# Installation instructions / downloads
+Check [this page](INSTALL.md) for installation instructions and links to the various binaries that have been developed.
 
 # Collaboration
 Do you want to help with the development of MSX USB? Write drivers for other devices? Or contribute in other ways?
