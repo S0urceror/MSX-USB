@@ -1,3 +1,7 @@
 /**/dist/*
 !/**/dist/README.md
+!/**/dist/*.com
+!/**/dist/*.sys
+!/**/dist/*.rom
+!/**/dist/*.bin
 .DS_Store
