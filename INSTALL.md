@@ -7,7 +7,7 @@ First you need to decide how you want to use the MSX USB cartridge. Unfortunatel
 ### Disk storage
 You have to flash a new NEXTOR ROM image onto a MSX flash cartridge. The RookieDrive and other MSX USB initiatives have both Flash and the USB part combined in one cartridge so thats easy. In my prototype setup I have one cartridge with MSX USB and one modded SCC cartridge with flash and that works as well.
 
-* Download this ROM image
+* Download [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/flashdrive/dist/nextor.rom) ROM image
 * Flash the image
 * Reboot
 
@@ -31,14 +31,14 @@ There are also a couple of special instructions in BASIC at your disposal:
 ### Multi purpose USB port
 You have to flash the UNAPI MSX USB host driver onto a MSX flash cartridge.
 
-* Download this ROM image
+* Download [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbHost/dist/unapiusb.rom) ROM image
 * Flash the image
 * Reboot
 
 When you boot up you will see the CH376s module is recognised and ready to roll.
 
 You can do the following things:
-* `APILIST.COM MSXUSB` to check that the UNAPI driver is ready and works.
-* `LSUSB.COM` to list all technical USB information from the connected USB device.
-* `USBETHER.COM` to install the USB Ethernet Driver. You can then subsequently run `INL i` to install Internestor Lite. When all goes well you can then run any TCP/IP applications like `TELNET`, `HUB`, `HGET`, `TFTP`, etc. More information about this you can find on [Konamiman's](https://www.konamiman.com/msx/msx-e.html#inl2) website.
-* `USBKEYBD.COM` to install the USB HID Keyboard driver. This will enable any connected USB HID compliant keyboard.
+* [APILIST.COM](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbEthernet/dist/apilist.com) MSXUSB to check that the UNAPI driver is ready and works.
+* [LSUSB.COM](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbEthernet/dist/lsusb.com) to list all technical USB information from the connected USB device.
+* [USBETHER.COM](https://github.com/S0urceror/MSX-USB/blob/master/drivers/UsbEthernet/dist/usbether.com) to install the USB Ethernet Driver. You can then subsequently run `INL i` to install Internestor Lite. When all goes well you can then run any TCP/IP applications like `TELNET`, `HUB`, `HGET`, `TFTP`, etc. More information about this you can find on [Konamiman's](https://www.konamiman.com/msx/msx-e.html#inl2) website.
+* [USBKEYBD.COM](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbKeyboard/dist/usbkeybd.bin) to install the USB HID Keyboard driver. This will enable any connected USB HID compliant keyboard.
