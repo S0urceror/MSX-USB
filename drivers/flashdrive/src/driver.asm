@@ -744,6 +744,7 @@ LUN_INFO:
 	cp 1
 	jr nz, _LUN_INFO_NO_EXIST
 
+	;;;;;;; 720KB diskimages
 	; device 1, lun 1
 	; TODO: read actual boot sector of DSK file
 	;ld (hl),0 ; block device
@@ -770,6 +771,7 @@ LUN_INFO:
 	;inc hl
 	;ld (hl), 9 ; sectors per track
 
+	;;;;;;; 128MB diskimages
 	; #0
 	ld (hl),0 ; block device
 	; #1
@@ -785,7 +787,7 @@ LUN_INFO:
 	inc hl
 	ld (hl),04h
 	inc hl
-	ld (hl),00h ; 262144 sectors
+	ld (hl),00h ; 262144 sectors * 512 bytes = 134.217.728 bytes
 	; #7
 	inc hl
 	ld (hl),00000000b ; non-removable + non-read only + no floppy
