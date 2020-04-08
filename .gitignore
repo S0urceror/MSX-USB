@@ -1,5 +1,5 @@
 /**/dist/*
-/**/.DS_Store
+.DS_Store
 !/**/dist/README.md
 !/**/dist/*.com
 !/**/dist/*.sys
