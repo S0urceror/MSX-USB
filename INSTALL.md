@@ -42,3 +42,11 @@ You can do the following things:
 * [LSUSB.COM](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbEthernet/dist/lsusb.com) to list all technical USB information from the connected USB device.
 * [USBETHER.COM](https://github.com/S0urceror/MSX-USB/blob/master/drivers/UsbEthernet/dist/usbether.com) to install the USB Ethernet Driver. You can then subsequently run `INL i` to install Internestor Lite. When all goes well you can then run any TCP/IP applications like `TELNET`, `HUB`, `HGET`, `TFTP`, etc. More information about this you can find on [Konamiman's](https://www.konamiman.com/msx/msx-e.html#inl2) website.
 * [USBKEYBD.COM](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbKeyboard/dist/usbkeybd.bin) to install the USB HID Keyboard driver. This will enable any connected USB HID compliant keyboard.
+
+## Flashing the image
+To flash the ROM's you need an appropriate flashing tool. For my SCC compatible mapper I use the OPF tool. I believe it was created by Manuel Pazos. You can find it [here](https://www.msxcartridgeshop.com/bin/opf.zip).
+
+It is simple to use OPF. The following statement automatically finds the (mega-)flash cartridge and flashes image.rom.
+
+`OPF image.rom`
+
