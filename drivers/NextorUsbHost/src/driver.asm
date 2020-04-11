@@ -251,6 +251,11 @@ DRV_INIT:
     ld hl, TXT_START
     call PRINT
 	
+	; initialise CH376s
+    call CH_RESET
+    ld hl, TXT_RESET
+    call PRINT
+	
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
     jp nc, _HW_TEST_OKAY
@@ -261,11 +266,6 @@ DRV_INIT:
 _HW_TEST_OKAY:
 	ld (ix+WRKAREA.STATUS),00000001b
    	ld hl, TXT_FOUND
-    call PRINT
-
-	; initialise CH376s
-    call CH_RESET
-    ld hl, TXT_RESET
     call PRINT
 	
 	; set USB host mode
