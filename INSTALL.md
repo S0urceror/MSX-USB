@@ -20,7 +20,7 @@ The one named NEXTOR.DSK will be found and booted by default.
 * 128mb.DSK - You can have multiple of these on your Flash Disk when size permits. Nextor supports bigger FAT16 disks but 128mb is still fast. When it gets bigger Nextor will spend more time on housekeeping and calculating for example the free space.
 * 720kb.DSK - An empty 720KB disk image.
 
-Within Nextor and Disk Basic you can create subdirectories, format, repartition, etc.
+Here the [link](https://github.com/S0urceror/MSX-USB/blob/master/drivers/flashdrive/dist/dsks.zip) to the disk images. Within Nextor and Disk Basic you can create subdirectories, format, repartition, etc.
 
 There are also a couple of special instructions in BASIC at your disposal:
 * CALL USBFILES - list all files in the current directory of the FAT32 formatted flash drive
@@ -49,4 +49,3 @@ To flash the ROM's you need an appropriate flashing tool. For my SCC compatible 
 It is simple to use OPF. The following statement automatically finds the (mega-)flash cartridge and flashes image.rom.
 
 `OPF image.rom`
-
