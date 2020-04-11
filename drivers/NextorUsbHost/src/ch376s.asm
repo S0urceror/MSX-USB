@@ -59,6 +59,7 @@ CH_USB_INT_SUCCESS:  equ 14h
 CH_USB_INT_CONNECT:  equ 15h
 CH_USB_INT_DISCONNECT: equ 16h
 CH_USB_INT_BUF_OVER: equ 17h
+CH_USB_INT_USB_READY: equ 18h
 CH_USB_INT_DISK_READ: equ 1dh
 CH_USB_INT_DISK_WRITE: equ 1eh
 CH_USB_ERR_OPEN_DIR: equ 41h
@@ -317,30 +318,21 @@ _HW_RESET_WAIT:
     ld a,b
     or c
     jr nz,_HW_RESET_WAIT
+    ret
 
+; --------------------------------------
+; CH_TEST_CONNECT
+;
+; Input: none
+; Output: A contains USB_INT_CONNECT, USB_INT_DISCONNECT, USB_INT_USB_READY
+CH_TEST_CONNECT:
     ld a,CH_CMD_TEST_CONNECT
     out (CH_COMMAND_PORT),a
 _CH_WAIT_TEST_CONNECT:
     in a,(CH_DATA_PORT)
     or a
     jr z,_CH_WAIT_TEST_CONNECT
-;    ld bc,350
-;    call CH_DELAY
     ret 
-
-    ;Input: BC = Delay duration in units of 0.1ms
-CH_DELAY:
-    ld a,CH_CMD_DELAY_100US
-    out (CH_COMMAND_PORT),a
-_CH_DELAY_LOOP:
-    in a,(CH_DATA_PORT)
-    or a
-    jr z,_CH_DELAY_LOOP 
-    dec bc
-    ld a,b
-    or c
-    jr nz,CH_DELAY
-    ret
 
 ; --------------------------------------
 ; CH_FILE_OPEN
@@ -524,9 +516,9 @@ _CH_CONFIGURE_RETRIES:
 
 HW_CONFIGURE_NAK_RETRY:
     ld a,0FFh
-    jr nc,_HW_CONFIGURE_NAK_RETRY_2
+    jr nc,HW_CONFIGURE_NAK_RETRY_2
     ld a,0BFh
-_HW_CONFIGURE_NAK_RETRY_2:
+HW_CONFIGURE_NAK_RETRY_2:
     push af
     ld a,CH_CMD_SET_RETRY
     out (CH_COMMAND_PORT),a
@@ -679,11 +671,16 @@ string_id EQU 0
 config_descriptor_size EQU 9
 
 ; Generic USB commands
+USB_DESCRIPTORS_START:
 CMD_GET_DEVICE_DESCRIPTOR: DB 0x80,6,0,1,0,0,18,0
 CMD_SET_ADDRESS: DB 0x00,0x05,target_device_address,0,0,0,0,0
 CMD_SET_CONFIGURATION: DB 0x00,0x09,configuration_id,0,0,0,0,0
 CMD_GET_STRING: DB 0x80,6,string_id,3,0,0,255,0
 CMD_GET_CONFIG_DESCRIPTOR: DB 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
+    DS 8,0 ; reserved
+    DS 8,0 ; reserved
+    DS 8,0 ; reserved
+USB_DESCRIPTORS_END:
 
 ; USB HID command variables
 report_id EQU 0
@@ -824,7 +821,7 @@ _CH_DATA_IN_ERR:
 ;         D  = Maximum packet size for the endpoint
 ;         E  = Endpoint number
 ;         Cy = Current state of the toggle bit
-; Output: A  = USB error code
+; Output: A contains 00h when okay or CH376 error code
 ;         Cy = New state of the toggle bit (even on error)
 
 HW_DATA_OUT_TRANSFER:
@@ -898,7 +895,7 @@ _CH_DATA_OUT_DONE_2:
     pop af
     rla ;Toggle back to Cy
     rla
-    ld a,d
+    ld a,d ; A contains zero when okay or CH376 error code
     ret
 
 ; -----------------------------------------------------------------------------
@@ -926,7 +923,7 @@ HW_CONTROL_TRANSFER:
     ld b,8
     call CH_WRITE_DATA  ;Write SETUP data packet    
 
-    xor a
+    xor a    ;Toggle bit = 0
     ld e,0
     ld b,CH_PID_SETUP
     call CH_ISSUE_TOKEN
@@ -993,52 +990,6 @@ _CH_CONTROL_STATUS_IN_TRANSFER:
     ret
 
 ; --------------------------------------
-; CH_GET_DEVICE_DESCRIPTOR
-;
-; Input: HL=pointer to memory to receive device descriptor
-; Output: Cy=0 no error, Cy=1 error
-;         A  = USB error code
-;         BC = Amount of data actually transferred (if IN transfer and no error)
-CH_GET_DEVICE_DESCRIPTOR:
-    push ix,hl,de,bc
-    ld de, hl ; Address of the input or output data buffer
-    ld hl, CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x80,6,0,1,0,0,18,0
-    ld a, 0 ; device address
-    ld b, 8 ; length in bytes
-    call HW_CONTROL_TRANSFER
-    pop bc,de,hl,ix
-    cp CH_USB_INT_SUCCESS
-    ret z ; no error
-    scf ; error
-    ret
-
-; --------------------------------------
-; CH_GET_CONFIG_DESCRIPTOR
-;
-; Input: HL=pointer to memory to receive config descriptor
-;        A=configuration index starting with 0 to DEVICE_DESCRIPTOR.bNumConfigurations
-;        B=max_packetsize
-;        C=config_descriptor_size
-;        D=device address 
-; Output: Cy=0 no error, Cy=1 error
-CH_GET_CONFIG_DESCRIPTOR:
-    push ix,hl,de,bc
-    ld iy, hl ; Address of the input or output data buffer
-    ld hl, CMD_GET_CONFIG_DESCRIPTOR ; Address of the command: 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
-    ld ix, hl
-    ld (ix+2), a
-    ld (ix+6), c
-    ld a, d ; device address
-    ld de, iy ; Address of the input or output data buffer
-    call HW_CONTROL_TRANSFER
-    pop bc,de,hl,ix
-    cp CH_USB_INT_SUCCESS
-    ret z ; no error
-    scf ; error
-    ret
-
-
-; --------------------------------------
 ; CH_SET_SPEED
 ;
 ; Input: A=speed value
@@ -1052,91 +1003,4 @@ CH_SET_SPEED:
     out (CH_DATA_PORT),a
     or a; clear Cy
     pop bc
-    ret
-
-; --------------------------------------
-; CH_SET_CONFIGURATION
-;
-; Input: A=configuration id
-;        B=packetsize
-;        D=device address 
-; Output: Cy=0 no error, Cy=1 error
-CH_SET_CONFIGURATION:
-    push ix,hl
-    ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
-    ld ix, hl
-    ld (ix+2),a
-    ld a, d ; device address
-    call HW_CONTROL_TRANSFER
-    pop hl,ix
-    cp CH_USB_INT_SUCCESS
-    ret z ; no error
-    scf ; error
-    ret
-
-
-; --------------------------------------
-; CH_SET_PROTOCOL
-;
-; Input: A=protocol id (0=BOOT)
-;        B=packetsize
-;        D=device address 
-;        E=interface id
-; Output: Cy=0 no error, Cy=1 error
-CH_SET_PROTOCOL:
-    push ix,hl
-    ld hl, CMD_SET_PROTOCOL ; Address of the command: 0x21,0x0B,protocol_id,0,interface_id,0,0,0
-    ld ix, hl
-    ld (ix+2),a
-    ld (ix+4),e
-    ld a, d ; device address
-    call HW_CONTROL_TRANSFER
-    pop hl,ix
-    cp CH_USB_INT_SUCCESS
-    ret z ; no error
-    scf ; error
-    ret
-
-; --------------------------------------
-; CH_SET_IDLE
-;
-; Input: A=idle value
-;        B=packetsize
-;        C=report id
-;        D=device address 
-;        E=interface id
-; Output: Cy=0 no error, Cy=1 error
-CH_SET_IDLE:
-    push ix,hl
-    ld hl, CMD_SET_IDLE ; Address of the command: 0x21,0x0A,report_id,duration,interface_id,0,0,0
-    ld ix, hl
-    ld (ix+2),c
-    ld (ix+3),a
-    ld (ix+4),e
-    ld a, d ; device address
-    call HW_CONTROL_TRANSFER
-    pop hl,ix
-    cp CH_USB_INT_SUCCESS
-    ret z ; no error
-    scf ; error
-    ret
-
-; --------------------------------------
-; CH_SET_ADDRESS
-;
-; Input: A=address to assign to connected USB device
-;        B=packetsize
-; Output: Cy=0 no error, Cy=1 error
-CH_SET_ADDRESS:
-    push ix,hl,de
-    ld de, hl ; Address of the input or output data buffer
-    ld hl, CMD_SET_ADDRESS ; Address of the command: 0x00,0x05,target_device_address,0,0,0,0,0
-    ld ix, hl
-    ld (ix+2),a
-    ld a, 0 ; device address
-    call HW_CONTROL_TRANSFER
-    pop de,hl,ix
-    cp CH_USB_INT_SUCCESS
-    ret z ; no error
-    scf ; error
     ret

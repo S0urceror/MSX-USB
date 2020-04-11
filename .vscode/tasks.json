@@ -19,6 +19,13 @@
             "label": "make UNAPI Usb Host",
             "type": "shell",
             "command": "make -C ./drivers/UsbHost/src/",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "make Nextor Usb Host",
+            "type": "shell",
+            "command": "make -C ./drivers/NextorUsbHost/src/",
             "group": {
                 "kind": "build",
                 "isDefault": true

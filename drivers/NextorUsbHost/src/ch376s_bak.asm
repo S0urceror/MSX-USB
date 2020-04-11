@@ -305,9 +305,18 @@ _SET_FILE_NAME_REPEAT:
 ; --------------------------------------
 ; CH_RESET
 ;
+; Clear the CH376 data buffer in case a reset was made
+; while it was in the middle of a data transfer operation
+;
 ; Input: none
 ; Output: none
 CH_RESET:
+    ret
+;    ld b,64
+;_HW_RESET_CLEAR_DATA_BUF:
+;    in a,(CH_DATA_PORT)
+;    djnz _HW_RESET_CLEAR_DATA_BUF
+
     ld a, CH_CMD_RESET_ALL
     out (CH_COMMAND_PORT), a
     
