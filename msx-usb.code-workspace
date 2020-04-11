@@ -87,7 +87,8 @@
 			"CH375451.C": "cpp",
 			"stdio.h": "c",
 			"asm.h": "c",
-			"unapihelper.h": "c"
+			"unapihelper.h": "c",
+			"lsusb.h": "c"
 		}
 	}
 }

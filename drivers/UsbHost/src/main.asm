@@ -73,10 +73,14 @@ ALLOC_SCRATCH:
     ld (hl),d
     ex hl, de
     ; update HIMEM
-    ld a,l
-    ld (HIMEM),a
-    ld a,h
-    ld (HIMEM+1),a
+    ld (HIMEM),hl
+    ; update MEMSIZ
+    push hl,de
+    ld hl,(MEMSIZ)
+    or a
+    sbc hl,bc
+    ld (MEMSIZ),hl
+    pop de,hl
 
     ; copy USB commands to scratch area
     ex de,hl

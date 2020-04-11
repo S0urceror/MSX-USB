@@ -2,11 +2,12 @@ CC = zcc
 CCFLAGS = +msx
 OUTPUT_DIR = ../dist
 
-all: $(OUTPUT_DIR)/lsusb.bin $(OUTPUT_DIR)/netecho.com
+all: $(OUTPUT_DIR)/lsusb.com
 .PHONY: all clean copy
 
-$(OUTPUT_DIR)/lsusb.bin: lsusb.c lsusb.h
-	$(CC) $(CCFLAGS) -create-app -subtype=disk -o$(OUTPUT_DIR)/lsusb.bin $< 
+$(OUTPUT_DIR)/lsusb.com: lsusb.c lsusb.h
+	$(CC) $(CCFLAGS) -subtype=msxdos -o$(OUTPUT_DIR)/lsusb.com $< 
+	mv $(OUTPUT_DIR)/lsusb.com ../../drivers/UsbEthernet/dist
 
 clean:
 	-rm $(OUTPUT_DIR)/*.rom

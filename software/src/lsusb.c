@@ -202,23 +202,23 @@ void PrintDescriptors ()
 {
     char buffer[512];
 
-    AsmCall(jumptable,&regs, REGS_NONE, REGS_MAIN);
-    //UnapiCall(&codeBlock, USB_CHECK, &regs, REGS_NONE, REGS_MAIN);
+    //AsmCall(jumptable,&regs, REGS_NONE, REGS_MAIN);
+    UnapiCall(&codeBlock, USB_CHECK, &regs, REGS_NONE, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("CH376s not available\n");
         return;
     }
-    AsmCall(jumptable+8,&regs, REGS_NONE, REGS_MAIN);
-    //UnapiCall(&codeBlock, USB_CONNECT, &regs, REGS_NONE, REGS_MAIN);
+    //AsmCall(jumptable+8,&regs, REGS_NONE, REGS_MAIN);
+    UnapiCall(&codeBlock, USB_CONNECT, &regs, REGS_NONE, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("USB device not connected\n");
         return;
     }
     regs.UWords.HL = buffer;
-    AsmCall(jumptable+16,&regs, REGS_MAIN, REGS_MAIN);
-    //UnapiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
+    //AsmCall(jumptable+16,&regs, REGS_MAIN, REGS_MAIN);
+    UnapiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("USB descriptors not read\n");
@@ -232,7 +232,7 @@ void PrintDescriptors ()
     USB_HID_DESCRIPTOR* hid;
     while (config==NULL || ptr < (buffer + device->bLength + config->wTotalLength))
     {
-        //printf ("Scanning: 0x%04x (%d)\n",ptr,*ptr);
+        printf ("Scanning: 0x%04x (%d)\n",ptr,*ptr);
         switch (*(ptr+1))
         {
             case 1: // DEVICE_DESCRIPTOR

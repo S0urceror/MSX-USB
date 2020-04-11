@@ -27,7 +27,7 @@ HOOK_EXTBIO:
     ; overwrite EXTBIO with RET's
     ld  hl,EXTBIO
     ld  de,EXTBIO+1
-    ld  bc,5-1
+    ld  bc,29-1
     ld  (hl),0C9h  ;code for RET
     ldir
     or  1

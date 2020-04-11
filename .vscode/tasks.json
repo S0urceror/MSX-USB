@@ -19,7 +19,11 @@
             "label": "make UNAPI Usb Host",
             "type": "shell",
             "command": "make -C ./drivers/UsbHost/src/",
-            "group": "build"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
         },
         {
             "label": "make UNAPI Usb Keyboard",
@@ -43,10 +47,15 @@
             "label": "make client software",
             "type": "shell",
             "command": "make -C ./software/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "make lsusb",
+            "type": "shell",
+            "command": "make -C ./software/src",
+            "group": "build",
+            "problemMatcher": []
         }
     ]
 }

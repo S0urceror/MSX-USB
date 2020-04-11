@@ -6,6 +6,7 @@ all: $(OUTPUT_DIR)/unapiusb.rom
 .PHONY: all clean copy
 
 $(OUTPUT_DIR)/unapiusb.rom: main.asm unapi.asm usb_descriptors.asm ch376s.asm
+# $(OUTPUT_DIR)/unapiusb.rom: test.asm
 	$(ASM) $(ASMFLAGS) $< 
 	
 clean:
