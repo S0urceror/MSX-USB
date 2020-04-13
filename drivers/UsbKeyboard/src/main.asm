@@ -24,7 +24,17 @@ H.CHGE:     EQU 0FDC2h
 
 ; major and minor version number of MSXUSB UNAPI that we need
 UNAPI_P:    equ  0
-UNAPI_S:    equ  1
+UNAPI_S:    equ  2
+
+FN_INFO:                    EQU  0
+FN_CHECK:                   EQU  1
+FN_CONNECT:                 EQU  2
+FN_GETDESCRIPTORS:          EQU  3
+FN_CONTROL_TRANSFER:        EQU  4
+FN_DATA_IN_TRANSFER:        EQU  5
+FN_DATA_OUT_TRANSFER:       EQU  6
+FN_GET_USB_DESCRIPTOR:      EQU  7
+FN_CONFIGURE_NAK_RETRY_2:   EQU  8
 
 ; BLOAD header
     db 0x0fe
@@ -105,10 +115,6 @@ GET_UNAPI_MSXUSB:
     ld a, e
     cp UNAPI_S
     jp nz, ERROR
-    ; get JUMPTABLE
-    ld hl, JUMP_TABLE
-    ld a, 1
-    call UNAPI_ENTRY
     ; all fine
     ld hl, TXT_MSXUSB_FOUND
     call PRINT
@@ -122,7 +128,8 @@ IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
     ret
 
 USB_CHECK_ADAPTER:
-    call JUMP_TABLE+00h
+    ld a, FN_CHECK
+    call UNAPI_ENTRY
     jp c, ERROR
 
     ld hl, TXT_ADAPTER_OKAY
@@ -131,7 +138,8 @@ USB_CHECK_ADAPTER:
     ret 
     
 USB_CONNECT_DEVICE:
-    call JUMP_TABLE+08h
+    ld a, FN_CONNECT
+    call UNAPI_ENTRY
     jp c, ERROR
 
     ld hl, TXT_DEVICE_CONNECTED
@@ -141,7 +149,8 @@ USB_CONNECT_DEVICE:
     
 USB_GET_DESCRIPTORS:
     ld hl, DESCRIPTORS
-    call JUMP_TABLE+010h
+    ld a, FN_GETDESCRIPTORS
+    call UNAPI_ENTRY
 
     ld hl, TXT_DESCRIPTORS_OKAY
     call PRINT
@@ -150,7 +159,8 @@ USB_GET_DESCRIPTORS:
 
 USB_GET_SCRATCH:
     ld bc, 0
-    call JUMP_TABLE+030h
+    ld a, FN_GET_USB_DESCRIPTOR
+    call UNAPI_ENTRY
     ld (SCRATCH_AREA),hl
     ret
 
@@ -440,7 +450,6 @@ MAPPER_SLOT: DB 0
 MAPPER_JUMP_TABLE: DW 0 
 
 SHARED_VARS_START:
-JUMP_TABLE:                     DS 7*8 ; 7 functions with each 8 bytes
 KEYBOARD_INTERFACENR:           DB 0
 KEYBOARD_ENDPOINTNR:            DB 0
 KEYBOARD_MAX_PACKET_SIZE:       DB 0

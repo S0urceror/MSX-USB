@@ -66,8 +66,9 @@ CH_SET_CONFIGURATION:
     ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
     ld ix, hl
     ld (ix+2),a
-    ld a, d ; device address
-    call JUMP_TABLE+18h ; HW_CONTROL_TRANSFER
+    ld c, d ; device address
+    ld a, FN_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -88,8 +89,9 @@ CH_SET_INTERFACE:
     ld ix, hl
     ld (ix+2),a
     ld (ix+4),e
-    ld a, d ; device address
-    call JUMP_TABLE+18h ; HW_CONTROL_TRANSFER
+    ld c, d ; device address
+    ld a, FN_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -102,7 +104,7 @@ CH_SET_INTERFACE:
 ; Input: A=string-id
 ;        B=packetsize
 ;        D=device address
-;        hl=buffer to receive string
+;        HL=buffer to receive string
 ; Output: Cy=0 no error, Cy=1 error
 CH_GET_STRING:
     push ix,hl
@@ -110,9 +112,10 @@ CH_GET_STRING:
     ld hl, CMD_GET_STRING ; Address of the command: 0x80,6,string_id,3,0,0,255,0
     ld ix, hl
     ld (ix+2),a
-    ld a, d ; device address
+    ld c, d ; device address
     pop de
-    call JUMP_TABLE+18h ; HW_CONTROL_TRANSFER
+    ld a, FN_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error

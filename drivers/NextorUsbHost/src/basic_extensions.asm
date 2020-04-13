@@ -50,16 +50,16 @@ INIT_CALLS:
 ; List of available instructions (as ASCIIZ) and execute address (as word)
 CMDS:
 	db	"USBFILES",0      ; overview files in current directory
-	dw	_USBFILES
+	dw	USBFILES
  
 	db	"USBCD",0      ; change current directory
-	dw	_USBCD
+	dw	USBCD
  
 	db	"INSERTDISK",0      ; mount a new .dsk
-	dw	_INSERTDISK
+	dw	INSERTDISK
 
 	db	"EJECTDISK",0      ; unmount .dsk
-	dw	_EJECTDISK
+	dw	EJECTDISK
 	
  	db	0               ; No more instructions
  
@@ -67,7 +67,7 @@ CMDS:
 
 	include "ch376s_helpers.asm"
 
-_USBFILES:
+USBFILES:
     push hl
 	;; copy filename to path variable
 	;call _EJECTDISK
@@ -78,7 +78,7 @@ _USBFILES:
     or a
     ret
 
-_EJECTDISK:
+EJECTDISK:
     push hl
 	call MY_GWORK
 	
@@ -90,7 +90,7 @@ _EJECTDISK:
     or a
     ret
 
-_USBCD:
+USBCD:
 	CALL	EVALTXTPARAM	; Evaluate text parameter
 	PUSH	HL
     CALL    GETSTRPNT
@@ -120,7 +120,7 @@ _CONTINUE1
 	OR      A
 	RET
 
-_INSERTDISK:
+INSERTDISK:
 	CALL	EVALTXTPARAM	; Evaluate text parameter
 	PUSH	HL
     CALL    GETSTRPNT
@@ -129,7 +129,7 @@ _INSERTDISK:
 	call MY_GWORK
 
 	call _STORE_DISK_NAME
-	call _EJECTDISK
+	call EJECTDISK
 	call _OPEN_DISK_FILE
 
 	POP	HL

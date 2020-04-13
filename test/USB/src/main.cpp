@@ -64,6 +64,8 @@ int serial=-1;
 //#define CH375_CMD_RD_USB_DATA 0x28
 //#define CH375_CMD_WR_USB_DATA7 0x2B
 #define CH375_CMD_WR_HOST_DATA 0x2C
+#define CH376_CMD_DISK_CONNECT 0x30
+#define CH376_CMD_DISK_MOUNT 0x31
 #define CH375_CMD_SET_ADDRESS 0x45
 #define CH375_CMD_GET_DESCR 0x46
 #define CH375_CMD_SET_CONFIG 0x49
@@ -1398,19 +1400,49 @@ void do_hub (uint8_t device_address)
         init_device (device_address+1);
     }
 }
-
+void connect_disk ()
+{
+    writeCommand (CH376_CMD_DISK_CONNECT);
+    if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
+        error ("disk not connected");
+}
+void mount_disk ()
+{
+    int status;
+    writeCommand (CH376_CMD_DISK_MOUNT);
+    if ((status = waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+        error ("disk not mounted");
+}
+void abort_nak ()
+{
+    writeCommand (CH375_CMD_ABORT_NAK);
+}
 int main(int argc, const char * argv[]) 
 {
     init_serial();
     reset_all();
     check_exists();
 
+    // test
+    //set_retry (0xff);    
+    // set reset bus and set host mode
     bool result;
     result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
     sleep (1);
     if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
-        error ("ERROR: host mode not succeeded\n");
+        error ("host mode not succeeded\n");
+    usleep (250000);
+    // first try some high-level stuff
+    connect_disk ();
+    mount_disk ();
 
+    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
+    sleep (1);
+    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
+        error ("host mode not succeeded\n");
+    usleep (250000);
+
+    // then do the low-level things
     init_device (DEV_ADDRESS);
         
     return 0;

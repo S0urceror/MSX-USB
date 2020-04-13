@@ -382,8 +382,6 @@ CH_DIRTY_BUFFER:
 ; Input: none, opens the wildcard-search previously set
 ; Output: Cy = 1 on error
 CH_SEARCH_OPEN:
-    ;call CH_DIRTY_BUFFER
-
     ld a, CH_CMD_OPEN_FILE
     out (CH_COMMAND_PORT), a
     call CH_WAIT_INT_AND_GET_RESULT
@@ -515,9 +513,9 @@ _CH_CONFIGURE_RETRIES:
 ;               when the device returns NAK 
 
 HW_CONFIGURE_NAK_RETRY:
-    ld a,0FFh
+    ld a,08Fh
     jr nc,HW_CONFIGURE_NAK_RETRY_2
-    ld a,0BFh
+    ld a,0FFh
 HW_CONFIGURE_NAK_RETRY_2:
     push af
     ld a,CH_CMD_SET_RETRY

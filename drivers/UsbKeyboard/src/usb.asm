@@ -46,6 +46,7 @@ protocol_id EQU 0
 CMD_SET_IDLE: DB 0x21,0x0A,report_id,duration,interface_id,0,0,0
 CMD_SET_PROTOCOL: DB 0x21,0x0B,protocol_id,0,interface_id,0,0,0
 
+
 ; --------------------------------------
 ; CH_SET_CONFIGURATION
 ;
@@ -58,8 +59,9 @@ CH_SET_CONFIGURATION:
     ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
     ld ix, hl
     ld (ix+2),a
-    ld a, d ; device address
-    call JUMP_TABLE+18h ; HW_CONTROL_TRANSFER
+    ld c, d ; device address
+    ld a, FN_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -80,8 +82,9 @@ CH_SET_PROTOCOL:
     ld ix, hl
     ld (ix+2),a
     ld (ix+4),e
-    ld a, d ; device address
-    call JUMP_TABLE+18h ; HW_CONTROL_TRANSFER
+    ld c, d ; device address
+    ld a, FN_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -104,8 +107,9 @@ CH_SET_IDLE:
     ld (ix+2),c
     ld (ix+3),a
     ld (ix+4),e
-    ld a, d ; device address
-    call JUMP_TABLE+18h ; HW_CONTROL_TRANSFER
+    ld c, d ; device address
+    ld a, FN_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error

@@ -1,13 +1,11 @@
 # MSX-USB
 ## Installation instructions
-First you need to decide how you want to use the MSX USB cartridge. Unfortunately it is not possible, at this stage, to have both.:
-* Disk storage.
-* or, a multi purpose USB port.
-
-### Disk storage
 You have to flash a new NEXTOR ROM image onto a MSX flash cartridge. The RookieDrive and other MSX USB initiatives have both Flash and the USB part combined in one cartridge so thats easy. In my prototype setup I have one cartridge with MSX USB and one modded SCC cartridge with flash and that works as well.
 
-* Download [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/flashdrive/dist/nextor.rom) ROM image
+You can use the MSX USB cartridge in two modes.
+
+### Use as disk drive
+* Download [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/NextorUsbHost/dist/nextor.rom) ROM image
 * Flash the image
 * Reboot
 
@@ -29,13 +27,7 @@ There are also a couple of special instructions in BASIC at your disposal:
 * CALL EJECTDISK - eject the current mounted disk image
 
 ### Multi purpose USB port
-You have to flash the UNAPI MSX USB host driver onto a MSX flash cartridge.
-
-* Download [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbHost/dist/unapiusb.rom) ROM image
-* Flash the image
-* Reboot
-
-When you boot up you will see the CH376s module is recognised and ready to roll.
+The ROM image also contains an UNAPI compatible USB Host driver.
 
 You can do the following things:
 * [APILIST.COM](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbEthernet/dist/apilist.com) MSXUSB to check that the UNAPI driver is ready and works.

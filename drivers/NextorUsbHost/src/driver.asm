@@ -268,8 +268,18 @@ _HW_TEST_OKAY:
    	ld hl, TXT_FOUND
     call PRINT
 	
-	; set USB host mode
-    ld a, 6 ; Host, generate SOF
+	; reset BUS
+   	ld a, 7 ; HOST, reset bus
+    call CH_SET_USB_MODE
+	; wait a bit longer
+	ld bc, 8000h
+_WAIT:
+	dec bc
+	ld a, b
+	or c
+	jr nz, _WAIT
+	; reset DEVICE
+    ld a, 6
     call CH_SET_USB_MODE
     jp nc, _USB_MODE_OKAY
     ld hl, TXT_MODE_NOT_SET
@@ -286,16 +296,6 @@ _USB_MODE_OKAY:
 
 	; continue with the high-level disk driver
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	; check if something is connected
-	call CH_TEST_CONNECT
-	cp CH_USB_INT_CONNECT
-	jr z, _TEST_CONNECT_OKAY
-	ld hl, TXT_NO_DEVICE_CONNECTED
-	call PRINT
-	ret
-_TEST_CONNECT_OKAY:
-	ld hl, TXT_DEVICE_CONNECTED
-	call PRINT
 
 	; connect disk
     call CH_CONNECT_DISK
@@ -309,8 +309,11 @@ _CONNECT_DISK_OKAY:
     call PRINT
 
 	; mount USB drive
+	ld b, 5 ; retry count
+_MOUNT_RETRY:
     call CH_MOUNT_DISK
     jp nc, _MOUNT_DISK_OKAY
+	djnz _MOUNT_RETRY
     ld hl, TXT_DISK_NOT_MOUNTED
     call PRINT
     ret

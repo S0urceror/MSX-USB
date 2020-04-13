@@ -48,7 +48,8 @@
             "label": "make CH376s USB debug/test",
             "type": "shell",
             "command": "make -C ./test/USB/src/",
-            "group": "build"
+            "group": "build",
+            "problemMatcher": []
         },
         {
             "label": "make client software",
@@ -61,6 +62,13 @@
             "label": "make lsusb",
             "type": "shell",
             "command": "make -C ./software/src",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "make nextordirect",
+            "type": "shell",
+            "command": "make -C ./test/nextordirect/src",
             "group": "build",
             "problemMatcher": []
         }

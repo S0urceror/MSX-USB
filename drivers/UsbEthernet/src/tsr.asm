@@ -101,10 +101,9 @@ ETH_RESET:
    ;   11: Retry NAKs for 3s
    ; Bits 5-0: Number of retries after device timeout
    ; Default after reset and SET_USB_MODE is 8Fh
-   ;ld a, 10001111b ; default
-   ;call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
-   ld a, 00001111b ; return within immediately
-   call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
+   ld b, 00001111b ; return within immediately
+   ld a, FN_CONFIGURE_NAK_RETRY_2
+   call UNAPI_ENTRY
    ret
 
 ;--- ETH_GET_HWADD: Get hardware address
@@ -122,8 +121,9 @@ ETH_GET_HWADD:
 ;                 1 if connected to an active network
 ETH_GET_NETSTAT:
    ;
-   ld a, 10001111b ; default
-   call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
+   ld b, 10001111b ; default
+   ld a, FN_CONFIGURE_NAK_RETRY_2; SET_NAK_RETRY
+   call UNAPI_ENTRY
    ;
    ld a, (ETH_INT_READ_TOGGLE) ; get stored toggle value
    rla ; high bit shifted to Cy
@@ -135,15 +135,27 @@ ETH_GET_NETSTAT:
    ld a, (TSR_CONTROL_ENDPOINT_ID)
    ld e, a
    ld a, USB_DEVICE_ADDRESS
-   call TSR_JUMP_TABLE+20h ; HW_DATA_IN_TRANSFER ; A=USB result code, Cy=toggle bit
+   ;
+   rla
+   rla
+   rla
+   rla
+   and 0xf0
+   or e
+   ld e, a
+   ;
+   ld a, FN_DATA_IN_TRANSFER ; HW_DATA_IN_TRANSFER
+   call UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   ;
 
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
    rra ; Cy stored in high bit of A
    ld (ETH_INT_READ_TOGGLE),a ; stored in memory   
    ;
-   ld a, 00001111b ; return immediately
-   call TSR_JUMP_TABLE+38h ; SET_NAK_RETRY
+   ld b, 00001111b ; return immediately
+   ld a, FN_CONFIGURE_NAK_RETRY_2; SET_NAK_RETRY
+   call UNAPI_ENTRY
    ;
    pop af
    cp CH_USB_INT_SUCCESS
@@ -253,8 +265,9 @@ CH_SET_PACKET_FILTER:
    ld a, (TSR_CONTROL_INTERFACE_ID)
    ld (ix+4),a
    ; set device_address
-   ld a, USB_DEVICE_ADDRESS
-   call TSR_JUMP_TABLE+18h ; HW_CONTROL_TRANSFER
+   ld c, USB_DEVICE_ADDRESS
+   ld a, FN_CONTROL_TRANSFER ; HW_CONTROL_TRANSFER
+   call UNAPI_ENTRY
    cp CH_USB_INT_SUCCESS
    ret z ; no error
    scf ; error
@@ -278,7 +291,17 @@ GET_BULK_IN_PACKET:
    ld a, (TSR_DATA_BULK_IN_ENDPOINT_ID)
    ld e, a
    ld a, USB_DEVICE_ADDRESS
-   call TSR_JUMP_TABLE+20h ; HW_DATA_IN_TRANSFER ; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   ;
+   sla a
+   sla a
+   sla a
+   sla a
+   and 0xf0
+   or e
+   ld e, a
+   ;
+   ld a, FN_DATA_IN_TRANSFER ; HW_DATA_IN_TRANSFER
+   call UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
@@ -385,7 +408,17 @@ SEND_BULK_OUT_PACKET:
    ld a, (TSR_DATA_BULK_OUT_ENDPOINT_ID)
    ld e, a
    ld a, USB_DEVICE_ADDRESS
-   call TSR_JUMP_TABLE+28h ; HW_DATA_OUT_TRANSFER ; A=USB result code, Cy=toggle bit
+   ;
+   sla a
+   sla a
+   sla a
+   sla a
+   and 0xf0
+   or e
+   ld e, a
+   ;
+   ld a, FN_DATA_OUT_TRANSFER ; HW_DATA_OUT_TRANSFER
+   call UNAPI_ENTRY; A=USB result code, Cy=toggle bit
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
@@ -469,8 +502,6 @@ TSR_END:
 
 TSR_SHARED_VARS_START:
 
-; MSX USB
-TSR_JUMP_TABLE:                  DS 8*8 ; 8 functions with each 8 bytes
 ; CDC ECM identifiers
 TSR_CONTROL_INTERFACE_ID:        DB 0
 TSR_CONTROL_ENDPOINT_ID:         DB 0

@@ -22,11 +22,21 @@ BDOS        EQU 5
 
 ; major and minor version number of MSXUSB UNAPI that we need
 MSXUSB_UNAPI_P:    equ  0
-MSXUSB_UNAPI_S:    equ  1
+MSXUSB_UNAPI_S:    equ  2
 
 ; TODO: Reevaluate if this needs to be a RAM based driver (now) or a ROM based driver
 ; TODO: When ROM, smart to merge all drivers with USB Host driver?
 ; TODO: When RAM, use RAM helper in stead of direct MSX2 mapper => MSX1 compatible?
+
+FN_INFO:                    EQU  0
+FN_CHECK:                   EQU  1
+FN_CONNECT:                 EQU  2
+FN_GETDESCRIPTORS:          EQU  3
+FN_CONTROL_TRANSFER:        EQU  4
+FN_DATA_IN_TRANSFER:        EQU  5
+FN_DATA_OUT_TRANSFER:       EQU  6
+FN_GET_USB_DESCRIPTOR:      EQU  7
+FN_CONFIGURE_NAK_RETRY_2:   EQU  8
 
     org 0100h
 BEGIN:
@@ -125,18 +135,14 @@ GET_UNAPI_MSXUSB:
     and  10000000b
     jp  nz,ERROR
     ; okay MSXUSB in ROM, check if it supports our version
-    ld a, 0
-    call UNAPI_ENTRY_TEMPLATE
+    ld a, FN_INFO
+    call UNAPI_ENTRY
     ld a, d
     cp MSXUSB_UNAPI_P
     jp nz, ERROR
     ld a, e
     cp MSXUSB_UNAPI_S
     jp nz, ERROR
-    ; get JUMPTABLE
-    ld hl, JUMP_TABLE
-    ld a, 1
-    call UNAPI_ENTRY_TEMPLATE
     ; all fine
     ld hl, TXT_MSXUSB_FOUND
     call PRINT_DOS
@@ -162,14 +168,15 @@ GET_RAM_HELPER:
     or a ; clear Cy
     ret
 
-UNAPI_ENTRY_TEMPLATE:
+UNAPI_ENTRY:
     rst 30h
 IMP_SLOT: db 0 ; to be replaced with current slot id
 IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
     ret
 
 USB_CHECK_ADAPTER:
-    call JUMP_TABLE+00h
+    ld a, FN_CHECK
+    call UNAPI_ENTRY
     jp c, ERROR
 
     ld hl, TXT_ADAPTER_OKAY
@@ -178,7 +185,8 @@ USB_CHECK_ADAPTER:
     ret 
     
 USB_CONNECT_DEVICE:
-    call JUMP_TABLE+08h
+    ld a, FN_CONNECT
+    call UNAPI_ENTRY
     jp c, ERROR
 
     ld hl, TXT_DEVICE_CONNECTED
@@ -188,14 +196,14 @@ USB_CONNECT_DEVICE:
     
 USB_GET_DESCRIPTORS:
     ld hl, DESCRIPTORS
-    call JUMP_TABLE+010h
+    ld a, FN_GETDESCRIPTORS
+    call UNAPI_ENTRY
     jp c, ERROR
     
     ld hl, TXT_DESCRIPTORS_OKAY
     call PRINT_DOS
     or a
     ret
-
 
 ; --------------------------------------
 ; GET_DESCR_CONFIGURATION
@@ -615,8 +623,7 @@ RH_MAPTAB_ENTRY_SIZE:   db 8    ;Size of an entry in the mappers table:
                                 ;- 2 in DOS 1 (mappers table provided by the RAM helper)
 
 SHARED_VARS_START:
-; MSX USB
-JUMP_TABLE:                 DS 8*8 ; 8 functions with each 8 bytes
+
 ; CDC ECM identifiers
 CONTROL_INTERFACE_ID:       DB 0
 CONTROL_ENDPOINT_ID:        DB 0

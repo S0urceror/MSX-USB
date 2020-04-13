@@ -24,7 +24,7 @@ IO_BUFFER:    		ds 040h
 USB_DESCRIPTORS		ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
 	ENDS
 
-TXT_START:              db "Starting CH376s driver\r\n",0,"$"
+TXT_START:              db "Starting CH376s driver v0.3\r\n",0,"$"
 TXT_FOUND:              db "+CH376s connected\r\n",0,"$"
 TXT_NOT_FOUND:          db "-CH376s NOT connected\r\n",0,"$"
 TXT_DEVICE_CONNECTED: 	db "+USB device connected\r\n",0,"$"
@@ -52,7 +52,7 @@ TXT_SEC_READ_OKAY:      db "+Sector read requested\r\n",0,"$"
 TXT_DISK_READ_OKAY:     db "+Disk sector read\r\n",0,"$"
 TXT_RESET:              db "+CH376s reset\r\n",0,"$"
 TXT_FILECLOSED_OKAY:    db "+File closed\r\n",0,"$"
-TXT_NEXTOR_DSK			db "NEXTOR.DSK",0,"$"
+TXT_NEXTOR_DSK			db "/NEXTOR.DSK",0,"$"
 ;TXT_NEXTOR_DSK			db "128MB.DSK",0,"$"
 ;TXT_NEXTOR_DSK			db "16MB.DSK",0,"$"
 TXT_NEWLINE				db "\r\n",0,"$"

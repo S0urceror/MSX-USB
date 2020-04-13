@@ -115,15 +115,15 @@ typedef struct _USB_ETHERNET_DESCRIPTOR {
 
 enum EthUnapiFunctions {
     USB_INFO = 0,
-    USB_JUMPTABLE,
     USB_CHECK,
     USB_CONNECT,
     USB_GETDESCRIPTORS,
     USB_EXECUTE_CONTROL_TRANSFER,
     USB_DATA_IN_TRANSFER,
-    USB_DATA_OUT_TRANSFER
+    USB_DATA_OUT_TRANSFER,
+    USB_GET_DESCRIPTOR,
+    USB_CONFIGURE_NAK_RETRY
 };
-
 const char* strPresentation=
     "lsusb - list descriptors of connected USB device\r\n"
     "(c) Sourceror 2020\r\n"
@@ -137,8 +137,8 @@ const char* strUsage=
 Z80_registers regs;
 uint specVersion;
 unapi_code_block codeBlock;
-char jumptable[6*8];
-    
+//char jumptable[7*8];
+
 int main(char** argv, int argc)
 {
     char paramLetter;
@@ -155,7 +155,7 @@ int main(char** argv, int argc)
     UnapiBuildCodeBlock(NULL, i, &codeBlock);
     UnapiParseCodeBlock (&codeBlock, &slot, &segment, &address);
     printf ("Found implementation in slot: %d, segment: %d, address: %x\n",slot,segment,address);
-    GetJumpTable ();
+    //GetJumpTable ();
     PrintImplementationName();
     PrintDescriptors ();
     return 0;    
@@ -314,17 +314,19 @@ void PrintDescriptors ()
         }
     }
 }
-
+/*
 void GetJumpTable ()
 {
+    printf ("Jumptable at: 0x%04x\n",jumptable);
     regs.UWords.HL = jumptable;
     UnapiCall(&codeBlock, USB_JUMPTABLE, &regs, REGS_MAIN, REGS_MAIN);
-    /*
+
     char *ptr = jumptable;
     for (int i=0;i<6;i++)
     {
         printf ("%04x: %02x %02x %02x %02x %02x %02x %02x %02x\n",ptr,*(ptr+0)&0xff,*(ptr+1)&0xff,*(ptr+2)&0xff,*(ptr+3)&0xff,*(ptr+4)&0xff,*(ptr+5)&0xff,*(ptr+6)&0xff,*(ptr+7)&0xff);
         ptr=ptr+8;
     }
-    */
+
 }
+*/

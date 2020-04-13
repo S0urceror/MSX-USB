@@ -67,7 +67,7 @@ DO_EXTBIO2:
     ld  a, (TSR_MAPPER_SEGMENT)
     ld  b,a
     ld  a, (TSR_MAPPER_SLOT)
-    ld  hl, UNAPI_ENTRY
+    ld  hl, DO_UNAPI_ENTRY
     ld  de,2222h
     ret
 
@@ -90,7 +90,7 @@ JUMP_OLD:
     ex  (sp),hl
     ret 
 
-UNAPI_ENTRY:
+DO_UNAPI_ENTRY:
     push  hl
     push  af
     ld  hl,FN_TABLE

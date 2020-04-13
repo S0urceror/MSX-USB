@@ -530,7 +530,6 @@ _CH_CONFIGURE_RETRIES:
 ;               (this is the default)
 ;             1 to retry indefinitely (or for a long time) 
 ;               when the device returns NAK 
-
 HW_CONFIGURE_NAK_RETRY:
     ld a,0FFh
     jr nc,HW_CONFIGURE_NAK_RETRY_2
