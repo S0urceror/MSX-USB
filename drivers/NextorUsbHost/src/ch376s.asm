@@ -311,13 +311,6 @@ _SET_FILE_NAME_REPEAT:
 CH_RESET:
     ld a, CH_CMD_RESET_ALL
     out (CH_COMMAND_PORT), a
-    
-    ld bc,1000
-_HW_RESET_WAIT:
-    dec bc
-    ld a,b
-    or c
-    jr nz,_HW_RESET_WAIT
     ret
 
 ; --------------------------------------

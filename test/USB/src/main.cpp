@@ -64,8 +64,11 @@ int serial=-1;
 //#define CH375_CMD_RD_USB_DATA 0x28
 //#define CH375_CMD_WR_USB_DATA7 0x2B
 #define CH375_CMD_WR_HOST_DATA 0x2C
+#define CH376_CMD_SET_FILE_NAME 0x2F
 #define CH376_CMD_DISK_CONNECT 0x30
 #define CH376_CMD_DISK_MOUNT 0x31
+#define CH376_CMD_OPEN_FILE 0x32
+#define CH376_CMD_FILE_CLOSE 0x36
 #define CH375_CMD_SET_ADDRESS 0x45
 #define CH375_CMD_GET_DESCR 0x46
 #define CH375_CMD_SET_CONFIG 0x49
@@ -291,6 +294,14 @@ void writeData (uint8_t data)
     uint8_t cmd[] = {WR_DATA,data};
     write (serial,cmd,sizeof(cmd));
 }
+void writeDataMultiple (uint8_t* buffer,uint8_t len)
+{
+    for (int i=0;i<len;i++)
+    {
+        writeData (buffer[i]);
+    }
+    writeData (0);
+}
 ssize_t readData (uint8_t* new_value)
 {
     uint8_t cmd[] = {RD_DATA};
@@ -361,7 +372,6 @@ void check_exists ()
 void reset_all ()
 {
     writeCommand (CH375_CMD_RESET_ALL);
-    sleep (1);
 }
 void set_target_device_address (uint8_t address)
 {
@@ -1409,32 +1419,59 @@ void connect_disk ()
 void mount_disk ()
 {
     int status;
-    writeCommand (CH376_CMD_DISK_MOUNT);
-    if ((status = waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+    int count = 5;
+    while (count--)
+    {
+        writeCommand (CH376_CMD_DISK_MOUNT);
+        sleep (1);
+        status = waitInterrupt ();
+        if ((status==CH375_USB_INT_CONNECT))
+            connect_disk();
+        if ((status==CH375_USB_INT_SUCCESS))
+            break;
+    }
+    if (count==-1)
         error ("disk not mounted");
 }
 void abort_nak ()
 {
     writeCommand (CH375_CMD_ABORT_NAK);
 }
+void open_file (char* name)
+{
+    int status;
+
+    writeCommand (CH376_CMD_SET_FILE_NAME);
+    writeDataMultiple ((uint8_t*) name,strlen(name));
+
+    writeCommand (CH376_CMD_OPEN_FILE);
+    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+        error ("file not opened");
+    
+    writeCommand (CH376_CMD_FILE_CLOSE);
+    writeData (0);
+    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+        error ("file not closed");
+}
 int main(int argc, const char * argv[]) 
 {
     init_serial();
     reset_all();
+    sleep (1);
     check_exists();
 
-    // test
-    //set_retry (0xff);    
     // set reset bus and set host mode
     bool result;
-    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
-    sleep (1);
+    //result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
+    //sleep (1);
     if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
         error ("host mode not succeeded\n");
     usleep (250000);
     // first try some high-level stuff
     connect_disk ();
+    usleep (500000);
     mount_disk ();
+    open_file ("\\NEXTOR.DSK");
 
     result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
     sleep (1);

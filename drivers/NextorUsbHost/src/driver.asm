@@ -97,7 +97,6 @@ CALLB0	equ	403Fh
 ;  Output: AF, BC, DE, HL, IX, IY returned from the called routine.
 CALBNK	equ	4042h
 
-
 ;* Get in IX the address of the SLTWRK entry for the slot passed in A,
 ;  which will in turn contain a pointer to the allocated page 3
 ;  work area for that slot (0 if no work area was allocated).
@@ -256,6 +255,9 @@ DRV_INIT:
     ld hl, TXT_RESET
     call PRINT
 	
+	ld bc, WAIT_ONE_SECOND
+	call WAIT
+
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
     jp nc, _HW_TEST_OKAY
@@ -272,12 +274,8 @@ _HW_TEST_OKAY:
    	ld a, 7 ; HOST, reset bus
     call CH_SET_USB_MODE
 	; wait a bit longer
-	ld bc, 8000h
-_WAIT:
-	dec bc
-	ld a, b
-	or c
-	jr nz, _WAIT
+	ld bc, WAIT_ONE_SECOND
+	call WAIT
 	; reset DEVICE
     ld a, 6
     call CH_SET_USB_MODE
@@ -289,7 +287,9 @@ _USB_MODE_OKAY:
 	ld (ix+WRKAREA.STATUS),00000011b
     ld hl, TXT_MODE_SET
     call PRINT
-
+	; wait ~250ms
+	ld bc, WAIT_ONE_SECOND/4
+	call WAIT
 	; enable the low-level MSXUSB driver
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	call USBHOST_INIT
@@ -366,6 +366,22 @@ _FILE_OPEN_OKAY:
 
 	ret
 
+
+WAIT_ONE_SECOND	equ 60 ; max 60Hz
+
+;-----------------------------------------------------------------------------
+;
+; Wait a determined number of interrupts
+; Input: BC = number of 1/framerate interrupts to wait
+; Output: (none)
+WAIT:
+	halt
+	dec bc
+	ld a,b
+	or c
+	jr nz, WAIT
+	ret
+
 ;-----------------------------------------------------------------------------
 ;
 ; Obtain the work area address for the driver or the device
@@ -412,7 +428,7 @@ INIWORK:
 	ld	(hl),a
 	ldir
 	ret
-
+	
 ;-----------------------------------------------------------------------------
 ;
 ; Obtain driver version
