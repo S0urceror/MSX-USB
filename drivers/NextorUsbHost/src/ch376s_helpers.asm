@@ -1,22 +1,5 @@
 PATH_SEARCH_DIR:  db "/*",0
 
-;       Subroutine      Print a buffer of data in chars
-;       Inputs          HL - buffer to be printed
-;                       BC - max number of bytes
-;       Outputs         ________________________
-_PRINT_DIR_ENTRY:
-    ld a, (hl)
-	cp ' '
-	jr z,_PRINT_DIR_ENTRY_DONE
-    call PRINT_CHAR
-    inc hl
-    dec bc
-    ld a,b
-    or c
-    jp nz, _PRINT_DIR_ENTRY
-_PRINT_DIR_ENTRY_DONE:
-    ret
-
 ;UINT8	DIR_Name[11];					/* 00H */
 ;UINT8	DIR_Attr;						/* 0BH */
 ;UINT8	DIR_NTRes;						/* 0CH */
@@ -31,9 +14,30 @@ _PRINT_DIR_ENTRY_DONE:
 ;UINT32	DIR_FileSize;					/* 1CH */
 _PRINTDIR:
 	; print contents directory
-    ld hl, PATH_SEARCH_DIR
+    ld hl, ix
+    ld bc, WRKAREA.DIR_NAME
+    add hl,bc
+    call PRINT
+    ld hl, TXT_NEWLINE
+    call PRINT
+    ; disk file open?
+    ld a, (ix+WRKAREA.STATUS)
+    and 00010000b ; file is open, use root wildcard
+    jr z, _NORMAL_WILDCARD
+    call _CLOSE_DISK_FILE
+    ld hl, TXT_ROOT_WILDCARD
+    jr _SEARCH
+_NORMAL_WILDCARD:
+    ld hl, TXT_WILDCARD
+_SEARCH:
     call CH_SET_FILE_NAME
     call CH_SEARCH_OPEN    
+    ;
+    push af
+    ld bc, WRKAREA.IO_BUFFER
+    add ix,bc
+    pop af
+    ;
     jp nc, _DIR_ENTRY
     ld hl, TXT_DIR_NOT_OPENED
     call PRINT
@@ -83,6 +87,24 @@ _ENTRY_HIDDEN:
     jr nc, _DIR_ENTRY
 	ret
 
+
+;       Subroutine      Print a buffer of data in chars
+;       Inputs          HL - buffer to be printed
+;                       BC - max number of bytes
+;       Outputs         ________________________
+_PRINT_DIR_ENTRY:
+    ld a, (hl)
+	cp ' '
+	jr z,_PRINT_DIR_ENTRY_DONE
+    call PRINT_CHAR
+    inc hl
+    dec bc
+    ld a,b
+    or c
+    jp nz, _PRINT_DIR_ENTRY
+_PRINT_DIR_ENTRY_DONE:
+    ret
+
 ;       Subroutine      Copies new diskname to WRKAREA
 ;       Inputs          IX - start of WRKAREA, HL - pointer to new diskname, BC - number of bytes
 ;       Outputs         HL - pointer to stored diskname
@@ -91,13 +113,30 @@ _STORE_DISK_NAME:
 	ld hl, ix
 	ld bc, WRKAREA.DSK_NAME
 	add hl, bc
-	ld de,hl
+	ex de,hl
 	pop hl, bc
 	push de
 	ldir ; save DSK name
 	xor a
 	ld (de),a ; trailing zero
 	pop hl ; ix + WRKAREA.DSK_NAME
+	ret
+
+;       Subroutine      Copies new dirname to WRKAREA
+;       Inputs          IX - start of WRKAREA, HL - pointer to new dirname, BC - number of bytes
+;       Outputs         HL - pointer to stored dirname
+_STORE_DIR_NAME:
+	push bc, hl
+	ld hl, ix
+	ld bc, WRKAREA.DIR_NAME
+	add hl, bc
+	ex de,hl
+	pop hl, bc
+	push de
+	ldir ; save DIR name
+	xor a
+	ld (de),a ; trailing zero
+	pop hl ; ix + WRKAREA.DIR_NAME
 	ret
 
 ;       Subroutine      Opens the disk file

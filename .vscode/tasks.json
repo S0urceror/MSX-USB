@@ -26,7 +26,10 @@
             "label": "make Nextor Usb Host",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {
@@ -45,10 +48,7 @@
             "label": "make CH376s USB debug/test",
             "type": "shell",
             "command": "make -C ./test/USB/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {

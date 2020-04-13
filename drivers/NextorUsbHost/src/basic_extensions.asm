@@ -68,11 +68,9 @@ CMDS:
 	include "ch376s_helpers.asm"
 
 USBFILES:
-    push hl
+	push hl
 	;; copy filename to path variable
-	;call _EJECTDISK
-	ld bc, WRKAREA.IO_BUFFER
-	call WRKAREAPTR ; set ix to IO_BUFFER
+	call MY_GWORK
 	call _PRINTDIR
     pop hl
     or a
@@ -81,9 +79,7 @@ USBFILES:
 EJECTDISK:
     push hl
 	call MY_GWORK
-	
 	call _CLOSE_DISK_FILE
-
 	ld hl, TXT_FILECLOSED_OKAY
     call PRINT
     pop hl
@@ -96,20 +92,8 @@ USBCD:
     CALL    GETSTRPNT
     ld c, b
     ld b, 0
-
-	push bc, hl
 	call MY_GWORK
-	ld hl, ix
-	ld bc, WRKAREA.DIR_NAME
-	add hl, bc
-	ld de,hl
-	pop hl, bc
-	push de
-	ldir ; save DSK name
-	xor a
-	ld (de),a ; trailing zero
-	pop hl ; ix + WRKAREA.DIR_NAME
-
+	call _STORE_DIR_NAME
     call CH_SET_FILE_NAME
     call CH_DIR_OPEN    
     jp nc, _CONTINUE1
@@ -117,7 +101,7 @@ USBCD:
     call PRINT
 _CONTINUE1
 	POP	HL
-	OR      A
+	OR A
 	RET
 
 INSERTDISK:
@@ -127,11 +111,9 @@ INSERTDISK:
 	ld c, b
     ld b, 0
 	call MY_GWORK
-
 	call _STORE_DISK_NAME
 	call EJECTDISK
 	call _OPEN_DISK_FILE
-
 	POP	HL
 	OR A ; clear Cy, no error
 	ret

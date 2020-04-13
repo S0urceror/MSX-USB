@@ -354,6 +354,22 @@ uint8_t waitInterrupt ()
         return status;
     return 0;
 }
+uint8_t waitStatus ()
+{
+    uint8_t status,interrupt;
+    int i=0;
+    ssize_t bytes;
+    while ((bytes=readStatus(&interrupt)))
+    {
+        if ((interrupt&0x80)==0)
+            break;
+    }
+    writeCommand(CH375_CMD_GET_STATUS);
+    bytes = readData (&status);
+    if (bytes)
+        return status;
+    return 0;
+}
 void check_exists ()
 {
     uint8_t value = 190;
@@ -1415,6 +1431,7 @@ void connect_disk ()
     writeCommand (CH376_CMD_DISK_CONNECT);
     if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
         error ("disk not connected");
+    
 }
 void mount_disk ()
 {
@@ -1425,8 +1442,6 @@ void mount_disk ()
         writeCommand (CH376_CMD_DISK_MOUNT);
         sleep (1);
         status = waitInterrupt ();
-        if ((status==CH375_USB_INT_CONNECT))
-            connect_disk();
         if ((status==CH375_USB_INT_SUCCESS))
             break;
     }
@@ -1462,22 +1477,21 @@ int main(int argc, const char * argv[])
 
     // set reset bus and set host mode
     bool result;
-    //result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
-    //sleep (1);
-    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
-        error ("host mode not succeeded\n");
-    usleep (250000);
-    // first try some high-level stuff
-    connect_disk ();
-    usleep (500000);
-    mount_disk ();
-    open_file ("\\NEXTOR.DSK");
-
     result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
     sleep (1);
     if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
         error ("host mode not succeeded\n");
     usleep (250000);
+    // first try some high-level stuff
+    connect_disk ();
+    mount_disk ();
+    //open_file ("\\NEXTOR.DSK");
+
+    //result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
+    //sleep (1);
+    //if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
+    //    error ("host mode not succeeded\n");
+    //usleep (250000);
 
     // then do the low-level things
     init_device (DEV_ADDRESS);

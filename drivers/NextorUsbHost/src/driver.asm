@@ -344,16 +344,25 @@ _READ_BUFFER_OKAY:
     call PRINT
 _NEXT
 	; TODO: check the existence of a AUTOEXEC.DSK file, read contents and use this as the virtual 'inserted' disk
+	ld hl, TXT_ROOT_DIR
+    ld bc, 8
+	call MY_GWORK
+    call _STORE_DIR_NAME
+	call CH_SET_FILE_NAME
+    call CH_DIR_OPEN    
+    jp nc, _DIR_OPEN_OKAY
+	ld hl, TXT_CD_FAILED
+    call PRINT
+    ret
 	; now try to load nextor.dsk
+_DIR_OPEN_OKAY:
 	ld hl, TXT_NEXTOR_DSK
     ld bc, 12
+	call MY_GWORK
     call _STORE_DISK_NAME
 	call CH_SET_FILE_NAME
     call CH_FILE_OPEN    
     jp nc, _FILE_OPEN_OKAY
-
-	call MY_GWORK
-	ld (ix+WRKAREA.STATUS),00001111b
     ld hl, TXT_FILEOPEN_FAILED
     call PRINT
     ret

@@ -17,8 +17,8 @@ PRODUCTREV:			ds 8 ;UINT8	ProductRevStr[4];			/* 20H */
 	STRUCT WRKAREA
 BASE:				; Offset to the base of the data structure 
 STATUS:				db ; bit 0 = CH376s present, bit 1 = initialised, bit 2 = USB device present, bit 3 = USB device mounted, bit 4 = virtual DSK file inserted, bit 5 = DSK changed
-DSK_NAME:			ds 12
-DIR_NAME:			ds 8
+DSK_NAME:			ds 13
+DIR_NAME:			ds 9
 DEVICE_INFO:		DEVINFO
 IO_BUFFER:    		ds 040h
 USB_DESCRIPTORS		ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
@@ -52,8 +52,9 @@ TXT_SEC_READ_OKAY:      db "+Sector read requested\r\n",0,"$"
 TXT_DISK_READ_OKAY:     db "+Disk sector read\r\n",0,"$"
 TXT_RESET:              db "+CH376s reset\r\n",0,"$"
 TXT_FILECLOSED_OKAY:    db "+File closed\r\n",0,"$"
-TXT_NEXTOR_DSK			db "/NEXTOR.DSK",0,"$"
-;TXT_NEXTOR_DSK			db "128MB.DSK",0,"$"
-;TXT_NEXTOR_DSK			db "16MB.DSK",0,"$"
+TXT_ROOT_DIR			db "/",0,0,0,0,0,0,0
+TXT_WILDCARD			db "*",0,0,0,0,0,0,0
+TXT_ROOT_WILDCARD		db "/*",0,0,0,0,0,0
+TXT_NEXTOR_DSK			db "NEXTOR.DSK",0
 TXT_NEWLINE				db "\r\n",0,"$"
 TXT_DIRECTORY_ENTRY: db "\r",09h,09h,"<DIR>\r",0,"$"
