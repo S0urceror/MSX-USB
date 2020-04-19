@@ -45,16 +45,18 @@ TXT_SEC_LOCATE_FAILED:  db "-Cannot set file pointer to sector\r\n",0,"$"
 TXT_SEC_READ_FAILED:    db "-Request sector failed\r\n",0,"$"
 TXT_DISK_READ_FAILED:   db "-Disk read sector failed\r\n",0,"$"
 TXT_CD_OKAY:            db "+Directory opened\r\n",0,"$"
-TXT_FILEOPEN_OKAY:      db "+File opened\r\n",0,"$"
+TXT_FILEOPEN_OKAY:      db "+File opened: ",0,"$"
 TXT_FILEOPEN_FAILED:    db "-File NOT opened\r\n",0,"$"
 TXT_SEC_LOCATE_OKAY:    db "+File pointer set to sector\r\n",0,"$"
 TXT_SEC_READ_OKAY:      db "+Sector read requested\r\n",0,"$"
 TXT_DISK_READ_OKAY:     db "+Disk sector read\r\n",0,"$"
 TXT_RESET:              db "+CH376s reset\r\n",0,"$"
 TXT_FILECLOSED_OKAY:    db "+File closed\r\n",0,"$"
-TXT_ROOT_DIR			db "/",0,0,0,0,0,0,0
+TXT_ROOT_DIR			db "\\",0,0,0,0,0,0,0
 TXT_WILDCARD			db "*",0,0,0,0,0,0,0
-TXT_ROOT_WILDCARD		db "/*",0,0,0,0,0,0
+TXT_ROOT_WILDCARD		db "\\*",0,0,0,0,0,0
+TXT_USB_DRIVE			db "USB:",0
 TXT_NEXTOR_DSK			db "NEXTOR.DSK",0
 TXT_NEWLINE				db "\r\n",0,"$"
-TXT_DIRECTORY_ENTRY: db "\r",09h,09h,"<DIR>\r",0,"$"
+TXT_DIRECTORY_ENTRY: 	db "\r",09h,09h,"<DIR>\r",0,"$"
+TXT_AUTOEXEC_DSK:		db "AUTOEXEC.DSK",0

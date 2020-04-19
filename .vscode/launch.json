@@ -19,6 +19,7 @@
             "request": "launch",
             "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
             "args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
+            //"args": ["-machine", "Panasonic_FS-A1GT", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
             "cwd": "../Emulators/OpenMSX/share"
         },
         {

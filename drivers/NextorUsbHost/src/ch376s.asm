@@ -36,6 +36,8 @@ CH_CMD_DISK_MOUNT: equ 31h
 CH_CMD_OPEN_FILE: equ 32h
 CH_CMD_FILE_ENUM_GO: equ 33h
 CH_CMD_FILE_CLOSE: equ 36h
+CH_CMD_BYTE_READ: equ 3ah
+CH_CMD_BYTE_RD_GO: equ 3bh
 CH_CMD_SET_ADDRESS: equ 45h
 CH_CMD_GET_DESCR: equ 46h
 CH_CMD_SET_CONFIG: equ 49h
@@ -94,6 +96,43 @@ CH_FILE_CLOSE:
     call CH_WAIT_INT_AND_GET_RESULT
     ret
 
+; --------------------------------------
+; CH_FILE_READ
+;
+; Input: HL points to buffer to receive data
+; Output: none
+CH_FILE_READ:
+    ld a, CH_CMD_BYTE_READ
+    out (CH_COMMAND_PORT), a ; start reading
+    ld a, 64 ; buffer size
+    out (CH_DATA_PORT), a ; 64 bytes requested
+    xor a
+    out (CH_DATA_PORT),a
+
+_FILE_READ_NEXT:
+    call CH_WAIT_INT_AND_GET_RESULT
+    cp CH_USB_INT_DISK_READ ; data read
+    jp z, _FILE_READ_DATA
+    cp CH_USB_INT_SUCCESS ; done reading
+    jp z, _FILE_READ_SUCCESS
+    scf ; error flag
+    ret
+
+_FILE_READ_DATA:
+    ; read the contents of the sector in the buffer pointed by HL
+    call CH_READ_DATA 
+    ld a, c
+    or a
+    scf 
+    ret z
+    
+    ld a, CH_CMD_BYTE_RD_GO
+    out (CH_COMMAND_PORT), a ; request next block
+    jp _FILE_READ_NEXT
+
+_FILE_READ_SUCCESS:
+    or a
+    ret
 ; --------------------------------------
 ; CH_DISK_READ
 ;

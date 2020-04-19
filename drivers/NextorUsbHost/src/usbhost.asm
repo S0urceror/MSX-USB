@@ -233,7 +233,7 @@ FN_5:  dw  FN_DATA_IN_TRANSFER
 FN_6:  dw  FN_DATA_OUT_TRANSFER
 FN_7:  dw  FN_GET_USB_DESCRIPTOR
 FN_8:  dw  FN_CONFIGURE_NAK_RETRY_2
-MAX_FN equ 9
+MAX_FN equ 8
 
 ;************************
 ;***  FUNCTIONS CODE  ***
@@ -270,28 +270,10 @@ FN_CONTROL_TRANSFER:
     ld a, c ; device address in C
     jp HW_CONTROL_TRANSFER
 FN_DATA_IN_TRANSFER:
-    ld ixl, e
-    ld a, e ; trick device address in high nibble, endpoint id in low nibble.
-    and 0x0f
-    ld e, a
-    ld a, ixl
-    sra a
-    sra a
-    sra a
-    sra a
-    and 0x0f
+    call _UNPACK_E
     jp HW_DATA_IN_TRANSFER
 FN_DATA_OUT_TRANSFER:
-    ld ixl, e
-    ld a, e ; trick device address in high nibble, endpoint id in low nibble.
-    and 0x0f
-    ld e, a
-    ld a, ixl
-    sra a
-    sra a
-    sra a
-    sra a
-    and 0x0f
+    call _UNPACK_E
     jp HW_DATA_OUT_TRANSFER
 FN_GET_USB_DESCRIPTOR:
     jp GET_USB_DESCRIPTOR
@@ -299,6 +281,27 @@ FN_CONFIGURE_NAK_RETRY_2:
     ld a, b
     jp HW_CONFIGURE_NAK_RETRY_2
     
+; E contains DDDDEEEE (D=device address, E=endpoint id) unpack it and preserve Cy
+; Output: A = device address
+;         E = endpoint id
+; Modifies: IXl  
+_UNPACK_E:
+    push af
+    ld ixl, e
+    ld a, e ; trick device address in high nibble, endpoint id in low nibble.
+    and 0x0f
+    ld e, a
+    ld a, ixl
+    sra a
+    sra a
+    sra a
+    sra a
+    and 0x0f
+    ld ixl, a
+    pop af
+    ld a,ixl
+    ret
+
 ; Get both the DEVICE and full CONFIG descriptors and return it
 ; Input: HL = pointer to buffer
 ; Output: Cy = 0, everything okay, Cy = 1, not connected

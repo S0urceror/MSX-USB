@@ -103,7 +103,7 @@ START_BASIC:
     ; copy the TSR part to the new segment
     call COPY_TSR_SEG
     ret c
-
+    
     ret 
 
 GET_UNAPI_MSXUSB:
@@ -160,18 +160,29 @@ GET_RAM_HELPER:
     ; not present
     ret z
     ld (RH_JUMPTABLE), hl
-    ld bc, hl
+    ld a, b
+    or c
+    jr nz, _REDUCED_MAPPER_TABLE
+    ; get the mapper table from the MSX2 DOS mapper routines
+    ld a, 0 ; reset to 0, should change
+    ld d, 4 ; extbio device id
+    ld e, 1 ; function nr
+    ;Result:A = Slot number of primary mapper - if zero, mapper support routines are not available
+	;		DE = reserved
+	;		HL = Start address of mapper variable table
+    call EXTBIO
+    or a
+    scf
+    ret z ; if A is zero and no reduced mapper table present, we need to stop
+    jr _NORMAL_MAPPER_TABLE
+_REDUCED_MAPPER_TABLE:
+    ld hl, bc
+_NORMAL_MAPPER_TABLE:
     ld (RH_MAPTAB_ADD),hl
     ; all okay
     ld hl, TXT_RAM_HELPER_FOUND
     call PRINT_DOS
     or a ; clear Cy
-    ret
-
-UNAPI_ENTRY:
-    rst 30h
-IMP_SLOT: db 0 ; to be replaced with current slot id
-IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
     ret
 
 USB_CHECK_ADAPTER:
@@ -639,6 +650,12 @@ MAC_ADDRESS                 DW 0,0,0
 OLD_EXTBIO:                 DS 5
 MAPPER_SEGMENT:             DB 0
 MAPPER_SLOT:                DB 0
+; UNAPI_ENTRY
+UNAPI_ENTRY:
+    rst 30h
+IMP_SLOT: db 0 ; to be replaced with current slot id
+IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
+    ret
 
 SHARED_VARS_END:
 

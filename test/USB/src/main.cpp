@@ -69,6 +69,7 @@ int serial=-1;
 #define CH376_CMD_DISK_MOUNT 0x31
 #define CH376_CMD_OPEN_FILE 0x32
 #define CH376_CMD_FILE_CLOSE 0x36
+#define CH375_USB_ERR_OPEN_DIR 0x41
 #define CH375_CMD_SET_ADDRESS 0x45
 #define CH375_CMD_GET_DESCR 0x46
 #define CH375_CMD_SET_CONFIG 0x49
@@ -343,11 +344,16 @@ uint8_t waitInterrupt ()
     uint8_t status,interrupt;
     int i=0;
     ssize_t bytes;
-    while ((bytes=readInterrupt(&interrupt)))
+    int counter = 1000;
+    while ((bytes=readInterrupt(&interrupt)) && counter>0)
     {
         if (interrupt&0x80)
             break;
+        usleep (1000);
+        counter --;
     }
+    if (counter<=0)
+        error ("timeout waitInterrupt");
     writeCommand(CH375_CMD_GET_STATUS);
     bytes = readData (&status);
     if (bytes)
@@ -621,6 +627,8 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
             interrupt = waitInterrupt();
             if ((interrupt&0x2f)==0x2a) // absorb NAK
                 continue;
+            if ((interrupt&0x2f)==0x2e) // absorb STALL
+                interrupt = CH375_USB_INT_SUCCESS;
             break;
         };
         if (interrupt!=CH375_USB_INT_SUCCESS)
@@ -1436,16 +1444,9 @@ void connect_disk ()
 void mount_disk ()
 {
     int status;
-    int count = 5;
-    while (count--)
-    {
-        writeCommand (CH376_CMD_DISK_MOUNT);
-        sleep (1);
-        status = waitInterrupt ();
-        if ((status==CH375_USB_INT_SUCCESS))
-            break;
-    }
-    if (count==-1)
+    writeCommand (CH376_CMD_DISK_MOUNT);
+    status = waitInterrupt ();
+    if ((status!=CH375_USB_INT_SUCCESS))
         error ("disk not mounted");
 }
 void abort_nak ()
@@ -1455,46 +1456,92 @@ void abort_nak ()
 void open_file (char* name)
 {
     int status;
-
     writeCommand (CH376_CMD_SET_FILE_NAME);
     writeDataMultiple ((uint8_t*) name,strlen(name));
-
     writeCommand (CH376_CMD_OPEN_FILE);
     if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
         error ("file not opened");
     
+}
+#define CH376_CMD_BYTE_READ 0x3a
+#define CH376_CMD_BYTE_RD_GO 0x3b
+#define CH375_USB_INT_DISK_READ 0x1d
+void read_file ()
+{
+    int status;
+    while (true)
+    {
+        writeCommand (CH376_CMD_BYTE_READ);
+        writeData (64);
+        writeData (0);
+        status=waitInterrupt ();
+        if (status==CH375_USB_INT_SUCCESS)
+            return; // done
+        if (status==CH375_USB_INT_DISK_READ)
+        {
+            uint8_t buffer[64];
+            ssize_t len = read_usb_data(buffer);
+            print_buffer (buffer,len);
+            char line[65];
+            strncpy (line,(char*) buffer,len);
+            printf ("%s\n",line);
+            writeCommand (CH376_CMD_BYTE_RD_GO);
+            if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+                error ("read file error");
+        }
+    }
+}
+void close_file ()
+{
+    int status;
     writeCommand (CH376_CMD_FILE_CLOSE);
     writeData (0);
     if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
         error ("file not closed");
 }
-int main(int argc, const char * argv[]) 
+void open_dir (char* name)
 {
-    init_serial();
-    reset_all();
-    sleep (1);
-    check_exists();
-
-    // set reset bus and set host mode
+    int status;
+    writeCommand (CH376_CMD_SET_FILE_NAME);
+    writeDataMultiple ((uint8_t*) name,strlen(name));
+    writeCommand (CH376_CMD_OPEN_FILE);
+    if ((status=waitInterrupt ())!=CH375_USB_ERR_OPEN_DIR)
+        error ("directory not opened");
+}
+void usb_host_bus_reset ()
+{
     bool result;
     result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
     sleep (1);
     if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
         error ("host mode not succeeded\n");
     usleep (250000);
+}
+int main(int argc, const char * argv[]) 
+{
+    init_serial();
+    check_exists();
+    reset_all();
+    usleep (50000);
+
+    // set reset bus and set host mode
+    usb_host_bus_reset ();
+ 
     // first try some high-level stuff
     connect_disk ();
     mount_disk ();
-    //open_file ("\\NEXTOR.DSK");
-
-    //result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
-    //sleep (1);
-    //if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
-    //    error ("host mode not succeeded\n");
-    //usleep (250000);
+    open_dir ("\\");
+    open_file ("AUTOEXEC.DSK");
+    read_file ();
+    close_file ();
+    open_dir ("\\");
+    open_file ("NEXTOR.DSK");
+    close_file ();
+    // set reset bus and set host mode
+    usb_host_bus_reset ();
 
     // then do the low-level things
     init_device (DEV_ADDRESS);
-        
+
     return 0;
 }

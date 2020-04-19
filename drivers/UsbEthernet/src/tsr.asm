@@ -103,7 +103,7 @@ ETH_RESET:
    ; Default after reset and SET_USB_MODE is 8Fh
    ld b, 00001111b ; return within immediately
    ld a, FN_CONFIGURE_NAK_RETRY_2
-   call UNAPI_ENTRY
+   call TSR_UNAPI_ENTRY
    ret
 
 ;--- ETH_GET_HWADD: Get hardware address
@@ -123,7 +123,7 @@ ETH_GET_NETSTAT:
    ;
    ld b, 10001111b ; default
    ld a, FN_CONFIGURE_NAK_RETRY_2; SET_NAK_RETRY
-   call UNAPI_ENTRY
+   call TSR_UNAPI_ENTRY
    ;
    ld a, (ETH_INT_READ_TOGGLE) ; get stored toggle value
    rla ; high bit shifted to Cy
@@ -135,17 +135,9 @@ ETH_GET_NETSTAT:
    ld a, (TSR_CONTROL_ENDPOINT_ID)
    ld e, a
    ld a, USB_DEVICE_ADDRESS
-   ;
-   rla
-   rla
-   rla
-   rla
-   and 0xf0
-   or e
-   ld e, a
-   ;
+   call _PACK_E
    ld a, FN_DATA_IN_TRANSFER ; HW_DATA_IN_TRANSFER
-   call UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   call TSR_UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
    ;
 
    push af
@@ -155,7 +147,7 @@ ETH_GET_NETSTAT:
    ;
    ld b, 00001111b ; return immediately
    ld a, FN_CONFIGURE_NAK_RETRY_2; SET_NAK_RETRY
-   call UNAPI_ENTRY
+   call TSR_UNAPI_ENTRY
    ;
    pop af
    cp CH_USB_INT_SUCCESS
@@ -267,7 +259,7 @@ CH_SET_PACKET_FILTER:
    ; set device_address
    ld c, USB_DEVICE_ADDRESS
    ld a, FN_CONTROL_TRANSFER ; HW_CONTROL_TRANSFER
-   call UNAPI_ENTRY
+   call TSR_UNAPI_ENTRY
    cp CH_USB_INT_SUCCESS
    ret z ; no error
    scf ; error
@@ -291,17 +283,9 @@ GET_BULK_IN_PACKET:
    ld a, (TSR_DATA_BULK_IN_ENDPOINT_ID)
    ld e, a
    ld a, USB_DEVICE_ADDRESS
-   ;
-   sla a
-   sla a
-   sla a
-   sla a
-   and 0xf0
-   or e
-   ld e, a
-   ;
+   call _PACK_E
    ld a, FN_DATA_IN_TRANSFER ; HW_DATA_IN_TRANSFER
-   call UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   call TSR_UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
@@ -408,7 +392,24 @@ SEND_BULK_OUT_PACKET:
    ld a, (TSR_DATA_BULK_OUT_ENDPOINT_ID)
    ld e, a
    ld a, USB_DEVICE_ADDRESS
+   call _PACK_E
+   ld a, FN_DATA_OUT_TRANSFER ; HW_DATA_OUT_TRANSFER
+   call TSR_UNAPI_ENTRY; A=USB result code, Cy=toggle bit
    ;
+   push af
+   ld a, 0 ; deliberately no XOR because that wipes Cy
+   rra ; Cy stored in high bit of A
+   ld (ETH_DATA_WRITE_TOGGLE),a ; stored in memory
+   pop af
+   ;
+   ret
+
+; Input:    A: device address
+;           E: endpoint id
+; Output:   Everything preserved including Cy
+;           E will contain DDDDEEEE (D=device address, E=endpoint id)
+_PACK_E:
+   push af ; preserve Cy
    sla a
    sla a
    sla a
@@ -416,14 +417,6 @@ SEND_BULK_OUT_PACKET:
    and 0xf0
    or e
    ld e, a
-   ;
-   ld a, FN_DATA_OUT_TRANSFER ; HW_DATA_OUT_TRANSFER
-   call UNAPI_ENTRY; A=USB result code, Cy=toggle bit
-   ;
-   push af
-   ld a, 0 ; deliberately no XOR because that wipes Cy
-   rra ; Cy stored in high bit of A
-   ld (ETH_DATA_WRITE_TOGGLE),a ; stored in memory
    pop af
    ;
    ret
@@ -517,5 +510,11 @@ TSR_MAC_ADDRESS DW 503eh,0aa7bh,601ah
 TSR_OLD_EXTBIO:                  DS 5
 TSR_MAPPER_SEGMENT:              DB 0
 TSR_MAPPER_SLOT:                 DB 0
-
+; UNAPI_ENTRY
+TSR_UNAPI_ENTRY:
+   db 0 ; rst 30h
+   db 0 ; to be replaced with current slot id
+   dw 0 ; to be replaced with UNAPI_ENTRY
+   db 0 ; ret
+   
 TSR_SHARED_VARS_END:

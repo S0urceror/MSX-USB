@@ -14,6 +14,8 @@ PATH_SEARCH_DIR:  db "/*",0
 ;UINT32	DIR_FileSize;					/* 1CH */
 _PRINTDIR:
 	; print contents directory
+    ld hl, TXT_USB_DRIVE
+    call PRINT
     ld hl, ix
     ld bc, WRKAREA.DIR_NAME
     add hl,bc

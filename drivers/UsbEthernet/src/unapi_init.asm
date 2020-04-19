@@ -40,7 +40,7 @@ OK_INIEXTB:
 
     ;--- Patch EXTBIO hook
     di
-    ld  a,0CDh  ;code for "RST 30h"
+    ld  a,0CDh  ;code for "CALL"
     ld  (EXTBIO_),a
     ld  hl,(RH_JUMPTABLE)
     ld  bc,6
@@ -64,7 +64,7 @@ _MAPFND:
     ld      a,e     ;A = Index of slot on mappers table
     rrca
     rrca
-    and     11000000b       ;Entry point 4010h = index 0
+    and     11000000b       ;Entry point 4000h = index 0
     ld      (EXTBIO_+3),a
 
     ld  a, (MAPPER_SEGMENT)

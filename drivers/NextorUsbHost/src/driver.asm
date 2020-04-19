@@ -143,7 +143,7 @@ SING_DBL  equ     7820h ;"1-Single side / 2-Double side"
 ;    bit 2: 1 if the driver implements the DRV_CONFIG routine
 ;             (used by Nextor from v2.0.5)
 
-	db	00000001b
+	db	00000101b
 
 ;-----------------------------------------------------------------------------
 ;
@@ -179,8 +179,8 @@ DRV_NAME:
     jp  DRV_DIRECT2
     jp  DRV_DIRECT3
     jp  DRV_DIRECT4
-
-	ds	15
+	jp	DRV_CONFIG
+	ds	12
 
 	; These routines are mandatory for device-based drivers
 	jp	DEV_RW
@@ -198,6 +198,51 @@ DRV_NAME:
 ; (at 50 or 60Hz), but only if DRV_INIT returns Cy=1 on its first execution.
 
 DRV_TIMI:
+	ret
+
+;-----------------------------------------------------------------------------
+;
+; Get driver configuration 
+; (bit 2 of driver flags must be set if this routine is implemented)
+;
+; Input:
+;   A = Configuration index
+;   BC, DE, HL = Depends on the configuration
+;
+; Output:
+;   A = 0: Ok
+;       1: Configuration not available for the supplied index
+;   BC, DE, HL = Depends on the configuration
+;
+; * Get number of drives at boot time (for device-based drivers only):
+;   Input:
+;     A = 1
+;     B = 0 for DOS 2 mode, 1 for DOS 1 mode
+;     C: bit 5 set if user is requesting reduced drive count
+;        (by pressing the 5 key)
+;   Output:
+;     B = number of drives
+;
+; * Get default configuration for drive
+;   Input:
+;     A = 2
+;     B = 0 for DOS 2 mode, 1 for DOS 1 mode
+;     C = Relative drive number at boot time
+;   Output:
+;     B = Device index
+;     C = LUN index
+
+DRV_CONFIG:
+	dec a
+	jr nz, _DEF_CONFIG ; A was 2
+	; A was 1
+	ld b, 1 ; number of drives requested, iregardless of DOS version
+	ret
+_DEF_CONFIG:
+	xor a
+	ld b, 1
+	; LUN index = relative drive number at boot time + 1
+	inc c
 	ret
 
 ;-----------------------------------------------------------------------------
@@ -249,14 +294,6 @@ DRV_INIT:
 	; print welcome message
     ld hl, TXT_START
     call PRINT
-	
-	; initialise CH376s
-    call CH_RESET
-    ld hl, TXT_RESET
-    call PRINT
-	
-	ld bc, WAIT_ONE_SECOND
-	call WAIT
 
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
@@ -270,6 +307,13 @@ _HW_TEST_OKAY:
    	ld hl, TXT_FOUND
     call PRINT
 	
+	; initialise CH376s
+    call CH_RESET
+    ld hl, TXT_RESET
+    call PRINT
+	ld bc, WAIT_ONE_SECOND/5
+	call WAIT
+
 	; reset BUS
    	ld a, 7 ; HOST, reset bus
     call CH_SET_USB_MODE
@@ -309,11 +353,8 @@ _CONNECT_DISK_OKAY:
     call PRINT
 
 	; mount USB drive
-	ld b, 5 ; retry count
-_MOUNT_RETRY:
     call CH_MOUNT_DISK
     jp nc, _MOUNT_DISK_OKAY
-	djnz _MOUNT_RETRY
     ld hl, TXT_DISK_NOT_MOUNTED
     call PRINT
     ret
@@ -343,7 +384,6 @@ _READ_BUFFER_OKAY:
     ld hl, TXT_NEWLINE
     call PRINT
 _NEXT
-	; TODO: check the existence of a AUTOEXEC.DSK file, read contents and use this as the virtual 'inserted' disk
 	ld hl, TXT_ROOT_DIR
     ld bc, 8
 	call MY_GWORK
@@ -354,24 +394,64 @@ _NEXT
 	ld hl, TXT_CD_FAILED
     call PRINT
     ret
-	; now try to load nextor.dsk
 _DIR_OPEN_OKAY:
+	; try to load autoexec.dsk
+	ld hl, TXT_AUTOEXEC_DSK
+	call CH_SET_FILE_NAME
+	call CH_FILE_OPEN
+	jr nc, _FILE_OPEN_OKAY1
+	; No? Try to load nextor.dsk
 	ld hl, TXT_NEXTOR_DSK
+	jr _OPEN_DSK
+_FILE_OPEN_OKAY1:
+	; read first line of text in autoexec.dsk => HL
+	ld bc, WRKAREA.IO_BUFFER
+	call WRKAREAPTR
+	ld hl,ix
+	call CH_FILE_READ
+	ld hl,ix
+	; terminate first \n to zero
+_NEWLINE_START:
+	ld a, (hl)
+	cp "\n"
+	jr nz, _NEWLINE_NEXT
+	xor a
+	ld (hl), a
+_NEWLINE_NEXT:
+	or a
+	inc hl
+	jr nz, _NEWLINE_START
+	;
+	xor a
+	call CH_FILE_CLOSE
+	ld hl, TXT_ROOT_DIR
+	call CH_SET_FILE_NAME
+    call CH_DIR_OPEN    
+	;
+	ld hl,ix
+_OPEN_DSK
     ld bc, 12
 	call MY_GWORK
     call _STORE_DISK_NAME
 	call CH_SET_FILE_NAME
     call CH_FILE_OPEN    
-    jp nc, _FILE_OPEN_OKAY
+    jr nc, _FILE_OPEN_OKAY2
     ld hl, TXT_FILEOPEN_FAILED
     call PRINT
     ret
 	
-_FILE_OPEN_OKAY:
+_FILE_OPEN_OKAY2:
 	call MY_GWORK
 	ld (ix+WRKAREA.STATUS),00111111b
     ld hl, TXT_FILEOPEN_OKAY
     call PRINT
+	; print opened file
+	ld hl, ix
+	ld bc, WRKAREA.DSK_NAME
+	add hl,bc
+	call PRINT
+	ld hl, TXT_NEWLINE
+	call PRINT
 
 	ret
 
@@ -785,6 +865,45 @@ LUN_INFO:
 	cp 1
 	jr nz, _LUN_INFO_NO_EXIST
 
+	;;;;;;; 128MB diskimages
+	; #0
+	ld (hl),0 ; block device
+	; #1
+	inc hl
+	ld (hl),00h
+	inc hl
+	ld (hl),02h ; 512 byte sector
+	; #3
+	inc hl
+	ld (hl),00h
+	inc hl
+	ld (hl),00h
+	inc hl
+	ld (hl),04h
+	inc hl
+	ld (hl),00h ; 262144 sectors * 512 bytes = 134.217.728 bytes
+	; #7
+	inc hl
+	ld (hl),00000001b ; removable + non-read only + no floppy
+	; #8
+	inc hl
+	ld (hl), 0
+	inc hl
+	ld (hl), 0 ; cylinders/tracks
+	; #10
+	inc hl
+	ld (hl), 0 ; heads
+	; #11
+	inc hl
+	ld (hl), 0 ; sectors per track
+
+	ld a, 0
+	ret
+
+_LUN_INFO_NO_EXIST:
+	ld	a,1
+	ret
+
 	;;;;;;; 720KB diskimages
 	; device 1, lun 1
 	; TODO: read actual boot sector of DSK file
@@ -811,45 +930,6 @@ LUN_INFO:
 	;ld (hl), 1 ; heads
 	;inc hl
 	;ld (hl), 9 ; sectors per track
-
-	;;;;;;; 128MB diskimages
-	; #0
-	ld (hl),0 ; block device
-	; #1
-	inc hl
-	ld (hl),00h
-	inc hl
-	ld (hl),02h ; 512 byte sector
-	; #3
-	inc hl
-	ld (hl),00h
-	inc hl
-	ld (hl),00h
-	inc hl
-	ld (hl),04h
-	inc hl
-	ld (hl),00h ; 262144 sectors * 512 bytes = 134.217.728 bytes
-	; #7
-	inc hl
-	ld (hl),00000000b ; non-removable + non-read only + no floppy
-	; #8
-	inc hl
-	ld (hl), 0
-	inc hl
-	ld (hl), 0 ; cylinders/tracks
-	; #10
-	inc hl
-	ld (hl), 0 ; heads
-	; #11
-	inc hl
-	ld (hl), 0 ; sectors per track
-
-	ld a, 0
-	ret
-
-_LUN_INFO_NO_EXIST:
-	ld	a,1
-	ret
 
 ;=====
 ;=====  END of DEVICE-BASED specific routines
