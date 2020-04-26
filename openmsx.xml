@@ -1,0 +1,16 @@
+<!DOCTYPE settings SYSTEM 'settings.dtd'>
+<settings>
+  <settings>
+    <setting id="invalid_psg_directions_callback">psgdirectioncallback</setting>
+    <setting id="di_halt_callback">dihaltcallback</setting>
+    <setting id="default_machine">msx2_eu</setting>
+    <setting id="scanline">0</setting>
+    <setting id="blur">0</setting>
+    <setting id="osd_rom_path">/Users/mario/Development/msx/USB/drivers/flashdrive/dist</setting>
+    <setting id="maxframeskip">100</setting>
+    <setting id="scale_factor">3</setting>
+  </settings>
+  <bindings>
+    <bind key="keyb R+META">reset</bind>
+  </bindings>
+</settings>

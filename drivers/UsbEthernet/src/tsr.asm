@@ -66,9 +66,16 @@ FN_10: dw  ETH_OUT_STATUS  ;Check frame transmission status
 FN_11: dw  ETH_SET_HWADD   ;Set the Ethernet address
 MAX_FN equ 11
 
-packet_filter EQU 0
-control_interface_id EQU 0
-CMD_SET_PACKET_FILTER: DB 00100001b,0x43,packet_filter,0,control_interface_id,0,0,0
+   MODULE tsr
+JP_MSXUSB:
+    push af,bc
+    ld c,a
+    ld b,0
+    ld ix, (TSR_JUMP_TABLE)
+    add ix,bc
+    pop bc,af
+    jp (ix)
+   ENDMODULE
 
 ;************************
 ;***  FUNCTIONS CODE  ***
@@ -102,8 +109,8 @@ ETH_RESET:
    ; Bits 5-0: Number of retries after device timeout
    ; Default after reset and SET_USB_MODE is 8Fh
    ld b, 00001111b ; return within immediately
-   ld a, FN_CONFIGURE_NAK_RETRY_2
-   call TSR_UNAPI_ENTRY
+   ld a,JP_SYNC_MODE
+   call tsr.JP_MSXUSB
    ret
 
 ;--- ETH_GET_HWADD: Get hardware address
@@ -122,8 +129,8 @@ ETH_GET_HWADD:
 ETH_GET_NETSTAT:
    ;
    ld b, 10001111b ; default
-   ld a, FN_CONFIGURE_NAK_RETRY_2; SET_NAK_RETRY
-   call TSR_UNAPI_ENTRY
+   ld a,JP_SYNC_MODE
+   call tsr.JP_MSXUSB
    ;
    ld a, (ETH_INT_READ_TOGGLE) ; get stored toggle value
    rla ; high bit shifted to Cy
@@ -136,18 +143,17 @@ ETH_GET_NETSTAT:
    ld e, a
    ld a, USB_DEVICE_ADDRESS
    call _PACK_E
-   ld a, FN_DATA_IN_TRANSFER ; HW_DATA_IN_TRANSFER
-   call TSR_UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   call tsr.JP_MSXUSB
    ;
-
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
    rra ; Cy stored in high bit of A
    ld (ETH_INT_READ_TOGGLE),a ; stored in memory   
    ;
    ld b, 00001111b ; return immediately
-   ld a, FN_CONFIGURE_NAK_RETRY_2; SET_NAK_RETRY
-   call TSR_UNAPI_ENTRY
+   ld a,JP_SYNC_MODE
+   call tsr.JP_MSXUSB
    ;
    pop af
    cp CH_USB_INT_SUCCESS
@@ -242,11 +248,11 @@ _ETH_FILTERS_NEXT3:
 ; Input: A=packet_filter
 ; Output: Cy=0 no error, Cy=1 error
 CH_SET_PACKET_FILTER:
-   ld hl, CMD_SET_PACKET_FILTER ; Address of the command: {0b00100001,0x43,packet_filter,0,interface_id,0,0,0}
-   ld de, ETH_WORK_AREA
-   ld bc, 8
-   ldir
-   ld hl, ETH_WORK_AREA
+   push bc,af
+   ld bc, 6*8
+   ld a,JP_CONTROL_PACKET
+   call tsr.JP_MSXUSB
+   pop af,bc
    ld ix, hl
    ; set packet_filter
    ld (ix+2),a
@@ -258,8 +264,8 @@ CH_SET_PACKET_FILTER:
    ld (ix+4),a
    ; set device_address
    ld c, USB_DEVICE_ADDRESS
-   ld a, FN_CONTROL_TRANSFER ; HW_CONTROL_TRANSFER
-   call TSR_UNAPI_ENTRY
+   ld a,JP_CONTROL_TRANSFER
+   call tsr.JP_MSXUSB
    cp CH_USB_INT_SUCCESS
    ret z ; no error
    scf ; error
@@ -284,8 +290,8 @@ GET_BULK_IN_PACKET:
    ld e, a
    ld a, USB_DEVICE_ADDRESS
    call _PACK_E
-   ld a, FN_DATA_IN_TRANSFER ; HW_DATA_IN_TRANSFER
-   call TSR_UNAPI_ENTRY; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+   call tsr.JP_MSXUSB
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
@@ -393,30 +399,13 @@ SEND_BULK_OUT_PACKET:
    ld e, a
    ld a, USB_DEVICE_ADDRESS
    call _PACK_E
-   ld a, FN_DATA_OUT_TRANSFER ; HW_DATA_OUT_TRANSFER
-   call TSR_UNAPI_ENTRY; A=USB result code, Cy=toggle bit
+   ld a,JP_DATA_OUT_TRANSFER; A=USB result code, Cy=toggle bit
+   call tsr.JP_MSXUSB
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
    rra ; Cy stored in high bit of A
    ld (ETH_DATA_WRITE_TOGGLE),a ; stored in memory
-   pop af
-   ;
-   ret
-
-; Input:    A: device address
-;           E: endpoint id
-; Output:   Everything preserved including Cy
-;           E will contain DDDDEEEE (D=device address, E=endpoint id)
-_PACK_E:
-   push af ; preserve Cy
-   sla a
-   sla a
-   sla a
-   sla a
-   and 0xf0
-   or e
-   ld e, a
    pop af
    ;
    ret
@@ -443,6 +432,23 @@ _ETH_SEND_FRAME_NEXT:
    or a
    ret z ; zero is no error
    ld a, 3
+   ret
+
+; Input:    A: device address
+;           E: endpoint id
+; Output:   Everything preserved including Cy
+;           E will contain DDDDEEEE (D=device address, E=endpoint id)
+_PACK_E:
+   push af ; preserve Cy
+   sla a
+   sla a
+   sla a
+   sla a
+   and 0xf0
+   or e
+   ld e, a
+   pop af
+   ;
    ret
 
 ;--- ETH_OUT_STATUS: Check frame transmission status
@@ -510,11 +516,12 @@ TSR_MAC_ADDRESS DW 503eh,0aa7bh,601ah
 TSR_OLD_EXTBIO:                  DS 5
 TSR_MAPPER_SEGMENT:              DB 0
 TSR_MAPPER_SLOT:                 DB 0
+; MSX USB
+TSR_JUMP_TABLE:                  DW 0
 ; UNAPI_ENTRY
 TSR_UNAPI_ENTRY:
-   db 0 ; rst 30h
+   rst 30h
    db 0 ; to be replaced with current slot id
    dw 0 ; to be replaced with UNAPI_ENTRY
-   db 0 ; ret
-   
+   ret
 TSR_SHARED_VARS_END:

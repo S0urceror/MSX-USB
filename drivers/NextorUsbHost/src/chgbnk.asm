@@ -24,9 +24,9 @@ CHGBNK:
 	db	0FFh	;Header for MKNEXROM
 	dw	5000h
 
-	rlca
+	rlca ; bank number multiplied times 2 to select right 8k segment
 	ld	(5000h),a
-	inc	a
+	inc	a ; plus 1
 	ld	(7000h),a
 	ret
 ;

@@ -516,6 +516,9 @@ INIWORK:
 	xor	a
 	ld	(hl),a
 	ldir
+
+	; copy NXT_DIRECT to Work-area
+	call NXT_DIRECT_WRKAREA
 	ret
 	
 ;-----------------------------------------------------------------------------
@@ -944,6 +947,7 @@ _LUN_INFO_NO_EXIST:
 	include "basic_extensions.asm"
 	include "ch376s.asm"
 	include "usbhost.asm"
+	include "nextordirect.asm"
 
 DRV_END:
 

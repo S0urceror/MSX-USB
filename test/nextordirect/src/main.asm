@@ -1,5 +1,5 @@
 ENASLT:     equ 0024h
-EXPTBL:     equ  0FCC1h
+EXPTBL:     equ 0FCC1h
 CALBNK:	    equ	4042h
 FN_CHECK:   equ 4D88h
 
@@ -34,7 +34,7 @@ TEST:
     push de
     pop ix
     ; store current slot for page 1
-    call GETSLT
+    call GETSLT1
     push af
     ; select ROM slot
     ld a, b
@@ -59,9 +59,8 @@ TEST:
     ;    Input:  -
     ;    Output: A = Slot number
     ;    Modifies: AF, HL, E, BC
-GETSLT:
+GETSLT1:
     push bc,de,hl
-    di
     ;exx
     in  a,(0A8h)
     ld  e,a
@@ -87,7 +86,6 @@ EXP1:
 NOEXP1:  
     ld  a,c
     ;exx
-    ei
     pop hl,de,bc
     ret
 

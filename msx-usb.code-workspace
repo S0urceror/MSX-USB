@@ -88,7 +88,11 @@
 			"stdio.h": "c",
 			"asm.h": "c",
 			"unapihelper.h": "c",
-			"lsusb.h": "c"
+			"lsusb.h": "c",
+			"__tree": "cpp",
+			"iostream": "cpp",
+			"list": "cpp",
+			"map": "cpp"
 		}
 	}
 }

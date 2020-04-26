@@ -621,11 +621,11 @@ CH_READ_DATA:
 ;
 ; Output: A = Result of GET_STATUS (an USB error code)
 CH_WAIT_INT_AND_GET_RESULT:
-    push bc
-    call PANIC_KEYS_PRESSED
-    pop bc
-    ld a,USB_ERR_PANIC_BUTTON_PRESSED
-    ret z
+    ;push bc
+    ;call PANIC_KEYS_PRESSED
+    ;pop bc
+    ;ld a,USB_ERR_PANIC_BUTTON_PRESSED
+    ;ret z
 
     call CH_CHECK_INT_IS_ACTIVE
     jr nz,CH_WAIT_INT_AND_GET_RESULT    ;TODO: Perhaps add a timeout check here?
@@ -699,17 +699,21 @@ target_device_address EQU 0
 configuration_id EQU 0
 string_id EQU 0
 config_descriptor_size EQU 9
+alternate_setting EQU 0
+packet_filter EQU 0
+control_interface_id EQU 0
 
 ; Generic USB commands
 USB_DESCRIPTORS_START:
+;
 CMD_GET_DEVICE_DESCRIPTOR: DB 0x80,6,0,1,0,0,18,0
 CMD_SET_ADDRESS: DB 0x00,0x05,target_device_address,0,0,0,0,0
 CMD_SET_CONFIGURATION: DB 0x00,0x09,configuration_id,0,0,0,0,0
 CMD_GET_STRING: DB 0x80,6,string_id,3,0,0,255,0
 CMD_GET_CONFIG_DESCRIPTOR: DB 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
-    DS 8,0 ; reserved
-    DS 8,0 ; reserved
-    DS 8,0 ; reserved
+CMD_SET_INTERFACE: DB 0x01,11,alternate_setting,0,interface_id,0,0,0
+CMD_SET_PACKET_FILTER: DB 00100001b,0x43,packet_filter,0,control_interface_id,0,0,0
+;
 USB_DESCRIPTORS_END:
 
 ; USB HID command variables

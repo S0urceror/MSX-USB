@@ -180,7 +180,6 @@ TOUPPER:
     ;    Output: A = Slot number
     ;    Modifies: AF, HL, E, BC
 GETSLT:
-    di
     exx
     in  a,(0A8h)
     ld  e,a
@@ -206,7 +205,6 @@ EXP1:
 NOEXP1:  
     ld  a,c
     exx
-    ei
     ret
 
     ;--- Obtain slot work area (8 bytes) on SLTWRK

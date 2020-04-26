@@ -750,11 +750,11 @@ CH_READ_DATA:
 ;
 ; Output: A = Result of GET_STATUS (an USB error code)
 CH_WAIT_INT_AND_GET_RESULT:
-    if IMPLEMENT_PANIC_BUTTON=1
-        call PANIC_KEYS_PRESSED
-        ld a,USB_ERR_PANIC_BUTTON_PRESSED
-        ret z
-    endif
+    ;push bc
+    ;call PANIC_KEYS_PRESSED
+    ;pop bc
+    ;ld a,USB_ERR_PANIC_BUTTON_PRESSED
+    ;ret z
 
     call CH_CHECK_INT_IS_ACTIVE
     jr nz,CH_WAIT_INT_AND_GET_RESULT    ;TODO: Perhaps add a timeout check here?

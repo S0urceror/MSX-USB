@@ -342,7 +342,6 @@ MULT_LOOP:
 ;    Modifies: AF, HL, E, BC
 
 GETSLT:
-  di
   exx
   in  a,(0A8h)
   ld  e,a
@@ -366,7 +365,6 @@ EXP1:  inc  hl
   ld  c,a
 NOEXP1:  ld  a,c
   exx
-  ei
   ret
 
 

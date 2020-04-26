@@ -24,19 +24,17 @@ BDOS        EQU 5
 MSXUSB_UNAPI_P:    equ  0
 MSXUSB_UNAPI_S:    equ  2
 
-; TODO: Reevaluate if this needs to be a RAM based driver (now) or a ROM based driver
-; TODO: When ROM, smart to merge all drivers with USB Host driver?
-; TODO: When RAM, use RAM helper in stead of direct MSX2 mapper => MSX1 compatible?
+FN_INFO:      EQU  0
+FN_JUMPTABLE: EQU  1
 
-FN_INFO:                    EQU  0
-FN_CHECK:                   EQU  1
-FN_CONNECT:                 EQU  2
-FN_GETDESCRIPTORS:          EQU  3
-FN_CONTROL_TRANSFER:        EQU  4
-FN_DATA_IN_TRANSFER:        EQU  5
-FN_DATA_OUT_TRANSFER:       EQU  6
-FN_GET_USB_DESCRIPTOR:      EQU  7
-FN_CONFIGURE_NAK_RETRY_2:   EQU  8
+JP_CHECK                EQU 0*8
+JP_CONNECT              EQU 1*8
+JP_GET_DESCRIPTORS      EQU 2*8
+JP_CONTROL_TRANSFER     EQU 3*8
+JP_DATA_IN_TRANSFER     EQU 4*8
+JP_DATA_OUT_TRANSFER    EQU 5*8
+JP_SYNC_MODE            EQU 6*8
+JP_CONTROL_PACKET       EQU 7*8
 
     org 0100h
 BEGIN:
@@ -143,6 +141,10 @@ GET_UNAPI_MSXUSB:
     ld a, e
     cp MSXUSB_UNAPI_S
     jp nz, ERROR
+    ; get JUMPTABLE
+    ld a, FN_JUMPTABLE
+    call UNAPI_ENTRY
+    ld (JUMP_TABLE), hl
     ; all fine
     ld hl, TXT_MSXUSB_FOUND
     call PRINT_DOS
@@ -186,8 +188,8 @@ _NORMAL_MAPPER_TABLE:
     ret
 
 USB_CHECK_ADAPTER:
-    ld a, FN_CHECK
-    call UNAPI_ENTRY
+    ld a, JP_CHECK
+    call main.JP_MSXUSB
     jp c, ERROR
 
     ld hl, TXT_ADAPTER_OKAY
@@ -196,8 +198,8 @@ USB_CHECK_ADAPTER:
     ret 
     
 USB_CONNECT_DEVICE:
-    ld a, FN_CONNECT
-    call UNAPI_ENTRY
+    ld a, JP_CONNECT
+    call main.JP_MSXUSB
     jp c, ERROR
 
     ld hl, TXT_DEVICE_CONNECTED
@@ -207,8 +209,8 @@ USB_CONNECT_DEVICE:
     
 USB_GET_DESCRIPTORS:
     ld hl, DESCRIPTORS
-    ld a, FN_GETDESCRIPTORS
-    call UNAPI_ENTRY
+    ld a,JP_GET_DESCRIPTORS
+    call main.JP_MSXUSB
     jp c, ERROR
     
     ld hl, TXT_DESCRIPTORS_OKAY
@@ -485,6 +487,10 @@ _NO_x16
     
     ld hl,TXT_CDC_ECM_STARTED
     call PRINT_DOS
+    ld hl,TXT_MAC_ADDRESS
+    call PRINT_DOS
+    ld hl,MAC_ADDRESS_S
+    call PRINT_DOS
     or a
     ret
 
@@ -557,13 +563,52 @@ ERROR:
     scf 
     ret
 
+_CONOUT equ 02h
+_STROUT equ 09h
+;       Subroutine      Print a buffer of characters
+;       Inputs          HL - start address
+;                       BC - number of chars
+;       Outputs         -------------------------------
+PRINT_BUFFER:
+    push af
+_AGAIN_PRINT:
+    ld a, (hl)
+    call PRINT_CHAR
+    inc hl
+    dec bc
+    jr nz, _AGAIN_PRINT
+    ret
+;       Subroutine      Print char with the DOS routine
+;       Inputs          A - char to print
+;       Outputs         -------------------------------
+PRINT_CHAR:
+    push bc,de,hl
+    ld e, a
+    ld c, _CONOUT
+    call BDOS
+    pop hl,de,bc
+    ret
+;       Subroutine      Print text with the DOS routine
+;       Inputs          HL - pointer to text to print
+;       Outputs         -------------------------------
 PRINT_DOS:
     push hl,de,bc
     ex de,hl
-    ld c, 9 ; _STROUT
+    ld c, _STROUT
     call BDOS
     pop bc,de,hl
     ret
+
+   MODULE main
+JP_MSXUSB:
+    push af,bc
+    ld c,a
+    ld b,0
+    ld ix, (JUMP_TABLE)
+    add ix,bc
+    pop bc,af
+    jp (ix)
+   ENDMODULE
 
     include "usb_descriptors.asm"
     include "usb.asm"
@@ -572,7 +617,7 @@ PRINT_DOS:
 DESCRIPTORS: DS 512 ; maximum length?
 ; --- Various texts while initialising driver
 TXT_NEWLINE: DB "\r\n$",0
-TXT_WELCOME: DB "USB HID Driver starting\r\n$",0
+TXT_WELCOME: DB "USB Ethernet Driver starting\r\n$",0
 TXT_MSXUSB_FOUND: DB "+ MSXUSB Unapi found\r\n$",0
 TXT_MSXUSB_NOT_FOUND: DB "- MSXUSB Unapi NOT found\r\n$",0
 TXT_ADAPTER_OKAY: DB "+ USB adapter okay\r\n$",0
@@ -587,6 +632,7 @@ TXT_SEG_NOT_ALLOCATED: DB "- New RAM segment NOT allocated\r\n$",0
 TXT_TSR_COPIED: DB "+ Driver copied\r\n$",0
 TXT_UNAPI_HOOKED: DB "+ Usb Ethernet Unapi linked\r\n$",0
 TXT_CDC_ECM_STARTED: DB "+ USB CDC ECM device initialized\r\n$",0
+TXT_MAC_ADDRESS: DB "+ MAC Address: $",0
 TXT_CDC_ECM_NOT_STARTED: DB "- USB CDC ECM device NOT initialized\r\n$",0
 TXT_UNAPI_READY: DB "+ Ethernet Unapi ready\r\n$",0
 TXT_RAM_HELPER_FOUND: DB "+ Ram Helper Unapi found\r\n$",0
@@ -624,7 +670,7 @@ MAC_ADDRESS_ID:     DB 0
 MAC_ADDRESS_S       DS 64 ; len + type + 12*utf-16 chars + nul-char (503EAA7B601A)
 _MAC_ADDRESS_SE     DB "\r\n$"
 MAC_HIGH_NIBBLE     DB 0
-MAC_NIBBLE      DB 0
+MAC_NIBBLE          DB 0
 
 ; ram helper variables
 RH_JUMPTABLE:           DW 0
@@ -650,13 +696,14 @@ MAC_ADDRESS                 DW 0,0,0
 OLD_EXTBIO:                 DS 5
 MAPPER_SEGMENT:             DB 0
 MAPPER_SLOT:                DB 0
+; MSX USB
+JUMP_TABLE:                 DW 0 ; pointer to jumptable with 8 functions with each 8 bytes
 ; UNAPI_ENTRY
 UNAPI_ENTRY:
     rst 30h
 IMP_SLOT: db 0 ; to be replaced with current slot id
 IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
     ret
-
 SHARED_VARS_END:
 
 TSR: 

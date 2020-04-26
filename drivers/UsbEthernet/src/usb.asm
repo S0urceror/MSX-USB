@@ -46,14 +46,6 @@ duration EQU 0x80
 interface_id EQU 0
 alternate_setting EQU 0
 
-; Generic USB commands
-CMD_GET_DEVICE_DESCRIPTOR: DB 0x80,6,0,1,0,0,18,0
-CMD_SET_ADDRESS: DB 0x00,0x05,target_device_address,0,0,0,0,0
-CMD_SET_CONFIGURATION: DB 0x00,0x09,configuration_id,0,0,0,0,0
-CMD_GET_STRING: DB 0x80,6,string_id,3,0,0,255,0
-CMD_GET_CONFIG_DESCRIPTOR: DB 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
-CMD_SET_INTERFACE: DB 0x01,11,alternate_setting,0,interface_id,0,0,0
-
 ; --------------------------------------
 ; CH_SET_CONFIGURATION
 ;
@@ -63,12 +55,19 @@ CMD_SET_INTERFACE: DB 0x01,11,alternate_setting,0,interface_id,0,0,0
 ; Output: Cy=0 no error, Cy=1 error
 CH_SET_CONFIGURATION:
     push ix,hl
-    ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
+    push af
+    push bc
+    ld bc, 2*8
+    ld a,JP_CONTROL_PACKET
+    call main.JP_MSXUSB
+    pop bc
+    pop af
+    ;ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
     ld ix, hl
     ld (ix+2),a
     ld c, d ; device address
-    ld a, FN_CONTROL_TRANSFER
-    call UNAPI_ENTRY
+    ld a,JP_CONTROL_TRANSFER
+    call main.JP_MSXUSB
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -85,13 +84,20 @@ CH_SET_CONFIGURATION:
 ; Output: Cy=0 no error, Cy=1 error
 CH_SET_INTERFACE:
     push ix,hl
-    ld hl, CMD_SET_INTERFACE ; Address of the command: 0x01,11,alternative_setting,0,interface_id,0,0,0
+    push af
+    push bc
+    ld bc, 5*8
+    ld a,JP_CONTROL_PACKET
+    call main.JP_MSXUSB
+    pop bc
+    pop af
+    ;ld hl, CMD_SET_INTERFACE ; Address of the command: 0x01,11,alternative_setting,0,interface_id,0,0,0
     ld ix, hl
     ld (ix+2),a
     ld (ix+4),e
     ld c, d ; device address
-    ld a, FN_CONTROL_TRANSFER
-    call UNAPI_ENTRY
+    ld a,JP_CONTROL_TRANSFER
+    call main.JP_MSXUSB
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -109,13 +115,20 @@ CH_SET_INTERFACE:
 CH_GET_STRING:
     push ix,hl
     push hl
-    ld hl, CMD_GET_STRING ; Address of the command: 0x80,6,string_id,3,0,0,255,0
+    push af
+    push bc
+    ld bc, 3*8
+    ld a,JP_CONTROL_PACKET
+    call main.JP_MSXUSB
+    pop bc
+    pop af
+    ;ld hl, CMD_GET_STRING ; Address of the command: 0x80,6,string_id,3,0,0,255,0
     ld ix, hl
     ld (ix+2),a
     ld c, d ; device address
-    pop de
-    ld a, FN_CONTROL_TRANSFER
-    call UNAPI_ENTRY
+    pop de ; buffer to receiver string
+    ld a,JP_CONTROL_TRANSFER
+    call main.JP_MSXUSB
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error

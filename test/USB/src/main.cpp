@@ -27,6 +27,8 @@
 #include <codecvt>
 #include <thread>
 #include <chrono>
+#include <ctime>
+#include <iostream>
 
 #define DEV_ADDRESS 1
 #define BOOT_PROTOCOL 0
@@ -961,11 +963,13 @@ void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t
     int count = 20;
     in_packetsize=1514;
 
-    //set_retry (0x0f);    
+    set_retry (0x0f);    
     while (count)
     {
         uint8_t* buffer = NULL;
+        //const clock_t begin_time = clock();
         int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        //std::cout << std::fixed << std::showpoint << float( clock () - begin_time ) /  CLOCKS_PER_SEC << std::endl;
         if (buffer==NULL)
             continue;
         
@@ -980,10 +984,12 @@ void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t
             print_buffer (buffer,bytes_read);
             free (buffer);   
         }
+        else
+            printf ("\n");
         printf ("length: %d\n",bytes_read);
         count --;
     }
-    //set_retry (0x8f);
+    set_retry (0x8f);
 }
 ///////////////////////////////////////////////////////////////////////////
 // USB HUB DEVICE INTERRUPT READOUT
@@ -1528,17 +1534,17 @@ int main(int argc, const char * argv[])
     usb_host_bus_reset ();
  
     // first try some high-level stuff
-    connect_disk ();
-    mount_disk ();
-    open_dir ("\\");
-    open_file ("AUTOEXEC.DSK");
-    read_file ();
-    close_file ();
-    open_dir ("\\");
-    open_file ("NEXTOR.DSK");
-    close_file ();
+    //connect_disk ();
+    //mount_disk ();
+    //open_dir ("\\");
+    //open_file ("AUTOEXEC.DSK");
+    //read_file ();
+    //close_file ();
+    //open_dir ("\\");
+    //open_file ("NEXTOR.DSK");
+    //close_file ();
     // set reset bus and set host mode
-    usb_host_bus_reset ();
+    //usb_host_bus_reset ();
 
     // then do the low-level things
     init_device (DEV_ADDRESS);
