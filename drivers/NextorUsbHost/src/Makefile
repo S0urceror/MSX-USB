@@ -20,7 +20,7 @@ $(OUTPUT_DIR)/chgbnk.bin: chgbnk.asm
 #$(OUTPUT_DIR)/ejectdisk.com: ejectdisk.asm print_dos.asm ch376s.asm ch376s_helpers.asm driver_helpers.asm nextor_helpers.asm
 #	$(ASM) $(ASMFLAGS) $<
 
-$(OUTPUT_DIR)/driver.rom: driver.asm driver_helpers.asm basic_extensions.asm print_bios.asm ch376s.asm ch376s_helpers.asm usbhost.asm nextordirect.asm
+$(OUTPUT_DIR)/driver.rom: driver.asm driver_helpers.asm basic_extensions.asm print_bios.asm ch376s.asm ch376s_helpers.asm usbhost.asm nextordirect.asm ramhelper.asm
 	$(ASM) $(ASMFLAGS) $<
 
 $(OUTPUT_DIR)/extra1k.dat: extra1k.asm

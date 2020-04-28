@@ -702,6 +702,11 @@ config_descriptor_size EQU 9
 alternate_setting EQU 0
 packet_filter EQU 0
 control_interface_id EQU 0
+; USB HID command variables
+report_id EQU 0
+duration EQU 0x80
+interface_id EQU 0
+protocol_id EQU 0
 
 ; Generic USB commands
 USB_DESCRIPTORS_START:
@@ -713,17 +718,12 @@ CMD_GET_STRING: DB 0x80,6,string_id,3,0,0,255,0
 CMD_GET_CONFIG_DESCRIPTOR: DB 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
 CMD_SET_INTERFACE: DB 0x01,11,alternate_setting,0,interface_id,0,0,0
 CMD_SET_PACKET_FILTER: DB 00100001b,0x43,packet_filter,0,control_interface_id,0,0,0
-;
-USB_DESCRIPTORS_END:
-
-; USB HID command variables
-report_id EQU 0
-duration EQU 0x80
-interface_id EQU 0
-protocol_id EQU 0
 ; USB HID commands
 CMD_SET_IDLE: DB 0x21,0x0A,report_id,duration,interface_id,0,0,0
 CMD_SET_PROTOCOL: DB 0x21,0x0B,protocol_id,0,interface_id,0,0,0
+    ds 3*8,0 ; reserved
+;
+USB_DESCRIPTORS_END:
 
 ; --------------------------------------
 ; CH_SET_TARGET_DEVICE_ADDRESS

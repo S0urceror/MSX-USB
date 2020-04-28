@@ -517,7 +517,7 @@ TSR_OLD_EXTBIO:                  DS 5
 TSR_MAPPER_SEGMENT:              DB 0
 TSR_MAPPER_SLOT:                 DB 0
 ; MSX USB
-TSR_JUMP_TABLE:                  DW 0
+TSR_JUMP_TABLE:                  DW 0 ; pointer to MSXUSB jumptable
 ; UNAPI_ENTRY
 TSR_UNAPI_ENTRY:
    rst 30h

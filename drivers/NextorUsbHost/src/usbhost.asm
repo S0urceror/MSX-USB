@@ -41,49 +41,55 @@ JN_0:
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
     DW FN_CHECK             ; 2 bytes - address to call
-    ret                     ; 1 byte
+    NOP                     ; 1 byte
 JN_1:
     call NXT_DIRECT         ; 3 bytes - call to switching code
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
     DW FN_CONNECT           ; 2 bytes - address to call
-    ret                     ; 1 byte
+    NOP                     ; 1 byte
 JN_2:
     call NXT_DIRECT         ; 3 bytes - call to switching code
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
     DW FN_GETDESCRIPTORS    ; 2 bytes - address to call
-    ret                     ; 1 byte
+    NOP                     ; 1 byte
 JN_3:
     call NXT_DIRECT         ; 3 bytes - call to switching code
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
     DW FN_CONTROL_TRANSFER  ; 2 bytes - address to call
-    ret                     ; 1 byte
+    NOP                     ; 1 byte
 JN_4:
     call NXT_DIRECT         ; 3 bytes - call to switching code
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
     DW FN_DATA_IN_TRANSFER  ; 2 bytes - address to call
-    ret                     ; 1 byte
+    NOP                     ; 1 byte
 JN_5:
     call NXT_DIRECT         ; 3 bytes - call to switching code
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
     DW FN_DATA_OUT_TRANSFER ; 2 bytes - address to call
-    ret                     ; 1 byte
+    NOP                     ; 1 byte
 JN_6:
     call NXT_DIRECT         ; 3 bytes - call to switching code
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
     DW FN_SYNC_MODE         ; 2 bytes - address to call
-    ret                     ; 1 byte
+    NOP                     ; 1 byte
 JN_7:
     call NXT_DIRECT         ; 3 bytes - call to switching code
     DB 1                    ; 1 byte  - ROM slot number
     DB 7                    ; 1 byte  - ROM segment
-    DW FN_GET_USB_DESCRIPTOR; 2 bytes - address to call
-    ret                     ; 1 byte
+    DW FN_CONTROL_PACKET    ; 2 bytes - address to call
+    NOP                     ; 1 byte
+;JN_8:
+;    call NXT_DIRECT         ; 3 bytes - call to switching code
+;    DB 1                    ; 1 byte  - ROM slot number
+;    DB 7                    ; 1 byte  - ROM segment
+;    DW FN_RAMHELPER         ; 2 bytes - address to call
+;    NOP                     ; 1 byte
 JUMP_TABLE_END: DB 0
 NR_JUMP_ENTRIES EQU 8
 
@@ -127,8 +133,10 @@ FN_DATA_IN_TRANSFER:
 FN_DATA_OUT_TRANSFER:
     call _UNPACK_E
     jp HW_DATA_OUT_TRANSFER
-FN_GET_USB_DESCRIPTOR:
+FN_CONTROL_PACKET:
     jp GET_USB_DESCRIPTOR
+;FN_RAMHELPER:
+;    jp RAMHELPER_ADDRESS
 FN_SYNC_MODE:
     ld a, b
     jp HW_CONFIGURE_NAK_RETRY_2

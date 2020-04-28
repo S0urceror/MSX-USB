@@ -697,7 +697,7 @@ OLD_EXTBIO:                 DS 5
 MAPPER_SEGMENT:             DB 0
 MAPPER_SLOT:                DB 0
 ; MSX USB
-JUMP_TABLE:                 DW 0 ; pointer to jumptable with 8 functions with each 8 bytes
+JUMP_TABLE:                 DW 0 ; pointer to MSXUSB jumptable
 ; UNAPI_ENTRY
 UNAPI_ENTRY:
     rst 30h

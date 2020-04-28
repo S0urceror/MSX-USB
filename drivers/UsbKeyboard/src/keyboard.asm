@@ -43,7 +43,9 @@ READ_HID_KEYBOARD:
     ld a, (TSR_KEYBOARD_ENDPOINTNR)
     ld e, a
     ld a, USB_DEVICE_ADDRESS
-    call TSR_JUMP_TABLE+20h ; HW_DATA_IN_TRANSFER ; A=USB result code, Cy=toggle bit
+    call _PACK_E
+    ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
+    call tsr.JP_MSXUSB
     ;
     push af
     ld a, 0 ; deliberately no XOR because that wipes Cy

@@ -113,16 +113,9 @@ typedef struct _USB_ETHERNET_DESCRIPTOR {
      uint8_t bNumberPowerFilters;
  } USB_ETHERNET_DESCRIPTOR;
 
-enum EthUnapiFunctions {
+enum MsxUsbUnapiFunctions {
     USB_INFO = 0,
-    USB_CHECK,
-    USB_CONNECT,
-    USB_GETDESCRIPTORS,
-    USB_EXECUTE_CONTROL_TRANSFER,
-    USB_DATA_IN_TRANSFER,
-    USB_DATA_OUT_TRANSFER,
-    USB_GET_DESCRIPTOR,
-    USB_CONFIGURE_NAK_RETRY
+    USB_JUMPTABLE
 };
 const char* strPresentation=
     "lsusb - list descriptors of connected USB device\r\n"
@@ -137,7 +130,7 @@ const char* strUsage=
 Z80_registers regs;
 uint specVersion;
 unapi_code_block codeBlock;
-//char jumptable[7*8];
+char* jumptable;
 
 int main(char** argv, int argc)
 {
@@ -155,7 +148,7 @@ int main(char** argv, int argc)
     UnapiBuildCodeBlock(NULL, i, &codeBlock);
     UnapiParseCodeBlock (&codeBlock, &slot, &segment, &address);
     printf ("Found implementation in slot: %d, segment: %d, address: %x\n",slot,segment,address);
-    //GetJumpTable ();
+    GetJumpTable ();
     PrintImplementationName();
     PrintDescriptors ();
     return 0;    
@@ -202,23 +195,23 @@ void PrintDescriptors ()
 {
     char buffer[512];
 
-    //AsmCall(jumptable,&regs, REGS_NONE, REGS_MAIN);
-    UnapiCall(&codeBlock, USB_CHECK, &regs, REGS_NONE, REGS_MAIN);
+    AsmCall(jumptable,&regs, REGS_NONE, REGS_MAIN);
+    //UnapiCall(&codeBlock, USB_CHECK, &regs, REGS_NONE, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("CH376s not available\n");
         return;
     }
-    //AsmCall(jumptable+8,&regs, REGS_NONE, REGS_MAIN);
-    UnapiCall(&codeBlock, USB_CONNECT, &regs, REGS_NONE, REGS_MAIN);
+    AsmCall(jumptable+8,&regs, REGS_NONE, REGS_MAIN);
+    //UnapiCall(&codeBlock, USB_CONNECT, &regs, REGS_NONE, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("USB device not connected\n");
         return;
     }
     regs.UWords.HL = buffer;
-    //AsmCall(jumptable+16,&regs, REGS_MAIN, REGS_MAIN);
-    UnapiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
+    AsmCall(jumptable+16,&regs, REGS_MAIN, REGS_MAIN);
+    //napiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("USB descriptors not read\n");
@@ -314,19 +307,18 @@ void PrintDescriptors ()
         }
     }
 }
-/*
+
 void GetJumpTable ()
 {
-    printf ("Jumptable at: 0x%04x\n",jumptable);
-    regs.UWords.HL = jumptable;
     UnapiCall(&codeBlock, USB_JUMPTABLE, &regs, REGS_MAIN, REGS_MAIN);
-
-    char *ptr = jumptable;
-    for (int i=0;i<6;i++)
-    {
-        printf ("%04x: %02x %02x %02x %02x %02x %02x %02x %02x\n",ptr,*(ptr+0)&0xff,*(ptr+1)&0xff,*(ptr+2)&0xff,*(ptr+3)&0xff,*(ptr+4)&0xff,*(ptr+5)&0xff,*(ptr+6)&0xff,*(ptr+7)&0xff);
-        ptr=ptr+8;
-    }
+    jumptable = (char*) regs.UWords.HL;
+    printf ("Jumptable at: 0x%04x\n\n",jumptable);
+    
+    //char *ptr = jumptable;
+    //for (int i=0;i<8;i++)
+    //{
+    //    printf ("%04x: %02x %02x %02x %02x %02x %02x %02x %02x\n",ptr,*(ptr+0)&0xff,*(ptr+1)&0xff,*(ptr+2)&0xff,*(ptr+3)&0xff,*(ptr+4)&0xff,*(ptr+5)&0xff,*(ptr+6)&0xff,*(ptr+7)&0xff);
+    //    ptr=ptr+8;
+    //}
 
 }
-*/

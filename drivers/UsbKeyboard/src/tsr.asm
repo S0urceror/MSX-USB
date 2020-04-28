@@ -68,23 +68,62 @@ C10C2:
 	RET
 
 OLD_HCHGE:
-    ; old H.CHGE is stored at 6th entry
+    ; old H.CHGE is stored at 10th entry
     ld hl, (TSR_SCRATCH_AREA)
-    ; select 6th
-    ld bc, 6*8
+    ; select 10th
+    ld bc, 10*8
     add hl, bc
     ; jump 
     jp (hl)
 
 UNHOOK_US:
+    di 
+    ; old H.CHGE is stored at 10th entry
+    ld hl, (TSR_SCRATCH_AREA)
+    ; select 10th
+    ld bc, 10*8
+    add hl, bc
+	LD	DE,H.CHGE
+	LD	BC,5
+	LDIR
+    ei
     ret
+
+   MODULE tsr
+JP_MSXUSB:
+    push af,bc
+    ld c,a
+    ld b,0
+    ld ix, (TSR_JUMP_TABLE)
+    add ix,bc
+    pop bc,af
+    jp (ix)
+   ENDMODULE
+
+; Input:    A: device address
+;           E: endpoint id
+; Output:   Everything preserved including Cy
+;           E will contain DDDDEEEE (D=device address, E=endpoint id)
+_PACK_E:
+   push af ; preserve Cy
+   sla a
+   sla a
+   sla a
+   sla a
+   and 0xf0
+   or e
+   ld e, a
+   pop af
+   ;
+   ret
 
 TSR_END:
 
 TSR_SHARED_VARS_START:
-TSR_JUMP_TABLE:                 DS 7*8 ; 5 functions with each 8 bytes
 TSR_KEYBOARD_INTERFACENR:       DB 0
 TSR_KEYBOARD_ENDPOINTNR:        DB 0
 TSR_KEYBOARD_MAX_PACKET_SIZE:   DB 0
 TSR_SCRATCH_AREA:               DW 0
+; MSX USB
+TSR_JUMP_TABLE:                 DW 0 ; pointer to MSXUSB jumptable
 TSR_SHARED_VARS_END:

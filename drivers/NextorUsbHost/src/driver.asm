@@ -173,7 +173,7 @@ DRV_NAME:
 	jp	DRV_INIT
 	jp	DRV_BASSTAT
 	jp	DRV_BASDEV
-    jp  DO_EXTBIO ;DRV_EXTBIO
+    jp  DO_EXTBIO 	;DRV_EXTBIO
     jp  UNAPI_ENTRY ;DRV_DIRECT0
     jp  DRV_DIRECT1
     jp  DRV_DIRECT2
@@ -295,6 +295,17 @@ DRV_INIT:
     ld hl, TXT_START
     call PRINT
 
+	; enable the low-level MSXUSB driver
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	call USBHOST_INIT
+
+	; initialise CH376s
+    call CH_RESET
+    ld hl, TXT_RESET
+    call PRINT
+	ld bc, WAIT_ONE_SECOND/5
+	call WAIT
+
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
     jp nc, _HW_TEST_OKAY
@@ -306,13 +317,6 @@ _HW_TEST_OKAY:
 	ld (ix+WRKAREA.STATUS),00000001b
    	ld hl, TXT_FOUND
     call PRINT
-	
-	; initialise CH376s
-    call CH_RESET
-    ld hl, TXT_RESET
-    call PRINT
-	ld bc, WAIT_ONE_SECOND/5
-	call WAIT
 
 	; reset BUS
    	ld a, 7 ; HOST, reset bus
@@ -334,9 +338,10 @@ _USB_MODE_OKAY:
 	; wait ~250ms
 	ld bc, WAIT_ONE_SECOND/4
 	call WAIT
-	; enable the low-level MSXUSB driver
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	call USBHOST_INIT
+
+	; what is connected?
+	; USB storage device?
+	; yes, go and use high-level driver
 
 	; continue with the high-level disk driver
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -519,6 +524,8 @@ INIWORK:
 
 	; copy NXT_DIRECT to Work-area
 	call NXT_DIRECT_WRKAREA
+	; copy RAMHELPER to Work-area
+	; call RAMHELPER_WRKAREA
 	ret
 	
 ;-----------------------------------------------------------------------------
@@ -948,7 +955,8 @@ _LUN_INFO_NO_EXIST:
 	include "ch376s.asm"
 	include "usbhost.asm"
 	include "nextordirect.asm"
-
+;	include "ramhelper.asm"
+	
 DRV_END:
 
 	ds	3ED0h-(DRV_END-DRV_START)

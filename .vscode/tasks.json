@@ -33,16 +33,17 @@
             "label": "make UNAPI Usb Keyboard",
             "type": "shell",
             "command": "make -C ./drivers/UsbKeyboard/src/",
-            "group": "build"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
         },
         {
             "label": "make UNAPI Usb Ethernet",
             "type": "shell",
             "command": "make -C ./drivers/UsbEthernet/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {
@@ -70,6 +71,20 @@
             "label": "make nextordirect",
             "type": "shell",
             "command": "make -C ./test/nextordirect/src",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "make nwramhp",
+            "type": "shell",
+            "command": "make -C ./test/ramhelpr/src",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "make initmapr",
+            "type": "shell",
+            "command": "make -C ./test/initmapr/src",
             "group": "build",
             "problemMatcher": []
         }

@@ -13,7 +13,6 @@ START_BASIC:
     DB 1
     DB 7
     DW FN_CHECK
-    ret
 
 TEST:
     exx
@@ -53,6 +52,8 @@ TEST:
     call ENASLT
     exx
     ex af,af'
+    inc sp
+    inc sp
     ret
 
    ;--- Get slot connected on page 1

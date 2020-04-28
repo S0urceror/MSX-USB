@@ -36,15 +36,13 @@ NXT_DIRECT_WRKAREA:
 ;    DB 1            ; 1 byte  - ROM slot number
 ;    DB 7            ; 1 byte  - ROM segment
 ;    DW FN_CHECK     ; 2 bytes - address to call
-;    ret             ; 1 byte
-                    ; =============
-                    ; 8 bytes total per entry
+                     ; =============
+                     ; 7 bytes total per entry
 
 NXT_DIRECT_START:
     exx         ; save registers
     ex af,af'   ; save flags
     ; get all the parameters following our instruction pointed by stack
-    ld hl,0
     ex (sp),hl
     ld b, (hl)
     inc hl
@@ -53,8 +51,7 @@ NXT_DIRECT_START:
     ld e, (hl)
     inc hl
     ld d, (hl)
-    inc hl
-    ex (sp),hl ; sp points now to RET
+    ex (sp),hl
     ; ld ix, de
     push de
     pop ix
@@ -83,6 +80,8 @@ _NXT_DIRECT_CONTINUE:
     ;
     exx       ; load registers
     ex af,af' ; load A + Flags
+    inc sp ; go back to previous stack entry, saves a RET in the jumptable
+    inc sp
     ret
 
 ;--- Get slot connected on page 1
