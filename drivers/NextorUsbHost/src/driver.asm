@@ -339,9 +339,11 @@ _USB_MODE_OKAY:
 	ld bc, WAIT_ONE_SECOND/4
 	call WAIT
 
-	; what is connected?
+	; What is connected?
 	; USB storage device?
 	; yes, go and use high-level driver
+	; USB HUB?
+	; yes, select the first used port
 
 	; continue with the high-level disk driver
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
