@@ -77,7 +77,7 @@ TMS                          : 13        : input  : TTL               :         
 data[1]                      : 14        : input  : TTL               :         :           : Y              
 VCC                          : 15        : power  :                   :         :           :                
 data[0]                      : 16        : input  : TTL               :         :           : Y              
-RESERVED                     : 17        :        :                   :         :           :                
+in_a15_a13_a12[0]            : 17        : input  : TTL               :         :           : Y              
 in_a7_a0[7]                  : 18        : input  : TTL               :         :           : Y              
 in_a7_a0[6]                  : 19        : input  : TTL               :         :           : Y              
 in_a7_a0[5]                  : 20        : input  : TTL               :         :           : Y              
@@ -88,8 +88,8 @@ in_a7_a0[3]                  : 24        : input  : TTL               :         
 in_a7_a0[2]                  : 25        : input  : TTL               :         :           : Y              
 in_a7_a0[1]                  : 26        : input  : TTL               :         :           : Y              
 in_a7_a0[0]                  : 27        : input  : TTL               :         :           : Y              
-in_a15_a13[1]                : 28        : input  : TTL               :         :           : Y              
-in_a15_a13[0]                : 29        : input  : TTL               :         :           : Y              
+in_a15_a13_a12[2]            : 28        : input  : TTL               :         :           : Y              
+in_a15_a13_a12[1]            : 29        : input  : TTL               :         :           : Y              
 GND                          : 30        : gnd    :                   :         :           :                
 out_a13_a18[5]               : 31        : output : TTL               :         :           : Y              
 TCK                          : 32        : input  : TTL               :         :           : N              

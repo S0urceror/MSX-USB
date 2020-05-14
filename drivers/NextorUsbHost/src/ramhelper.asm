@@ -39,7 +39,7 @@ RAMHELPER_WRKAREA:
 	;		HL = start address of jump table
     call EXTBIO
     and a
-    jr z, _RAMHELPER_WRKAREA_END
+    jr z, _RAMHELPER_WRKAREA_END ; should not happen!
     ld bc, WRKAREA.RAMMAPPERS
 	call WRKAREAPTR
     push ix
@@ -64,7 +64,7 @@ RAMHELPER_WRKAREA:
 	;		HL = start address of jump table
     call EXTBIO
     and a
-    jr z, _RAMHELPER_WRKAREA_END
+    jr z, _RAMHELPER_WRKAREA_END ; should not happen!
     ld bc, WRKAREA.RAMCALLS
 	call WRKAREAPTR
     push ix

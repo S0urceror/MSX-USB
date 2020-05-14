@@ -279,6 +279,27 @@ _DEF_CONFIG:
 ;    procedure will continue the normal way
 ;    (for drive-based drivers only. Device-based drivers always
 ;     get two allocated drives.)
+TMP_BUFFER: equ 08000h
+
+; DRV_INIT is structured as follows:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; check if ch376s is connected, reset ch376s
+; reset usb bus, make us usb host
+; read device descriptor, what is connected?
+; 1 - nothing?
+; 2 - storage device?
+;     assign device id 1
+;     use high-level driver in CH376s
+; 3 - hub?
+;     assign device id 1
+;     how many ports?
+;     init all ports
+;     something connected?
+;     assign device-id (2..nrports+1) and reset it's usb bus via hub
+; 4 - something else?
+;     assign device id 1
+;     another MSXUSB UNAPI driver can do something with it
+;     like MSXUSB Ethernet and Keyboard drivers
 
 DRV_INIT:
 	ld	hl,WRKAREA	; size of work area
@@ -299,16 +320,9 @@ DRV_INIT:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	call USBHOST_INIT
 
-	; initialise CH376s
-    call CH_RESET
-    ld hl, TXT_RESET
-    call PRINT
-	ld bc, WAIT_ONE_SECOND/5
-	call WAIT
-
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
-    jp nc, _HW_TEST_OKAY
+    jr nc, _HW_TEST_OKAY
     ld hl, TXT_NOT_FOUND
     call PRINT
     and a
@@ -318,39 +332,55 @@ _HW_TEST_OKAY:
    	ld hl, TXT_FOUND
     call PRINT
 
-	; reset BUS
-   	ld a, 7 ; HOST, reset bus
-    call CH_SET_USB_MODE
-	; wait a bit longer
-	ld bc, WAIT_ONE_SECOND
-	call WAIT
-	; reset DEVICE
-    ld a, 6
-    call CH_SET_USB_MODE
-    jp nc, _USB_MODE_OKAY
-    ld hl, TXT_MODE_NOT_SET
+	; initialise CH376s
+    call CH_RESET
+    ld hl, TXT_RESET
     call PRINT
-    ret
-_USB_MODE_OKAY:
-	ld (ix+WRKAREA.STATUS),00000011b
-    ld hl, TXT_MODE_SET
-    call PRINT
-	; wait ~250ms
-	ld bc, WAIT_ONE_SECOND/4
+	ld bc, WAIT_ONE_SECOND/5
 	call WAIT
 
+	; reset bus and device
+	call USB_HOST_BUS_RESET
+
 	; What is connected?
+	ld hl, TMP_BUFFER
+	push hl,ix
+	call FN_GETDESCRIPTORS
+	pop ix, hl
+	jr nc, _CONTINUE_DESCRIPTORS
+	ld hl, TXT_DISK_NOT_CONNECTED
+    call PRINT
+	ret
+_CONTINUE_DESCRIPTORS:
 	; USB storage device?
+	push ix
+	call CHECK_DESCRIPTOR_MASS_STORAGE
+	pop ix
 	; yes, go and use high-level driver
+	jr nc, _CONTINUE_HIGH_LEVEL
 	; USB HUB?
+	push ix
+	call CHECK_DESCRIPTOR_HUB
+	pop ix
+	jr nc, _CONTINUE_HUB
+	ld hl, TXT_SOMETHING_ELSE_CONNECTED
+    call PRINT
+	ret
+_CONTINUE_HUB:
+	ld hl, TXT_USB_HUB_CONNECTED
+	call PRINT
 	; yes, select the first used port
+	push ix
+	call INIT_HUB
+	pop ix
+	ret
 
 	; continue with the high-level disk driver
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+_CONTINUE_HIGH_LEVEL:
 	; connect disk
     call CH_CONNECT_DISK
-    jp nc, _CONNECT_DISK_OKAY
+    jr nc, _CONNECT_DISK_OKAY
     ld hl, TXT_DISK_NOT_CONNECTED
     call PRINT
     ret
@@ -361,7 +391,7 @@ _CONNECT_DISK_OKAY:
 
 	; mount USB drive
     call CH_MOUNT_DISK
-    jp nc, _MOUNT_DISK_OKAY
+    jr nc, _MOUNT_DISK_OKAY
     ld hl, TXT_DISK_NOT_MOUNTED
     call PRINT
     ret
@@ -377,10 +407,10 @@ _MOUNT_DISK_OKAY
     call CH_READ_DATA
     ld a, c
     or a
-    jp nz, _READ_BUFFER_OKAY; we got data
+    jr nz, _READ_BUFFER_OKAY; we got data
     ld hl, TXT_NO_MAKE_MODEL
     call PRINT
-    jp _NEXT
+    jr _NEXT
 _READ_BUFFER_OKAY:
     ld hl, TXT_MAKE_MODEL
     call PRINT
@@ -397,7 +427,7 @@ _NEXT
     call _STORE_DIR_NAME
 	call CH_SET_FILE_NAME
     call CH_DIR_OPEN    
-    jp nc, _DIR_OPEN_OKAY
+    jr nc, _DIR_OPEN_OKAY
 	ld hl, TXT_CD_FAILED
     call PRINT
     ret
@@ -462,6 +492,28 @@ _FILE_OPEN_OKAY2:
 
 	ret
 
+USB_HOST_BUS_RESET:
+	; reset BUS
+   	ld a, 7 ; HOST, reset bus
+    call CH_SET_USB_MODE
+	; wait a bit longer
+	ld bc, WAIT_ONE_SECOND
+	call WAIT
+	; reset DEVICE
+    ld a, 6
+    call CH_SET_USB_MODE
+    jr nc, _USB_MODE_OKAY
+    ld hl, TXT_MODE_NOT_SET
+    call PRINT
+    ret
+_USB_MODE_OKAY:
+	ld (ix+WRKAREA.STATUS),00000011b
+    ld hl, TXT_MODE_SET
+    call PRINT
+	; wait ~250ms
+	ld bc, WAIT_ONE_SECOND/4
+	call WAIT
+	ret
 
 WAIT_ONE_SECOND	equ 60 ; max 60Hz
 

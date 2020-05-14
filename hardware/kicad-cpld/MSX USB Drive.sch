@@ -344,9 +344,9 @@ F 3 "" H 9100 2800 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	9100 3200 9100 2800
-Text GLabel 8500 5600 0    50   Input ~ 0
-SLTSL_
 Text GLabel 8500 5500 0    50   Input ~ 0
+SLTSL_
+Text GLabel 8500 5600 0    50   Input ~ 0
 RD_
 Text GLabel 8500 5300 0    50   Input ~ 0
 WR_
@@ -361,17 +361,6 @@ F 1 "EPM7032_7064" H 5600 4647 60  0000 C CNN
 F 2 "msx-usb-kicad-cpld:PLCC44" H 5600 2950 60  0001 C CNN
 F 3 "" H 5600 2950 60  0000 C CNN
 	1    5600 2950
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:AVR-JTAG-10 J1
-U 1 1 5E822CA8
-P 1700 6900
-F 0 "J1" H 1320 6946 50  0000 R CNN
-F 1 "AVR-JTAG-10" H 1320 6855 50  0000 R CNN
-F 2 "msx-usb-kicad-cpld:PinHeader_2x05_P2.54mm_Vertical" V 1550 7050 50  0001 C CNN
-F 3 " ~" H 425 6350 50  0001 C CNN
-	1    1700 6900
 	1    0    0    -1  
 $EndComp
 Text GLabel 6750 3450 2    50   Input ~ 0
@@ -442,20 +431,6 @@ Text GLabel 8500 5000 0    50   Input ~ 0
 MA17
 Text GLabel 8500 5100 0    50   Input ~ 0
 MA18
-Wire Wire Line
-	1600 6300 1700 6300
-$Comp
-L power:VCC #PWR0101
-U 1 1 5E8479A5
-P 1700 6300
-F 0 "#PWR0101" H 1700 6150 50  0001 C CNN
-F 1 "VCC" H 1717 6473 50  0000 C CNN
-F 2 "" H 1700 6300 50  0001 C CNN
-F 3 "" H 1700 6300 50  0001 C CNN
-	1    1700 6300
-	1    0    0    -1  
-$EndComp
-Connection ~ 1700 6300
 $Comp
 L power:GND #PWR0102
 U 1 1 5E848649
@@ -554,5 +529,29 @@ Text GLabel 6750 1850 2    50   Input ~ 0
 RESET_
 NoConn ~ 4450 1750
 NoConn ~ 4450 1850
-NoConn ~ 4450 3050
+$Comp
+L Connector:AVR-JTAG-10 J1
+U 1 1 5E822CA8
+P 1700 6900
+F 0 "J1" H 1320 6946 50  0000 R CNN
+F 1 "AVR-JTAG-10" H 1320 6855 50  0000 R CNN
+F 2 "msx-usb-kicad-cpld:PinHeader_2x05_P2.54mm_Vertical" V 1550 7050 50  0001 C CNN
+F 3 " ~" H 425 6350 50  0001 C CNN
+	1    1700 6900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:VCC #PWR0101
+U 1 1 5E8479A5
+P 1600 6300
+F 0 "#PWR0101" H 1600 6150 50  0001 C CNN
+F 1 "VCC" H 1617 6473 50  0000 C CNN
+F 2 "" H 1600 6300 50  0001 C CNN
+F 3 "" H 1600 6300 50  0001 C CNN
+	1    1600 6300
+	1    0    0    -1  
+$EndComp
+NoConn ~ 1700 6300
+Text GLabel 4450 3050 0    50   Input ~ 0
+A12
 $EndSCHEMATC

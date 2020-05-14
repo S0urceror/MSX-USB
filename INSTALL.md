@@ -12,7 +12,7 @@ You can use the MSX USB cartridge in two modes.
 The first time you need to boot up with a floppy disk with the NEXTOR.SYS and COMMAND2.COM files. 
 Please insert a FAT32 formatted USB Flash Disk in the MSX USB cartridge.
 For your convenience I have created a couple of FAT16 disk images that you can put on this USB Flash Disk.
-The one named NEXTOR.DSK will be found and booted by default.
+The one named NEXTOR.DSK will be found and booted by default. You can change the default DSK file by creating an AUTOEXEC.DSK file with another filename in the first line of text.
 
 * NEXTOR.DSK - A 720KB image with NEXTOR.SYS and COMMAND2.COM
 * 128mb.DSK - You can have multiple of these on your Flash Disk when size permits. Nextor supports bigger FAT16 disks but 128mb is still fast. When it gets bigger Nextor will spend more time on housekeeping and calculating for example the free space.

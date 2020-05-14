@@ -5,7 +5,7 @@ entity scc_rom_mapper is
         wr_n            : in     vl_logic;
         sltsl_n         : in     vl_logic;
         reset_n         : in     vl_logic;
-        a15_a13         : in     vl_logic_vector(1 downto 0);
+        a15_a13_a12     : in     vl_logic_vector(2 downto 0);
         data            : in     vl_logic_vector(5 downto 0);
         address_upper   : out    vl_logic_vector(5 downto 0)
     );

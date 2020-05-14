@@ -64,8 +64,6 @@ set_location_assignment PIN_24 -to in_a7_a0[3]
 set_location_assignment PIN_25 -to in_a7_a0[2]
 set_location_assignment PIN_26 -to in_a7_a0[1]
 set_location_assignment PIN_27 -to in_a7_a0[0]
-set_location_assignment PIN_28 -to in_a15_a13[1]
-set_location_assignment PIN_29 -to in_a15_a13[0]
 set_location_assignment PIN_4 -to iorq_n
 set_location_assignment PIN_1 -to rd_n
 set_location_assignment PIN_44 -to reset_n
@@ -77,3 +75,6 @@ set_location_assignment PIN_33 -to out_a13_a18[4]
 set_location_assignment PIN_34 -to out_a13_a18[3]
 set_location_assignment PIN_36 -to out_a13_a18[2]
 set_location_assignment PIN_37 -to out_a13_a18[1]
+set_location_assignment PIN_28 -to in_a15_a13_a12[2]
+set_location_assignment PIN_29 -to in_a15_a13_a12[1]
+set_location_assignment PIN_17 -to in_a15_a13_a12[0]

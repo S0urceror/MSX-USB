@@ -74,3 +74,14 @@ bmAttributes: DB
 wMaxPacketSize: DW
 bInterval: DB
     ENDS
+
+    STRUCT HUB_DESCRIPTOR
+bLength: DB
+bDescriptorType: DB
+bNrPorts: DB
+wHubCharacteristics: DW
+bPwrOn2PwrGood: DB
+bHubContrCurrent: DB
+bDeviceRemovable: DB
+bPortPwrCtrlMask: DB
+    ENDS

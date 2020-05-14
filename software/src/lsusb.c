@@ -15,23 +15,6 @@
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 ;
 */
-/*
-    Compilation command line:
-   
-   sdcc --code-loc 0x170 --data-loc 0 -mz80 --disable-warning 196
-        --no-std-crt0 crt0_msxdos_advanced.rel msxchar.rel asm.lib lsusb.c
-   hex2bin -e com eth.ihx
-   
-   ASM.LIB, MSXCHAR.REL and crt0msx_msxdos_advanced.rel
-   are available at www.konamiman.com
-   
-   (You don't need MSXCHAR.LIB if you manage to put proper PUTCHAR.REL,
-   GETCHAR.REL and PRINTF.REL in the standard Z80.LIB... I couldn't manage to
-   do it, I get a "Library not created with SDCCLIB" error)
-   
-   Comments are welcome: sourceror@neximus.com
-*/
-
 #include "lsusb.h"
 #include <stdio.h>
 #include <arch/msx.h>

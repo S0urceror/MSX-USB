@@ -489,6 +489,257 @@ CH_SET_ADDRESS:
     scf ; error
     ret
 
+; --------------------------------------
+; CH_GET_HUB_DESCRIPTOR
+;
+; Input: HL=pointer to memory to receive device descriptor
+;        B=packetsize
+;        D=device address
+; Output: Cy=0 no error, Cy=1 error
+;         A  = USB error code
+;         BC = Amount of data actually transferred (if IN transfer and no error)
+CH_GET_HUB_DESCRIPTOR:
+    push ix,hl,de
+    push hl
+    ; return USB descriptor stored in scratch-area pointed to by SLTWRK+5 in HL for this ROM page
+    push bc
+    ld bc, CMD_GET_HUB_DESCRIPTOR-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: {0b10100000,6,0,0x29,0,0,sizeof(USB_HUB_DESCRIPTOR),0}
+    call GET_USB_DESCRIPTOR
+    pop bc
+    ;
+    ld ix, hl
+    ld (ix+6),b
+    ld a, d ; device address
+    pop de ; was HL = memory to receive descriptor
+    call HW_CONTROL_TRANSFER
+
+    pop de,hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
+; SET_HUB_PORT_FEATURE
+; A = port number
+; C = feature to set
+; D = device address
+SET_HUB_PORT_FEATURE:
+    push ix,hl,de,bc
+    push bc
+    ld bc, CMD_SET_HUB_PORT_FEATURE-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: {0b00100011,0x03,feature_selector,0,port,value,0,0};
+    call GET_USB_DESCRIPTOR
+    pop bc
+    ;
+    ld ix, hl
+    ld (ix+2),c
+    ld (ix+4),a
+    ld a, d ; device address
+    call HW_CONTROL_TRANSFER
+    pop bc,de,hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
+CHECK_DEVICE_DESCRIPTOR:
+    push af
+    ld a, (ix+DEVICE_DESCRIPTOR.bNumConfigurations)
+    ld (USB_NUM_CONFIGS),a
+    ld a, (ix+DEVICE_DESCRIPTOR.bMaxPacketSize0)
+    ld (USB_MAX_PACKET_SIZE),a
+    pop af
+    ret
+
+CHECK_CONFIG_DESCRIPTOR:
+    push af
+    ld a, (ix+CONFIG_DESCRIPTOR.bNumInterfaces)
+    ld (USB_NUM_INTERFACES),a
+    ld a, (ix+CONFIG_DESCRIPTOR.bConfigurationvalue)
+    ld (USB_CONFIG_ID),a
+_CHECK_CONFIG_NEXT:
+    ld hl, USB_NUM_CONFIGS
+    dec (hl)
+    pop af
+    ret
+    
+CHECK_INTERFACE_DESCRIPTOR:
+    push af,bc
+    ld a, (ix+INTERFACE_DESCRIPTOR.bNumEndpoints)
+    ld (USB_NUM_ENDPOINTS),a
+    ld a, (ix+INTERFACE_DESCRIPTOR.bInterfaceClass)
+    ld hl, USB_WANTED_CLASS
+    cp (hl)
+    jr nz, _INTERFACE_NOT_INTERESTING
+    ld b, (ix+INTERFACE_DESCRIPTOR.bInterfaceSubClass)
+    ld hl, USB_WANTED_SUB_CLASS
+    ld a, (hl)
+    cp 0ffh ; wildcard
+    jr z, _NEXT_CHECK2
+    cp b
+    jr nz, _INTERFACE_NOT_INTERESTING
+_NEXT_CHECK2:
+    ld b, (ix+INTERFACE_DESCRIPTOR.bInterfaceProtocol)
+    ld hl, USB_WANTED_PROTOCOL
+    ld a, (hl)
+    cp 0ffh ; wildcard
+    jr z, _NEXT_CHECK3
+    cp b
+    jr nz, _INTERFACE_NOT_INTERESTING
+_NEXT_CHECK3:
+    ; found the right interface
+    ld a, (ix+INTERFACE_DESCRIPTOR.bInterfaceNumber)
+    ld (USB_INTERFACE_ID),a
+_INTERFACE_NOT_INTERESTING:
+    ld hl, USB_NUM_INTERFACES
+    dec (hl)
+    pop bc,af
+    ret
+
+CHECK_ENDPOINT_DESCRIPTOR:
+    push af
+    ld hl, USB_NUM_ENDPOINTS
+    dec (hl)
+    pop af
+    ret
+
+PARSE_USB_DESCRIPTORS:
+_USB_CHECK_NEXT:
+    ld c, (ix+0) ; length
+    ld b, 0
+    ld a, (ix+1) ; type
+    cp 0x01 ; DEVICE_DESCRIPTOR
+    call z, CHECK_DEVICE_DESCRIPTOR
+    cp 0x02 ; CONFIG_DESCRIPTOR
+    call z, CHECK_CONFIG_DESCRIPTOR
+    cp 0x04 ; INTERFACE_DESCRIPTOR
+    call z, CHECK_INTERFACE_DESCRIPTOR
+    cp 0x05 ; ENDPOINT_DESCRIPTOR
+    call z, CHECK_ENDPOINT_DESCRIPTOR
+    ; check if we're done checking
+    ld a, (USB_NUM_CONFIGS)
+    and a
+    jr nz, _DO_AGAIN
+    ld a, (USB_NUM_INTERFACES)
+    and a
+    jr nz, _DO_AGAIN
+    ld a, (USB_NUM_ENDPOINTS)
+    and a
+    jr nz, _DO_AGAIN
+    ; no more endpoints, interfaces and configs to scan
+    jr _DONE
+_DO_AGAIN:
+    add ix,bc
+    jr _USB_CHECK_NEXT
+_DONE:
+    ret
+
+USB_NUM_CONFIGS EQU 08200h
+USB_NUM_INTERFACES EQU 08201h
+USB_NUM_ENDPOINTS EQU 08203h
+USB_WANTED_CLASS EQU 08204h
+USB_WANTED_SUB_CLASS EQU 08205h
+USB_WANTED_PROTOCOL EQU 08206h
+USB_INTERFACE_ID EQU 08207h
+USB_CONFIG_ID EQU 08208h
+USB_MAX_PACKET_SIZE EQU 08209h
+USB_HUB_PORTS EQU 0820ah
+
+; Parse the descriptor to see if a mass storage device 
+; is connected that the high-level driver supports
+;
+; Input: HL points to buffer with descriptor
+; Output: Cy = 0 (found), Cy = 1 (not found)
+CHECK_DESCRIPTOR_MASS_STORAGE:
+    ld ix, TMP_BUFFER
+    ; init value
+    ld a, 0ffh
+    ld (USB_INTERFACE_ID),a
+    ld (USB_CONFIG_ID),a
+    ; start searching
+    ld a, 8 ; mass storage
+    ld (USB_WANTED_CLASS),a
+    ld a, 6 ; SCSI command set
+    ld (USB_WANTED_SUB_CLASS),a
+    ld a, 050h
+    ld (USB_WANTED_PROTOCOL),a
+    call PARSE_USB_DESCRIPTORS
+    ld a, (USB_INTERFACE_ID)
+    cp 0ffh
+    jr nz, _FOUND_MASS_STORAGE
+    scf ; set Cy
+    ret
+_FOUND_MASS_STORAGE:
+    or a ; reset Cy
+    ret
+
+; Parse the descriptor to see if a USB hub 
+; is connected that the high-level driver supports
+;
+; Input: HL points to buffer with descriptor
+; Output: Cy = 0 (found), Cy = 1 (not found)
+CHECK_DESCRIPTOR_HUB:
+    ld ix, TMP_BUFFER
+    ; init value
+    ld a, 0ffh
+    ld (USB_INTERFACE_ID),a
+    ld (USB_CONFIG_ID),a
+    ; start searching
+    ld a, 9 ; USB Hub device
+    ld (USB_WANTED_CLASS),a
+    ld a, 0 ; always zero
+    ld (USB_WANTED_SUB_CLASS),a
+    ld a, 0ffh ; don't care
+    ld (USB_WANTED_PROTOCOL),a
+    call PARSE_USB_DESCRIPTORS
+    ld a, (USB_INTERFACE_ID)
+    cp 0ffh
+    jr nz, _FOUND_MASS_STORAGE
+    scf ; set Cy
+    ret
+_FOUND_HUB:
+    or a ; reset Cy
+    ret 
+
+; Initialise HUB device
+INIT_HUB:
+    ; activate HUB
+    ld a, (USB_MAX_PACKET_SIZE) 
+    ld b,a
+    ld d, USB_DEVICE_ADDRESS
+    ld a, (USB_CONFIG_ID)
+    push bc,de
+    call CH_SET_CONFIGURATION
+    pop de,bc
+    ret c
+    ; get HUB descriptor
+    ld hl, TMP_BUFFER
+    call CH_GET_HUB_DESCRIPTOR
+    ret c
+    ld ix, TMP_BUFFER
+    ld a, (ix+HUB_DESCRIPTOR.bNrPorts)
+    ld (USB_HUB_PORTS),a
+    ; power up all ports
+    ld b, a ; counter
+    ld e, 1
+    ld c, 8 ; PORT_POWER
+    ld d, USB_DEVICE_ADDRESS
+_POWER_UP_AGAIN:
+    ld a, e
+    call SET_HUB_PORT_FEATURE
+    ret c
+    inc e
+    djnz _POWER_UP_AGAIN
+    ; check which ones have something connected
+
+    ; reset usb bus on port(s)
+    ld a, 4 ; hardcode port 4
+    ld c, 4 ; RESET
+    ld d, USB_DEVICE_ADDRESS
+    call SET_HUB_PORT_FEATURE
+    ret
+
+
+
     include "usb_descriptors.asm"
 	include "unapi.asm"
 

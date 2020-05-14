@@ -1404,7 +1404,7 @@ void do_hub (uint8_t device_address)
         const int PORT_LOW_SPEED = 9;
         const int C_PORT_RESET = 0x14;
         const int C_PORT_CONNECTION = 0x10;
-        const int HUB_PORT_NUMBER = 4;
+        const int HUB_PORT_NUMBER = 1;
         const uint8_t HUB_PORT_BITMASK = (1 << (HUB_PORT_NUMBER));
         for (int i=1;i<=hub->bNrPorts;i++)
         {
@@ -1416,25 +1416,29 @@ void do_hub (uint8_t device_address)
         delete hub;
 
         // wait something happens on any of the powered ports
-        while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
-        if (!clear_hub_port_feature2 (device_address,C_PORT_CONNECTION,HUB_PORT_NUMBER,0))// clear C_PORT_CONNECTION feature
-            error ("error clearing feature Hub port");
-        usleep (100000); // wait 100msec
+        //while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
+        //if (!clear_hub_port_feature2 (device_address,C_PORT_CONNECTION,HUB_PORT_NUMBER,0))// clear C_PORT_CONNECTION feature
+        //    error ("error clearing feature Hub port");
+        //usleep (100000); // wait 100msec
 
-        // check if low speed
-        status = get_hub_portstatus (device_address,HUB_PORT_NUMBER)&0xffff;
-        if (status&0x0200) // low speed
+        for (int i=1;i<=hub->bNrPorts;i++)
         {
+            status = get_hub_portstatus (device_address,i)&0xffff;
+        } 
+        // check if low speed
+        //status = get_hub_portstatus (device_address,HUB_PORT_NUMBER)&0xffff;
+        //if (status&0x0200) // low speed
+        //{
             // no idea to handle this...
-        }
+        //}
 
         if (!set_hub_port_feature2 (device_address,PORT_RESET,HUB_PORT_NUMBER,0)) // reset port 1
             error ("error resetting Hub port 1");
         // wait for change of port 1 => bit 2
-        while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
-        status = get_hub_portstatus (device_address,HUB_PORT_NUMBER);
-        if (!clear_hub_port_feature2 (device_address,C_PORT_RESET,HUB_PORT_NUMBER,0))// clear C_PORT_RESET feature
-            error ("error clearing feature Hub port");
+        //while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
+        //status = get_hub_portstatus (device_address,HUB_PORT_NUMBER);
+        //if (!clear_hub_port_feature2 (device_address,C_PORT_RESET,HUB_PORT_NUMBER,0))// clear C_PORT_RESET feature
+        //    error ("error clearing feature Hub port");
         
         // endpoint 0 should now be equal to the resetted device
         init_device (device_address+1);

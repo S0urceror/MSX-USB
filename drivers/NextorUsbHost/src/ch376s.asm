@@ -621,14 +621,17 @@ CH_READ_DATA:
 ;
 ; Output: A = Result of GET_STATUS (an USB error code)
 CH_WAIT_INT_AND_GET_RESULT:
-    ;push bc
-    ;call PANIC_KEYS_PRESSED
-    ;pop bc
-    ;ld a,USB_ERR_PANIC_BUTTON_PRESSED
-    ;ret z
-
+    push bc
+    ld bc, 1000
+_CH_WAIT_INT_AND_GET_RESULT_AGAIN:
     call CH_CHECK_INT_IS_ACTIVE
-    jr nz,CH_WAIT_INT_AND_GET_RESULT    ;TODO: Perhaps add a timeout check here?
+    jr z,_CH_WAIT_INT_AND_GET_RESULT_NEXT   ;TODO: Perhaps add a timeout check here?
+    dec bc
+    ld a, b
+    or c
+    jr nz, _CH_WAIT_INT_AND_GET_RESULT_AGAIN
+_CH_WAIT_INT_AND_GET_RESULT_NEXT:
+    pop bc
     call CH_GET_STATUS
     ret
 
@@ -707,6 +710,11 @@ report_id EQU 0
 duration EQU 0x80
 interface_id EQU 0
 protocol_id EQU 0
+; USB HUB command variables
+hub_descriptor_size EQU 0
+feature_selector EQU 0
+port EQU 0
+value EQU 0
 
 ; Generic USB commands
 USB_DESCRIPTORS_START:
@@ -722,7 +730,10 @@ CMD_SET_PACKET_FILTER: DB 00100001b,0x43,packet_filter,0,control_interface_id,0,
 CMD_SET_IDLE: DB 0x21,0x0A,report_id,duration,interface_id,0,0,0
 CMD_SET_PROTOCOL: DB 0x21,0x0B,protocol_id,0,interface_id,0,0,0
     ds 3*8,0 ; reserved
-;
+; USB HUB commands
+CMD_GET_HUB_DESCRIPTOR: DB 10100000b,6,0,029h,0,0,hub_descriptor_size,0
+CMD_SET_HUB_PORT_FEATURE: DB 00100011b,3,feature_selector,0,port,value,0,0
+
 USB_DESCRIPTORS_END:
 
 ; --------------------------------------

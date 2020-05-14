@@ -27,16 +27,13 @@
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
             "group": "build",
-            "problemMatcher": []
+            "problemMatcher": "$errmatcher-sjasmplus"
         },
         {
             "label": "make UNAPI Usb Keyboard",
             "type": "shell",
             "command": "make -C ./drivers/UsbKeyboard/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {
@@ -54,9 +51,16 @@
             "problemMatcher": []
         },
         {
-            "label": "make client software",
+            "label": "make Echo",
             "type": "shell",
             "command": "make -C ./software/",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "make Flash",
+            "type": "shell",
+            "command": "make -C ./software/ -f makeflash.mk",
             "group": "build",
             "problemMatcher": []
         },
@@ -86,6 +90,16 @@
             "type": "shell",
             "command": "make -C ./test/initmapr/src",
             "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "simulate verilog",
+            "type": "shell",
+            "command": "make -C ./hardware/quartus",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         }
     ]

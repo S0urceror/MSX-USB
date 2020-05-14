@@ -3,7 +3,7 @@ use verilog.vl_types.all;
 entity msxusb is
     port(
         in_a7_a0        : in     vl_logic_vector(7 downto 0);
-        in_a15_a13      : in     vl_logic_vector(1 downto 0);
+        in_a15_a13_a12  : in     vl_logic_vector(2 downto 0);
         data            : in     vl_logic_vector(5 downto 0);
         iorq_n          : in     vl_logic;
         rd_n            : in     vl_logic;
