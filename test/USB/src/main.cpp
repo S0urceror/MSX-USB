@@ -396,6 +396,7 @@ void check_exists ()
 void reset_all ()
 {
     writeCommand (CH375_CMD_RESET_ALL);
+    usleep (50000);
 }
 void set_target_device_address (uint8_t address)
 {
@@ -1525,33 +1526,35 @@ void usb_host_bus_reset ()
     sleep (1);
     if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
         error ("host mode not succeeded\n");
-    usleep (250000);
+    usleep (500000);
 }
 int main(int argc, const char * argv[]) 
 {
     init_serial();
     check_exists();
     reset_all();
-    usleep (50000);
 
     // set reset bus and set host mode
     usb_host_bus_reset ();
  
-    // first try some high-level stuff
-    //connect_disk ();
-    //mount_disk ();
-    //open_dir ("\\");
-    //open_file ("AUTOEXEC.DSK");
-    //read_file ();
-    //close_file ();
-    //open_dir ("\\");
-    //open_file ("NEXTOR.DSK");
-    //close_file ();
-    // set reset bus and set host mode
-    //usb_host_bus_reset ();
-
-    // then do the low-level things
+     // do the low-level things
     init_device (DEV_ADDRESS);
+
+    // set reset bus and set host mode
+    usb_host_bus_reset ();
+
+    // try some high-level stuff
+    connect_disk ();
+    mount_disk ();
+    open_dir ("\\");
+    open_file ("AUTOEXEC.DSK");
+    read_file ();
+    close_file ();
+    open_dir ("\\");
+    open_file ("720KB.DSK");
+    //read_file();
+    close_file ();
+    
 
     return 0;
 }

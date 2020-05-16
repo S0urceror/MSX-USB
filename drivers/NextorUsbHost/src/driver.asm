@@ -279,7 +279,6 @@ _DEF_CONFIG:
 ;    procedure will continue the normal way
 ;    (for drive-based drivers only. Device-based drivers always
 ;     get two allocated drives.)
-TMP_BUFFER: equ 08000h
 
 ; DRV_INIT is structured as follows:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -342,42 +341,6 @@ _HW_TEST_OKAY:
 	; reset bus and device
 	call USB_HOST_BUS_RESET
 
-	; What is connected?
-	ld hl, TMP_BUFFER
-	push hl,ix
-	call FN_GETDESCRIPTORS
-	pop ix, hl
-	jr nc, _CONTINUE_DESCRIPTORS
-	ld hl, TXT_DISK_NOT_CONNECTED
-    call PRINT
-	ret
-_CONTINUE_DESCRIPTORS:
-	; USB storage device?
-	push ix
-	call CHECK_DESCRIPTOR_MASS_STORAGE
-	pop ix
-	; yes, go and use high-level driver
-	jr nc, _CONTINUE_HIGH_LEVEL
-	; USB HUB?
-	push ix
-	call CHECK_DESCRIPTOR_HUB
-	pop ix
-	jr nc, _CONTINUE_HUB
-	ld hl, TXT_SOMETHING_ELSE_CONNECTED
-    call PRINT
-	ret
-_CONTINUE_HUB:
-	ld hl, TXT_USB_HUB_CONNECTED
-	call PRINT
-	; yes, select the first used port
-	push ix
-	call INIT_HUB
-	pop ix
-	ret
-
-	; continue with the high-level disk driver
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_CONTINUE_HIGH_LEVEL:
 	; connect disk
     call CH_CONNECT_DISK
     jr nc, _CONNECT_DISK_OKAY
@@ -490,44 +453,6 @@ _FILE_OPEN_OKAY2:
 	ld hl, TXT_NEWLINE
 	call PRINT
 
-	ret
-
-USB_HOST_BUS_RESET:
-	; reset BUS
-   	ld a, 7 ; HOST, reset bus
-    call CH_SET_USB_MODE
-	; wait a bit longer
-	ld bc, WAIT_ONE_SECOND
-	call WAIT
-	; reset DEVICE
-    ld a, 6
-    call CH_SET_USB_MODE
-    jr nc, _USB_MODE_OKAY
-    ld hl, TXT_MODE_NOT_SET
-    call PRINT
-    ret
-_USB_MODE_OKAY:
-	ld (ix+WRKAREA.STATUS),00000011b
-    ld hl, TXT_MODE_SET
-    call PRINT
-	; wait ~250ms
-	ld bc, WAIT_ONE_SECOND/4
-	call WAIT
-	ret
-
-WAIT_ONE_SECOND	equ 60 ; max 60Hz
-
-;-----------------------------------------------------------------------------
-;
-; Wait a determined number of interrupts
-; Input: BC = number of 1/framerate interrupts to wait
-; Output: (none)
-WAIT:
-	halt
-	dec bc
-	ld a,b
-	or c
-	jr nz, WAIT
 	ret
 
 ;-----------------------------------------------------------------------------

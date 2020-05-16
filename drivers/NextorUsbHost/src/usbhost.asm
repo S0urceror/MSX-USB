@@ -22,7 +22,6 @@ UNAPI_S:  equ  2
 IMPLEMENTATION_P:  equ  0
 IMPLEMENTATION_S:  equ  5
 
-USB_DEVICE_ADDRESS EQU 1
 NXT_DIRECT EQU 0x0000
 
 ;***********************************
@@ -109,17 +108,33 @@ FN_INFO:
     ld  hl,UNAPI_INFO
     xor  a
     ret
+
+TMP_BUFFER: equ 08000h
 ; Connect attached USB device and reset it
 ; Input: (none)
-; Output: Cy = 0, everything okay, Cy = 1, something went wrong
+; Output: A = nr of connected USB devices, zero if none or error
 FN_CONNECT:
-    ; set_usb_mode (MODE_HOST_RESET)
-    ld a, CH_MODE_HOST_RESET
-    call CH_SET_USB_MODE
-    ret c
-    ; set_usb_mode (MODE_HOST)
-    ld a, CH_MODE_HOST
-    call CH_SET_USB_MODE
+    call USB_HOST_BUS_RESET
+FN_CONNECT2: ; skip bus reset (for hubs)
+    ; Hub connected?
+	ld hl, TMP_BUFFER
+	call FN_GETDESCRIPTORS
+	jr nc, _CONTINUE_DESCRIPTORS
+    xor a ; zero
+	ret
+_CONTINUE_DESCRIPTORS:
+    ld a, 1
+    call SET_USB_DEVICE_ADDRESS
+	; USB HUB?
+	ld hl, TMP_BUFFER
+	call CHECK_DESCRIPTOR_HUB
+	jr nc, _CONTINUE_HUB
+    jr _CONNECT_DONE:
+_CONTINUE_HUB:
+	; yes, scan hub devices
+	call INIT_HUB
+_CONNECT_DONE:
+    call GET_USB_DEVICE_ADDRESS
     ret
 
 FN_CHECK:
@@ -134,12 +149,59 @@ FN_DATA_OUT_TRANSFER:
     call _UNPACK_E
     jp HW_DATA_OUT_TRANSFER
 FN_CONTROL_PACKET:
-    jp GET_USB_DESCRIPTOR
+    jp GET_CONTROL_PACKET
 ;FN_RAMHELPER:
 ;    jp RAMHELPER_ADDRESS
 FN_SYNC_MODE:
     ld a, b
     jp HW_CONFIGURE_NAK_RETRY_2
+
+GET_USB_DEVICE_ADDRESS:
+    call MY_GWORK
+    ld a, (ix+WRKAREA.USB_DEVICE_ADDRESS)
+    ret
+SET_USB_DEVICE_ADDRESS:
+    call MY_GWORK
+    ld (ix+WRKAREA.USB_DEVICE_ADDRESS),a
+    ret
+
+USB_HOST_BUS_RESET:
+	; reset BUS
+   	ld a, CH_MODE_HOST_RESET ; HOST, reset bus
+    call CH_SET_USB_MODE
+	; wait a bit longer
+	ld bc, WAIT_ONE_SECOND
+	call WAIT
+	; reset DEVICE
+    ld a, CH_MODE_HOST
+    call CH_SET_USB_MODE
+    jr nc, _USB_MODE_OKAY
+    ld hl, TXT_MODE_NOT_SET
+    call PRINT
+    ret
+_USB_MODE_OKAY:
+	ld (ix+WRKAREA.STATUS),00000011b
+    ld hl, TXT_MODE_SET
+    call PRINT
+	; wait ~250ms
+	ld bc, WAIT_ONE_SECOND/4
+	call WAIT
+	ret
+
+WAIT_ONE_SECOND	equ 60 ; max 60Hz
+
+;-----------------------------------------------------------------------------
+;
+; Wait a determined number of interrupts
+; Input: BC = number of 1/framerate interrupts to wait
+; Output: (none)
+WAIT:
+	halt
+	dec bc
+	ld a,b
+	or c
+	jr nz, WAIT
+	ret
 
 ; E contains DDDDEEEE (D=device address, E=endpoint id) unpack it and preserve Cy
 ; Output: A = device address
@@ -182,7 +244,8 @@ _INIT_USBHID_NEXT:
     ld a, (ix+DEVICE_DESCRIPTOR.bNumConfigurations)
     ld iyh, a
     ; set address (1)
-    ld a, USB_DEVICE_ADDRESS ; address to assign to attached USB device
+    ;ld a, USB_DEVICE_ADDRESS ; address to assign to attached USB device
+    call GET_USB_DEVICE_ADDRESS
     ld b, (ix+DEVICE_DESCRIPTOR.bMaxPacketSize0)
     call CH_SET_ADDRESS
     ret c
@@ -193,10 +256,12 @@ _INIT_USBHID_NEXT:
     add iy, bc ; config lies after device descriptor
     ld e, 0 ; first configuration
 _INIT_USBHID_AGAIN:
+    ;ld d, USB_DEVICE_ADDRESS ; assigned address
+    call GET_USB_DEVICE_ADDRESS
+    ld d, a
     ld a, e
     ld b, (ix+DEVICE_DESCRIPTOR.bMaxPacketSize0)
     ld c, CONFIG_DESCRIPTOR ; sizeof
-    ld d, USB_DEVICE_ADDRESS ; assigned address
     ld hl, iy 
     call CH_GET_CONFIG_DESCRIPTOR ; call first with max packet size to discover real size
     ret c
@@ -310,11 +375,11 @@ USBHOST_INIT:
     pop ix
 	ret
 
-; GET_USB_DESCRIPTOR
+; GET_CONTROL_PACKET
 ; return USB descriptors stored in RAM to enable modification
 ; Input: BC - offset within descriptor table
 ; Output: HL - location of USB descriptors in RAM
-GET_USB_DESCRIPTOR:
+GET_CONTROL_PACKET:
     push ix, bc
     ld bc, WRKAREA.USB_DESCRIPTORS
     call WRKAREAPTR
@@ -335,9 +400,9 @@ CH_GET_DEVICE_DESCRIPTOR:
     push ix,hl,de,bc
     ld de, hl ; Address of the input or output data buffer
 
-    ; return USB descriptor stored in scratch-area pointed to by SLTWRK+5 in HL for this ROM page
+    ; return USB descriptor stored in WRKAREA
     ld bc, CMD_GET_DEVICE_DESCRIPTOR-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x80,6,0,1,0,0,18,0
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
 
     ld a, 0 ; device address
     ld b, 8 ; length in bytes
@@ -364,7 +429,7 @@ CH_GET_CONFIG_DESCRIPTOR:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_GET_CONFIG_DESCRIPTOR-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x80,6,configuration_id,2,0,0,config_descriptor_size,0
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
     pop bc
     
     ld ix, hl
@@ -392,7 +457,7 @@ CH_SET_CONFIGURATION:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_CONFIGURATION-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
     pop bc
 
     ld ix, hl
@@ -419,7 +484,7 @@ CH_SET_PROTOCOL:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_PROTOCOL-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x21,0x0B,protocol_id,0,interface_id,0,0,0
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
     pop bc
 
     ld ix, hl
@@ -448,7 +513,7 @@ CH_SET_IDLE:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_IDLE-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x21,0x0A,report_id,duration,interface_id,0,0,0
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
     pop bc
 
     ld ix, hl
@@ -476,7 +541,7 @@ CH_SET_ADDRESS:
     ; get SLTWRK in HL for this ROM page
     push bc
     ld bc, CMD_SET_ADDRESS-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: 0x00,0x05,target_device_address,0,0,0,0,0
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
     pop bc
     
     ld ix, hl
@@ -501,10 +566,10 @@ CH_SET_ADDRESS:
 CH_GET_HUB_DESCRIPTOR:
     push ix,hl,de
     push hl
-    ; return USB descriptor stored in scratch-area pointed to by SLTWRK+5 in HL for this ROM page
+    ; return USB descriptor stored in WRKAREA
     push bc
     ld bc, CMD_GET_HUB_DESCRIPTOR-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: {0b10100000,6,0,0x29,0,0,sizeof(USB_HUB_DESCRIPTOR),0}
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
     pop bc
     ;
     ld ix, hl
@@ -519,6 +584,31 @@ CH_GET_HUB_DESCRIPTOR:
     scf ; error
     ret
 
+; GET_HUB_PORT_STATUS:
+; A = port number to check
+; D = device address
+; HL= pointer to 4-bytes memory to receive port status
+GET_HUB_PORT_STATUS:
+    push ix,hl,de,bc
+    push hl
+    push bc
+    ld bc, CMD_GET_HUB_PORT_STATUS-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: {0b10100011,0,0,0,portnr,0,4,0};
+    call GET_CONTROL_PACKET
+    pop bc
+    ;
+    ld ix, hl
+    ld (ix+4),a
+    ;
+    ld a, d ; device address
+    pop hl ; pointer to 4-bytes memory to receive port status
+    call HW_CONTROL_TRANSFER
+    ;
+    pop bc,de,hl,ix
+    cp CH_USB_INT_SUCCESS
+    ret z ; no error
+    scf ; error
+    ret
+
 ; SET_HUB_PORT_FEATURE
 ; A = port number
 ; C = feature to set
@@ -527,12 +617,13 @@ SET_HUB_PORT_FEATURE:
     push ix,hl,de,bc
     push bc
     ld bc, CMD_SET_HUB_PORT_FEATURE-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: {0b00100011,0x03,feature_selector,0,port,value,0,0};
-    call GET_USB_DESCRIPTOR
+    call GET_CONTROL_PACKET
     pop bc
     ;
     ld ix, hl
     ld (ix+2),c
     ld (ix+4),a
+    ;
     ld a, d ; device address
     call HW_CONTROL_TRANSFER
     pop bc,de,hl,ix
@@ -642,7 +733,9 @@ USB_WANTED_PROTOCOL EQU 08206h
 USB_INTERFACE_ID EQU 08207h
 USB_CONFIG_ID EQU 08208h
 USB_MAX_PACKET_SIZE EQU 08209h
-USB_HUB_PORTS EQU 0820ah
+;
+USB_HUB_PORTS EQU 0820Ah
+USB_HUB_PORT_STATUS EQU 0820Bh
 
 ; Parse the descriptor to see if a mass storage device 
 ; is connected that the high-level driver supports
@@ -705,7 +798,8 @@ INIT_HUB:
     ; activate HUB
     ld a, (USB_MAX_PACKET_SIZE) 
     ld b,a
-    ld d, USB_DEVICE_ADDRESS
+    call GET_USB_DEVICE_ADDRESS
+    ld d, a
     ld a, (USB_CONFIG_ID)
     push bc,de
     call CH_SET_CONFIGURATION
@@ -722,7 +816,8 @@ INIT_HUB:
     ld b, a ; counter
     ld e, 1
     ld c, 8 ; PORT_POWER
-    ld d, USB_DEVICE_ADDRESS
+    call GET_USB_DEVICE_ADDRESS
+    ld d, a
 _POWER_UP_AGAIN:
     ld a, e
     call SET_HUB_PORT_FEATURE
@@ -730,15 +825,50 @@ _POWER_UP_AGAIN:
     inc e
     djnz _POWER_UP_AGAIN
     ; check which ones have something connected
-
-    ; reset usb bus on port(s)
-    ld a, 4 ; hardcode port 4
-    ld c, 4 ; RESET
-    ld d, USB_DEVICE_ADDRESS
-    call SET_HUB_PORT_FEATURE
+    ld a, (USB_HUB_PORTS)
+    ld b, a ; counter
+    ld e, 1 ; start index 1
+    call GET_USB_DEVICE_ADDRESS
+    ld d, a
+_HUB_STATUS_AGAIN:
+    ld a, e
+    ld hl, USB_HUB_PORT_STATUS
+    call GET_HUB_PORT_STATUS
+    ret c
+    ld a, (hl)
+    bit 1,a ; connected
+    call nz, INIT_HUB_DEVICE
+    ;bit 2,a ; enabled
+    ;bit 3,a ; suspended
+    ;bit 4,a ; reset
+    ;inc hl
+    ;ld a, (hl)
+    ;bit 1,a ; powered
+    ;bit 2,a ; lowspeed
+    ;bit 3,a ; highspeed
+    ;bit 5,a ; indicator control
+    inc e
+    djnz _HUB_STATUS_AGAIN
     ret
 
+; Input - E = portnumber on hub to initialise
+INIT_HUB_DEVICE:
+    push bc, de
+    call GET_USB_DEVICE_ADDRESS
+    ld d, a
+    ; reset usb bus on port(s)
+    ld a, e ; e contains port number
+    ld c, 4 ; RESET
+    call SET_HUB_PORT_FEATURE
 
+    ; recursively initialise device
+    call GET_USB_DEVICE_ADDRESS
+    inc a
+    call SET_USB_DEVICE_ADDRESS
+    call FN_CONNECT2
+
+    pop de, bc
+    ret
 
     include "usb_descriptors.asm"
 	include "unapi.asm"

@@ -194,7 +194,7 @@ void PrintDescriptors ()
     }
     regs.UWords.HL = buffer;
     AsmCall(jumptable+16,&regs, REGS_MAIN, REGS_MAIN);
-    //napiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
+    //UnapiCall(&codeBlock, USB_GETDESCRIPTORS, &regs, REGS_MAIN, REGS_MAIN);
     if (regs.Flags.C)
     {
         printf ("USB descriptors not read\n");

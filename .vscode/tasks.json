@@ -4,102 +4,83 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "make Flash Drive",
-            "type": "shell",
-            "command": "make -C ./drivers/flashdrive/src/",
-            "group": "build"
-        },
-        {
-            "label": "make USB HID Keyboard (archive)",
-            "type": "shell",
-            "command": "make -C ./drivers/archive/keyboard/src/",
-            "group": "build"
-        },
-        {
-            "label": "make UNAPI Usb Host",
-            "type": "shell",
-            "command": "make -C ./drivers/UsbHost/src/",
-            "group": "build",
-            "problemMatcher": []
-        },
-        {
-            "label": "make Nextor Usb Host",
+            "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": "$errmatcher-sjasmplus"
         },
         {
-            "label": "make UNAPI Usb Keyboard",
+            "label": "Driver - UsbKeyboard",
             "type": "shell",
             "command": "make -C ./drivers/UsbKeyboard/src/",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make UNAPI Usb Ethernet",
+            "label": "Driver - UsbEthernet",
             "type": "shell",
             "command": "make -C ./drivers/UsbEthernet/src/",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make CH376s USB debug/test",
+            "label": "Test - USB C++",
             "type": "shell",
             "command": "make -C ./test/USB/src/",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make Echo",
+            "label": "Software - echo",
             "type": "shell",
             "command": "make -C ./software/",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make Flash",
+            "label": "Software - flash",
             "type": "shell",
             "command": "make -C ./software/ -f makeflash.mk",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make lsusb",
+            "label": "Software - lsusb",
             "type": "shell",
             "command": "make -C ./software/src",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make nextordirect",
+            "label": "Test - NextorDirect",
             "type": "shell",
             "command": "make -C ./test/nextordirect/src",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make nwramhp",
+            "label": "Test - NwRamhelpr",
             "type": "shell",
             "command": "make -C ./test/ramhelpr/src",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "make initmapr",
+            "label": "Test - InitMapr",
             "type": "shell",
             "command": "make -C ./test/initmapr/src",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "simulate verilog",
+            "label": "HW - Verilog",
             "type": "shell",
             "command": "make -C ./hardware/quartus",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         }
     ]

@@ -733,6 +733,7 @@ CMD_SET_PROTOCOL: DB 0x21,0x0B,protocol_id,0,interface_id,0,0,0
 ; USB HUB commands
 CMD_GET_HUB_DESCRIPTOR: DB 10100000b,6,0,029h,0,0,hub_descriptor_size,0
 CMD_SET_HUB_PORT_FEATURE: DB 00100011b,3,feature_selector,0,port,value,0,0
+CMD_GET_HUB_PORT_STATUS: DB 10100011b,0,0,0,port,0,4,0
 
 USB_DESCRIPTORS_END:
 

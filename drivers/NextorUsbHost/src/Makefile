@@ -11,15 +11,6 @@ all: $(OUTPUT_DIR)/driver.rom $(OUTPUT_DIR)/chgbnk.bin $(OUTPUT_DIR)/nextor.rom 
 $(OUTPUT_DIR)/chgbnk.bin: chgbnk.asm
 	$(ASM) $(ASMFLAGS) $< 
 
-#$(OUTPUT_DIR)/usbfiles.com: usbfiles.asm print_dos.asm ch376s.asm ch376s_helpers.asm driver_helpers.asm
-#	$(ASM) $(ASMFLAGS) $< 
-
-#$(OUTPUT_DIR)/insertdisk.com: insertdisk.asm print_dos.asm ch376s.asm ch376s_helpers.asm driver_helpers.asm nextor_helpers.asm
-#	$(ASM) $(ASMFLAGS) $<
-
-#$(OUTPUT_DIR)/ejectdisk.com: ejectdisk.asm print_dos.asm ch376s.asm ch376s_helpers.asm driver_helpers.asm nextor_helpers.asm
-#	$(ASM) $(ASMFLAGS) $<
-
 $(OUTPUT_DIR)/driver.rom: driver.asm driver_helpers.asm basic_extensions.asm print_bios.asm ch376s.asm ch376s_helpers.asm usbhost.asm nextordirect.asm ramhelper.asm
 	$(ASM) $(ASMFLAGS) $<
 

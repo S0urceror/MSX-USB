@@ -20,13 +20,10 @@ STATUS:				db ; bit 0 = CH376s present, bit 1 = initialised, bit 2 = USB device 
 DSK_NAME:			ds 13
 DIR_NAME:			ds 9
 DEVICE_INFO:		DEVINFO
+USB_DEVICE_ADDRESS	db 1
 IO_BUFFER:    		ds 040h
 USB_DESCRIPTORS		ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
 NXT_DIRECT			ds NXT_DIRECT_END - NXT_DIRECT_START
-;RAMHELPER			ds RAMHELPER_END - RAMHELPER_START
-;RAMMAPPERS			ds 2*8 ; assume max of 2 mappers, a primary and secondary
-					db 0 ; ends with a zero
-;RAMCALLS			ds 030h
 JUMP_TABLE			ds JUMP_TABLE_END - JUMP_TABLE_START
 	ENDS
 
@@ -39,8 +36,6 @@ TXT_MODE_SET:           db "+USB mode set\r\n",0,"$"
 TXT_MODE_NOT_SET:       db "+USB mode NOT set\r\n",0,"$"
 TXT_DISK_CONNECTED:     db "+Disk connected\r\n",0,"$"
 TXT_DISK_NOT_CONNECTED: db "-Disk NOT connected\r\n",0,"$"
-TXT_SOMETHING_ELSE_CONNECTED: db "-Unknown USB device\r\n",0,"$"
-TXT_USB_HUB_CONNECTED:  db "+USB Hub device connected\r\n",0,"$"
 TXT_DISK_MOUNTED:       db "+Disk mounted\r\n",0,"$"
 TXT_DISK_NOT_MOUNTED:   db "-Disk NOT mounted\r\n",0,"$"
 TXT_NO_MAKE_MODEL:      db "-Device name NOT read\r\n",0,"$"
