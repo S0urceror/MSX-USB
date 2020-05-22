@@ -1,11 +1,9 @@
 ASM = sjasmplus
-#ASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym -D__ROOKIEDRIVE
 ASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym
 OUTPUT_DIR = ../dist
 KERNEL_DIR = ../kernel
 
-all: $(OUTPUT_DIR)/driver.rom $(OUTPUT_DIR)/chgbnk.bin $(OUTPUT_DIR)/nextor.rom $(OUTPUT_DIR)/extra1k.dat # \
-	#$(OUTPUT_DIR)/usbfiles.com $(OUTPUT_DIR)/insertdisk.com $(OUTPUT_DIR)/ejectdisk.com 
+all: $(OUTPUT_DIR)/driver.rom $(OUTPUT_DIR)/chgbnk.bin $(OUTPUT_DIR)/nextor.rom $(OUTPUT_DIR)/extra1k.dat
 
 .PHONY: all clean copy
 
