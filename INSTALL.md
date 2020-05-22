@@ -26,7 +26,7 @@ There are also a couple of special instructions in BASIC at your disposal:
 * CALL INSERTDISK ("filename.ext") - load another disk image and mount it
 * CALL EJECTDISK - eject the current mounted disk image
 
-P.S. if you want to use MSXUSB on the RookieDrive please use [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/NextorUsbHost/dist/nextorrd.rom) version of the ROM.
+*N.B. if you want to use MSXUSB on the [RookieDrive](http://rookiedrive.com/en/) please use [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/NextorUsbHost/dist/nextorrd.rom) version of the ROM.*
 
 ### Multi purpose USB port
 The ROM image now also contains an UNAPI compatible USB Host driver.
