@@ -38,33 +38,57 @@ JP_DATA_OUT_TRANSFER    EQU 5*8
 JP_SYNC_MODE            EQU 6*8
 JP_CONTROL_PACKET       EQU 7*8
 
-; BLOAD header
-    db 0x0fe
-    dw BEGIN, TSR+(TSR_END-TSR_ORG), START_BASIC
-    org 0c000h
+    org 0100h
 BEGIN:
 START_BASIC:
     ld hl,TXT_WELCOME
-    call PRINT
+    call PRINT_DOS
     ; check if EXTBIO is set (before we try UNAPI and Memory Mapper calls)
     ld a, (0FB20h)
     and 00000001b
     ret z
     ; check if the MSX USB UNAPI is available
     call GET_UNAPI_MSXUSB
+    push af
+    ld hl,TXT_MSXUSB_NOT_FOUND
+    call c, PRINT_DOS
+    pop af 
     ret c
     ; check, connect, getdescriptors
     call USB_CHECK_ADAPTER
     ret c
     call USB_CONNECT_DEVICE
-    ret c
+    push af
+    ld hl,TXT_DEVICE_NOT_CONNECTED
+    call z, PRINT_DOS
+    pop af 
+    ret z
+    ; A holds the number of connected devices, try all of them
+    ld d, 1 ; start with device number 1
+    ld b, a
+_AGAIN_:
+    push bc, de
     call USB_GET_DESCRIPTORS
-    ret c
     ; check if USB HID is connected
     call USB_CHECK_HID
-    ret c
+    pop de, bc
+    jr nc, _FOUND_
+    inc d
+    djnz _AGAIN_
+    ld hl, TXT_HID_CHECK_NOK
+    call PRINT_DOS
+    ret
+_FOUND_:
+    ld a, d
+    ld (DEVICE_ADDRESS),a
+    ld hl, TXT_HID_CHECK_OKAY
+    call PRINT_DOS
     ; allocate a segment in the mapper
     call ALLOC_SEG
+    push af
+    ld hl,TXT_SEG_NOT_ALLOCATED
+    call c, PRINT_DOS
+    pop af 
     ret c
     ; get pointer to scratch_area
     call USB_GET_SCRATCH
@@ -134,7 +158,7 @@ GET_UNAPI_MSXUSB:
     ld (JUMP_TABLE), hl
     ; all fine
     ld hl, TXT_MSXUSB_FOUND
-    call PRINT
+    call PRINT_DOS
     or a
     ret
 
@@ -150,18 +174,20 @@ USB_CHECK_ADAPTER:
     jp c, ERROR
 
     ld hl, TXT_ADAPTER_OKAY
-    call PRINT
+    call PRINT_DOS
     or a
     ret 
     
 USB_CONNECT_DEVICE:
     ld a, JP_CONNECT
     call main.JP_MSXUSB
-    jp c, ERROR
+    and a
+    jp z, ERROR
 
+    push af
     ld hl, TXT_DEVICE_CONNECTED
-    call PRINT
-    or a
+    call PRINT_DOS
+    pop af
     ret 
     
 USB_GET_DESCRIPTORS:
@@ -169,10 +195,6 @@ USB_GET_DESCRIPTORS:
     ld a,JP_GET_DESCRIPTORS
     call main.JP_MSXUSB
     jp c, ERROR
-
-    ld hl, TXT_DESCRIPTORS_OKAY
-    call PRINT
-    or a
     ret
 
 USB_GET_SCRATCH:
@@ -190,12 +212,14 @@ USB_HID_KEYBOARD_START:
     push af
     ld a, (KEYBOARD_MAX_PACKET_SIZE)
     ld b, a
+    ld a, (DEVICE_ADDRESS)
+    ld d, a
     pop af
-    ld d, USB_DEVICE_ADDRESS
     call CH_SET_CONFIGURATION
     ret c
     ; set protocol (BOOT_PROTOCOL,keyboard_interface)
-    ld d, USB_DEVICE_ADDRESS ; assigned address
+    ld a, (DEVICE_ADDRESS)
+    ld d, a
     ld a, (KEYBOARD_MAX_PACKET_SIZE)
     ld b, a
     ld a, (KEYBOARD_INTERFACENR)
@@ -204,7 +228,8 @@ USB_HID_KEYBOARD_START:
     call CH_SET_PROTOCOL
     ret c
     ; set idle (0x80)
-    ld d, USB_DEVICE_ADDRESS ; assigned address
+    ld a, (DEVICE_ADDRESS)
+    ld d, a
     ld a, (KEYBOARD_MAX_PACKET_SIZE)
     ld b, a
     ld a, (KEYBOARD_INTERFACENR)
@@ -299,10 +324,6 @@ USB_CHECK_HID:
     ld ix, DESCRIPTORS
     ld a, (ix++DEVICE_DESCRIPTOR.bMaxPacketSize0)
     ld (KEYBOARD_MAX_PACKET_SIZE),a
-
-    ld hl, TXT_HID_CHECK_OKAY
-    call PRINT
-    or a
     ret 
     
 ALLOC_SEG:
@@ -333,7 +354,7 @@ ALLOC_SEG:
     ld (MAPPER_SLOT),a
 
     ld hl, TXT_SEG_ALLOCATED
-    call PRINT
+    call PRINT_DOS
     or a
     ret 
 
@@ -359,7 +380,7 @@ COPY_TSR_SEG:
     call _PUT_P2
 
     ld hl, TXT_TSR_COPIED
-    call PRINT
+    call PRINT_DOS
     or a
     ret 
 
@@ -411,7 +432,7 @@ HOOK_TSR_HCHGE:
     ei
     ; done
     ld hl, TXT_HCHGE_HOOKED
-    call PRINT
+    call PRINT_DOS
     or a
     ret
 
@@ -425,23 +446,26 @@ ERROR:
     scf 
     ret
 
-    include "print_bios.asm"
+    include "print_dos.asm"
     include "usb_descriptors.asm"
     include "usb.asm"
 
 DESCRIPTORS: DS 512 ; maximum length?
 ; --- Various texts while initialising driver
-TXT_NEWLINE: DB "\r\n",0
-TXT_WELCOME: DB "USB HID Driver starting\r\n",0
-TXT_MSXUSB_FOUND: DB "+ MSXUSB Unapi found\r\n",0
-TXT_ADAPTER_OKAY: DB "+ USB adapter okay\r\n",0
-TXT_DEVICE_CONNECTED: DB "+ USB device connected\r\n",0
-TXT_DESCRIPTORS_OKAY: DB "+ USB descriptors read\r\n",0
-TXT_HID_CHECK_OKAY: DB "+ USB HID Keyboard found\r\n",0
-TXT_SEG_ALLOCATED: DB "+ New RAM segment allocated\r\n",0
-TXT_TSR_COPIED: DB "+ Driver copied\r\n",0
-TXT_UNAPI_HOOKED: DB "+ MSXUSB.KBD Unapi linked\r\n",0
-TXT_HCHGE_HOOKED: DB "+ H.CHGE linked\r\n",0
+TXT_NEWLINE: DB "\r\n$",0
+TXT_WELCOME: DB "USB HID Driver starting\r\n$",0
+TXT_MSXUSB_FOUND: DB "+ MSXUSB Unapi found\r\n$",0
+TXT_MSXUSB_NOT_FOUND: DB "- MSXUSB Unapi NOT found\r\n$",0
+TXT_ADAPTER_OKAY: DB "+ USB adapter okay\r\n$",0
+TXT_DEVICE_CONNECTED: DB "+ USB device connected\r\n$",0
+TXT_DEVICE_NOT_CONNECTED: DB "- USB device NOT connected\r\n$",0
+TXT_DESCRIPTORS_OKAY: DB "+ USB descriptors read\r\n$",0
+TXT_HID_CHECK_OKAY: DB "+ USB HID Keyboard found\r\n$",0
+TXT_HID_CHECK_NOK: DB "- USB HID Keyboard NOT found\r\n$",0
+TXT_SEG_ALLOCATED: DB "+ New RAM segment allocated\r\n$",0
+TXT_SEG_NOT_ALLOCATED: DB "- RAM segment NOT allocated\r\n$",0
+TXT_TSR_COPIED: DB "+ Driver copied\r\n$",0
+TXT_HCHGE_HOOKED: DB "+ H.CHGE linked\r\n$",0
 
 UNAPI_ID DB "MSXUSB",0
 
@@ -468,6 +492,7 @@ MAPPER_SLOT: DB 0
 MAPPER_JUMP_TABLE: DW 0 
 
 SHARED_VARS_START:
+DEVICE_ADDRESS:                 DB 0
 KEYBOARD_INTERFACENR:           DB 0
 KEYBOARD_ENDPOINTNR:            DB 0
 KEYBOARD_MAX_PACKET_SIZE:       DB 0

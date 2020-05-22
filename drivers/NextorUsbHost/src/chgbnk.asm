@@ -19,8 +19,16 @@
 ;
 ; *** CODE STRTS HERE ***	CAUTION!!  This must be the first module.
 ;
-
 CHGBNK:
+	IFDEF __ROOKIEDRIVE
+
+	db	0FFh	;Header for MKNEXROM
+	dw	6000h
+
+	ld	(6000h),a
+
+	ELSE
+
 	db	0FFh	;Header for MKNEXROM
 	dw	5000h
 
@@ -28,6 +36,8 @@ CHGBNK:
 	ld	(5000h),a
 	inc	a ; plus 1
 	ld	(7000h),a
+	
+	ENDIF
 	ret
 ;
 	defs	(8000h-7FD0h)-($-CHGBNK),0FFh

@@ -14,7 +14,6 @@
 ; You should have received a copy of the GNU General Public License 
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 ;
-CH_DEBUG:       equ     1
 
 ; CH376 commands
 CH_CMD_SET_SPEED: equ 04h
@@ -54,8 +53,13 @@ CH_CMD_DISK_WR_GO: equ 57h
 CH_ST_RET_SUCCESS: equ 51h
 CH_ST_RET_ABORT: equ 5Fh
 ; CH376 ports
+    IFDEF __ROOKIEDRIVE
+CH_DATA_PORT       equ 0020h
+CH_COMMAND_PORT    equ 0021h
+    ELSE
 CH_DATA_PORT           equ 0010h
 CH_COMMAND_PORT        equ 0011h
+    ENDIF
 ; CH376 result codes
 CH_USB_INT_SUCCESS:  equ 14h
 CH_USB_INT_CONNECT:  equ 15h
@@ -622,16 +626,13 @@ CH_READ_DATA:
 ; Output: A = Result of GET_STATUS (an USB error code)
 CH_WAIT_INT_AND_GET_RESULT:
     push bc
-    ld bc, 1000
-_CH_WAIT_INT_AND_GET_RESULT_AGAIN:
-    call CH_CHECK_INT_IS_ACTIVE
-    jr z,_CH_WAIT_INT_AND_GET_RESULT_NEXT   ;TODO: Perhaps add a timeout check here?
-    dec bc
-    ld a, b
-    or c
-    jr nz, _CH_WAIT_INT_AND_GET_RESULT_AGAIN
-_CH_WAIT_INT_AND_GET_RESULT_NEXT:
+    call PANIC_KEYS_PRESSED
     pop bc
+    ld a,USB_ERR_PANIC_BUTTON_PRESSED
+    ret z
+
+    call CH_CHECK_INT_IS_ACTIVE
+    jr nz,CH_WAIT_INT_AND_GET_RESULT    ;TODO: Perhaps add a timeout check here?
     call CH_GET_STATUS
     ret
 
@@ -651,6 +652,8 @@ CH_DO_SET_NOSOF_MODE:
     ret
 
 ; --------------------------------------
+
+
 ; CH_GET_STATUS
 ;
 ; Output: A = Status code

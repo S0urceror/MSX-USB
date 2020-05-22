@@ -21,7 +21,6 @@ HID_BOOT    equ 0x01
 HID_KEYBOARD equ 0x01
 HID_MOUSE   equ 0x02
 
-USB_DEVICE_ADDRESS EQU 1 ; TODO: ask the UNAPI USB implementation the ID given to this device
 CH_BOOT_PROTOCOL: equ 0
 
 ; Generic USB command variables

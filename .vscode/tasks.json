@@ -7,17 +7,17 @@
             "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": "$errmatcher-sjasmplus"
         },
         {
             "label": "Driver - UsbKeyboard",
             "type": "shell",
             "command": "make -C ./drivers/UsbKeyboard/src/",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {
@@ -51,7 +51,7 @@
         {
             "label": "Software - lsusb",
             "type": "shell",
-            "command": "make -C ./software/src",
+            "command": "make -C ./software/ -f makelsusb.mk",
             "group": "build",
             "problemMatcher": []
         },

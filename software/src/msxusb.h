@@ -1,5 +1,5 @@
 /*
-; lsusb.h - list the USB descriptors
+; msxusb.h - low-level Unapi to communicate with USB
 ; Copyright (c) 2020 Mario Smit (S0urceror)
 ; 
 ; This program is free software: you can redistribute it and/or modify  
@@ -15,13 +15,16 @@
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 ;
 */
-#ifndef __LSUSB_H
-#define __LSUSB_H
+#ifndef __MSXUSB_H
+#define __MSXUSB_H
 
-void PrintUsageAndEnd();
-void PrintImplementationName(unapi_code_block* unapi);
-void PrintDescriptors (uint16_t jumptable);
-void print_descriptors (char* buffer);
-uint16_t GetJumpTable (unapi_code_block* unapi);
+#define FN_CHECK                0*8
+#define FN_CONNECT              1*8
+#define FN_GETDESCRIPTORS       2*8
+#define FN_CONTROL_TRANSFER     3*8
+#define FN_DATA_IN_TRANSFER     4*8
+#define FN_DATA_OUT_TRANSFER    5*8
+#define FN_SYNC_MODE            6*8
+#define FN_CONTROL_PACKET       7*8
 
 #endif 

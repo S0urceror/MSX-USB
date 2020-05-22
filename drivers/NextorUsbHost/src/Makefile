@@ -1,4 +1,5 @@
 ASM = sjasmplus
+#ASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym -D__ROOKIEDRIVE
 ASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym
 OUTPUT_DIR = ../dist
 KERNEL_DIR = ../kernel

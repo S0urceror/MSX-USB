@@ -65,6 +65,7 @@ _NXT_DIRECT_CONTINUE:
     ld h, 40h
     push bc
     call ENASLT 
+    ei
     pop bc
     ; call Nextor Function
     ld a, c
@@ -77,6 +78,7 @@ _NXT_DIRECT_CONTINUE:
     ; and back
     pop af
     call ENASLT
+    ei
     ;
     exx       ; load registers
     ex af,af' ; load A + Flags

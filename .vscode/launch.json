@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch",
+            "name": "(lldb) Launch Test",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/test/USB/dist/main",
@@ -14,21 +14,32 @@
             "preLaunchTask": "Test - USB C++"
         },
         {
-            "name": "(lldb) Launch OpenMSX ETH",
+            "name": "(lldb) Launch MSXUSB",
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
-            //"args": ["-machine", "Philips_NMS_8250_MSM", "-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            //"args": ["-machine", "Panasonic_FS-A1GT", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
+            //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            "args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/drivers/UsbKeyboard/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/OpenMSX/share"
         },
         {
-            "name": "(lldb) Launch OpenMSX KBD",
+            "name": "(lldb) Launch MSXUSB RD",
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
-            "args": ["-machine", "Philips_NMS_8250_MSM", "-cart", "${workspaceFolder}/drivers/UsbHost/dist/unapiusb.rom", "-diska", "${workspaceFolder}/openmsx.xml"],
+            "args": ["-machine", "Philips_NMS_8250_MSM2", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            "cwd": "../Emulators/OpenMSX/share"
+        },
+        {
+            "name": "(lldb) Launch Rookiedrive",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_NXT", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            //"args": ["-machine", "Panasonic_FS-A1GT", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
             "cwd": "../Emulators/OpenMSX/share"
         }
     ]

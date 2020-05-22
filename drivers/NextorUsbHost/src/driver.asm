@@ -340,6 +340,14 @@ _HW_TEST_OKAY:
 
 	; reset bus and device
 	call USB_HOST_BUS_RESET
+	jp nc, _USB_MODE_OKAY
+    ld hl, TXT_MODE_NOT_SET
+    call PRINT
+    ret
+_USB_MODE_OKAY:
+	ld (ix+WRKAREA.STATUS),00000011b
+    ld hl, TXT_MODE_SET
+    call PRINT
 
 	; connect disk
     call CH_CONNECT_DISK
@@ -384,19 +392,8 @@ _READ_BUFFER_OKAY:
     ld hl, TXT_NEWLINE
     call PRINT
 _NEXT
-	ld hl, TXT_ROOT_DIR
-    ld bc, 8
-	call MY_GWORK
-    call _STORE_DIR_NAME
-	call CH_SET_FILE_NAME
-    call CH_DIR_OPEN    
-    jr nc, _DIR_OPEN_OKAY
-	ld hl, TXT_CD_FAILED
-    call PRINT
-    ret
-_DIR_OPEN_OKAY:
-	; try to load autoexec.dsk
-	ld hl, TXT_AUTOEXEC_DSK
+	; try to load autoexec.txt
+	ld hl, TXT_AUTOEXEC_TXT
 	call CH_SET_FILE_NAME
 	call CH_FILE_OPEN
 	jr nc, _FILE_OPEN_OKAY1
@@ -404,7 +401,7 @@ _DIR_OPEN_OKAY:
 	ld hl, TXT_NEXTOR_DSK
 	jr _OPEN_DSK
 _FILE_OPEN_OKAY1:
-	; read first line of text in autoexec.dsk => HL
+	; read first line of text in autoexec.txt => HL
 	ld bc, WRKAREA.IO_BUFFER
 	call WRKAREAPTR
 	ld hl,ix
@@ -424,9 +421,6 @@ _NEWLINE_NEXT:
 	;
 	xor a
 	call CH_FILE_CLOSE
-	ld hl, TXT_ROOT_DIR
-	call CH_SET_FILE_NAME
-    call CH_DIR_OPEN    
 	;
 	ld hl,ix
 _OPEN_DSK

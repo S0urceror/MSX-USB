@@ -42,7 +42,7 @@ READ_HID_KEYBOARD:
     ld d, a
     ld a, (TSR_KEYBOARD_ENDPOINTNR)
     ld e, a
-    ld a, USB_DEVICE_ADDRESS
+    ld a, (TSR_DEVICE_ADDRESS)
     call _PACK_E
     ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
     call tsr.JP_MSXUSB

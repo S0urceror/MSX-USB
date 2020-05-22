@@ -141,7 +141,7 @@ ETH_GET_NETSTAT:
    ld d, a
    ld a, (TSR_CONTROL_ENDPOINT_ID)
    ld e, a
-   ld a, USB_DEVICE_ADDRESS
+   ld a, (TSR_DEVICE_ADDRESS)
    call _PACK_E
    ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
    call tsr.JP_MSXUSB
@@ -263,7 +263,8 @@ CH_SET_PACKET_FILTER:
    ld a, (TSR_CONTROL_INTERFACE_ID)
    ld (ix+4),a
    ; set device_address
-   ld c, USB_DEVICE_ADDRESS
+   ld a, (TSR_DEVICE_ADDRESS)
+   ld c, a
    ld a,JP_CONTROL_TRANSFER
    call tsr.JP_MSXUSB
    cp CH_USB_INT_SUCCESS
@@ -288,7 +289,7 @@ GET_BULK_IN_PACKET:
    ld d, a
    ld a, (TSR_DATA_BULK_IN_ENDPOINT_ID)
    ld e, a
-   ld a, USB_DEVICE_ADDRESS
+   ld a, (TSR_DEVICE_ADDRESS)
    call _PACK_E
    ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
    call tsr.JP_MSXUSB
@@ -397,7 +398,7 @@ SEND_BULK_OUT_PACKET:
    ld d, a
    ld a, (TSR_DATA_BULK_OUT_ENDPOINT_ID)
    ld e, a
-   ld a, USB_DEVICE_ADDRESS
+   ld a, (TSR_DEVICE_ADDRESS)
    call _PACK_E
    ld a,JP_DATA_OUT_TRANSFER; A=USB result code, Cy=toggle bit
    call tsr.JP_MSXUSB
@@ -500,7 +501,7 @@ TSR_END:
    DB 0
 
 TSR_SHARED_VARS_START:
-
+TSR_DEVICE_ADDRESS               DB 0
 ; CDC ECM identifiers
 TSR_CONTROL_INTERFACE_ID:        DB 0
 TSR_CONTROL_ENDPOINT_ID:         DB 0

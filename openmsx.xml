@@ -7,8 +7,9 @@
     <setting id="scanline">0</setting>
     <setting id="blur">0</setting>
     <setting id="maxframeskip">100</setting>
-    <setting id="osd_disk_path">/Users/mario/Development/msx/USB/software/dist</setting>
     <setting id="scale_factor">3</setting>
+    <setting id="osd_rom_path">/Users/mario/Downloads</setting>
+    <setting id="osd_disk_path">/Users/mario/Development/msx/USB/drivers/UsbEthernet/dist/mm</setting>
   </settings>
   <bindings>
     <bind key="keyb R+META">reset</bind>

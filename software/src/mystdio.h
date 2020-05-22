@@ -1,5 +1,5 @@
 /*
-; lsusb.h - list the USB descriptors
+; mystdio.h
 ; Copyright (c) 2020 Mario Smit (S0urceror)
 ; 
 ; This program is free software: you can redistribute it and/or modify  
@@ -15,13 +15,13 @@
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 ;
 */
-#ifndef __LSUSB_H
-#define __LSUSB_H
+#ifndef __MY_STDIO_H
+#define __MY_STDIO_H
 
-void PrintUsageAndEnd();
-void PrintImplementationName(unapi_code_block* unapi);
-void PrintDescriptors (uint16_t jumptable);
-void print_descriptors (char* buffer);
-uint16_t GetJumpTable (unapi_code_block* unapi);
+void press_any_key ();
+uint8_t bios_chget ();
+void bios_print (const char* str);
+int format_string(const char* buf, const char *fmt, va_list ap);
+int myprint(const char *fmt, ...);
 
-#endif 
+#endif

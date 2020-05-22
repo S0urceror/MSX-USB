@@ -19,15 +19,15 @@ BASE:				; Offset to the base of the data structure
 STATUS:				db ; bit 0 = CH376s present, bit 1 = initialised, bit 2 = USB device present, bit 3 = USB device mounted, bit 4 = virtual DSK file inserted, bit 5 = DSK changed
 DSK_NAME:			ds 13
 DIR_NAME:			ds 9
-DEVICE_INFO:		DEVINFO
 USB_DEVICE_ADDRESS	db 1
+DEVICE_INFO:		DEVINFO
 IO_BUFFER:    		ds 040h
 USB_DESCRIPTORS		ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
 NXT_DIRECT			ds NXT_DIRECT_END - NXT_DIRECT_START
 JUMP_TABLE			ds JUMP_TABLE_END - JUMP_TABLE_START
 	ENDS
 
-TXT_START:              db "Starting CH376s driver v0.3\r\n",0,"$"
+TXT_START:              db "Starting CH376s driver v0.5\r\n",0,"$"
 TXT_FOUND:              db "+CH376s connected\r\n",0,"$"
 TXT_NOT_FOUND:          db "-CH376s NOT connected\r\n",0,"$"
 TXT_DEVICE_CONNECTED: 	db "+USB device connected\r\n",0,"$"
@@ -59,7 +59,7 @@ TXT_ROOT_DIR			db "\\",0,0,0,0,0,0,0
 TXT_WILDCARD			db "*",0,0,0,0,0,0,0
 TXT_ROOT_WILDCARD		db "\\*",0,0,0,0,0,0
 TXT_USB_DRIVE			db "USB:",0
-TXT_NEXTOR_DSK			db "NEXTOR.DSK",0
+TXT_NEXTOR_DSK			db "\\NEXTOR.DSK",0
 TXT_NEWLINE				db "\r\n",0,"$"
 TXT_DIRECTORY_ENTRY: 	db "\r",09h,09h,"<DIR>\r",0,"$"
-TXT_AUTOEXEC_DSK:		db "AUTOEXEC.DSK",0
+TXT_AUTOEXEC_TXT:		db "\\AUTOEXEC.TXT",0

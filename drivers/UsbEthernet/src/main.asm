@@ -65,22 +65,30 @@ START_BASIC:
     call USB_CONNECT_DEVICE
     push af
     ld hl,TXT_DEVICE_NOT_CONNECTED
-    call c, PRINT_DOS
+    call z, PRINT_DOS
     pop af 
-    ret c
+    ret z
+    ; A holds the number of connected devices, try all of them
+    ld d, 1 ; start with device number 1
+    ld b, a
+_AGAIN_:
+    ; get descriptors 
+    push bc, de
     call USB_GET_DESCRIPTORS
-    push af
-    ld hl,TXT_DESCRIPTORS_NOK
-    call c, PRINT_DOS
-    pop af 
-    ret c
     ; check if CDC ECM is connected
     call USB_CHECK_CDC_ECM
-    push af
-    ld hl,TXT_CDC_ECM_CHECK_NOK
-    call c, PRINT_DOS
-    pop af 
-    ret c
+    pop de, bc
+    jr nc, _FOUND_
+    inc d
+    djnz _AGAIN_
+    ld hl, TXT_CDC_ECM_CHECK_NOK
+    call PRINT_DOS
+    ret
+_FOUND_:
+    ld a, d
+    ld (DEVICE_ADDRESS),a
+    ld hl, TXT_CDC_ECM_CHECK_OKAY
+    call PRINT_DOS
     ; initialise ethernet device
     call USB_CDC_ECM_START
     push af
@@ -200,11 +208,13 @@ USB_CHECK_ADAPTER:
 USB_CONNECT_DEVICE:
     ld a, JP_CONNECT
     call main.JP_MSXUSB
-    jp c, ERROR
-
+    and a
+    jp z, ERROR ; nr devices connected is 0
+    
+    push af
     ld hl, TXT_DEVICE_CONNECTED
     call PRINT_DOS
-    or a
+    pop af
     ret 
     
 USB_GET_DESCRIPTORS:
@@ -212,10 +222,6 @@ USB_GET_DESCRIPTORS:
     ld a,JP_GET_DESCRIPTORS
     call main.JP_MSXUSB
     jp c, ERROR
-    
-    ld hl, TXT_DESCRIPTORS_OKAY
-    call PRINT_DOS
-    or a
     ret
 
 ; --------------------------------------
@@ -423,14 +429,16 @@ USB_CDC_ECM_START:
     ; set configuration 
     ld a, (ETHERNET_MAX_PACKET_SIZE)
     ld b, a
+    ld a, (DEVICE_ADDRESS)
+    ld d, a
     ld a, (ETHERNET_CONFIG_ID)
-    ld d, USB_DEVICE_ADDRESS
     call CH_SET_CONFIGURATION
     ret c
     ; set alternate setting for interface
     ld a, (ETHERNET_MAX_PACKET_SIZE)
     ld b, a
-    ld d, USB_DEVICE_ADDRESS
+    ld a, (DEVICE_ADDRESS)
+    ld d, a
     ld a, (DATA_INTERFACE_ID)
     ld e, a
     ld a, (DATA_INTERFACE_ALTERNATE)
@@ -439,7 +447,8 @@ USB_CDC_ECM_START:
     ; get MAC address string
     ld a, (ETHERNET_MAX_PACKET_SIZE)
     ld b, a
-    ld d, USB_DEVICE_ADDRESS
+    ld a, (DEVICE_ADDRESS)
+    ld d, a
     ld a, (MAC_ADDRESS_ID)
     ld hl, MAC_ADDRESS_S
     call CH_GET_STRING
@@ -680,7 +689,7 @@ RH_MAPTAB_ENTRY_SIZE:   db 8    ;Size of an entry in the mappers table:
                                 ;- 2 in DOS 1 (mappers table provided by the RAM helper)
 
 SHARED_VARS_START:
-
+DEVICE_ADDRESS              DB 0
 ; CDC ECM identifiers
 CONTROL_INTERFACE_ID:       DB 0
 CONTROL_ENDPOINT_ID:        DB 0

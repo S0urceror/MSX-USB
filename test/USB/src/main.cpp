@@ -228,6 +228,10 @@ struct _hub_info
     uint16_t hub_interrupt_packetsize;
     uint8_t hub_interrupt_millis;
 }* hub_info=NULL;
+struct _storage_info
+{
+    uint8_t bInterfaceNumber=255;
+}* storage_info=NULL;
 
 void print_buffer (uint8_t* data, uint16_t length)
 {
@@ -396,7 +400,7 @@ void check_exists ()
 void reset_all ()
 {
     writeCommand (CH375_CMD_RESET_ALL);
-    usleep (50000);
+    usleep (100000);
 }
 void set_target_device_address (uint8_t address)
 {
@@ -1116,6 +1120,8 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                     interface_class_name = "Communications";
                 if (interface->bInterfaceClass==0x03)
                     interface_class_name = "HID";
+                if (interface->bInterfaceClass==0x08)
+                    interface_class_name = "Storage";
                 if (interface->bInterfaceClass==0x09)
                     interface_class_name = "Hub";
                 if (interface->bInterfaceClass==0x0A)
@@ -1129,6 +1135,8 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                     ethernet_info = new _ethernet_info();
                     ethernet_info->ethernet_control_interface = interface->bInterfaceNumber;
                 }
+                if (interface->bInterfaceClass==0x08 && interface->bInterfaceSubClass==0x06)
+                    interface_subclass_name = "SCSI command set";
                 if (interface->bInterfaceClass==0x0A && interface->bInterfaceSubClass==0x00)
                 {
                     ethernet_info->ethernet_data_interface = interface->bInterfaceNumber;
@@ -1165,6 +1173,12 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                     interface_protocol_name = "Multi TT";
                     if (!hub_info) hub_info = new _hub_info();
                     hub_info->hub_interface = interface->bInterfaceNumber;
+                }
+                if (interface->bInterfaceClass==0x08 && interface->bInterfaceSubClass==0x06 && interface->bInterfaceProtocol==0x50)
+                {
+                    interface_protocol_name = "BBB";
+                    storage_info = new _storage_info();
+                    storage_info->bInterfaceNumber = interface->bInterfaceNumber;
                 }
                 printf ("      bInterfaceProtocol\t%d\t%s\n",interface->bInterfaceProtocol,interface_protocol_name.c_str());
                 printf ("      iInterface\t\t%d\t%s\n",interface->iInterface,get_string2 (device_address,interface->iInterface).c_str());
@@ -1293,6 +1307,91 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
 void do_hid (uint8_t device_address);
 void do_ethernet (uint8_t device_address);
 void do_hub (uint8_t device_address);
+void do_storage (uint8_t device_address);
+
+void connect_disk ()
+{
+    writeCommand (CH376_CMD_DISK_CONNECT);
+    if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
+        error ("disk not connected");
+    
+}
+void mount_disk ()
+{
+    int status;
+    writeCommand (CH376_CMD_DISK_MOUNT);
+    status = waitInterrupt ();
+    if ((status!=CH375_USB_INT_SUCCESS))
+        error ("disk not mounted");
+}
+void abort_nak ()
+{
+    writeCommand (CH375_CMD_ABORT_NAK);
+}
+void open_file (char* name)
+{
+    int status;
+    writeCommand (CH376_CMD_SET_FILE_NAME);
+    writeDataMultiple ((uint8_t*) name,strlen(name));
+    writeCommand (CH376_CMD_OPEN_FILE);
+    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+        error ("file not opened");
+    
+}
+#define CH376_CMD_BYTE_READ 0x3a
+#define CH376_CMD_BYTE_RD_GO 0x3b
+#define CH375_USB_INT_DISK_READ 0x1d
+void read_file ()
+{
+    int status;
+    while (true)
+    {
+        writeCommand (CH376_CMD_BYTE_READ);
+        writeData (64);
+        writeData (0);
+        status=waitInterrupt ();
+        if (status==CH375_USB_INT_SUCCESS)
+            return; // done
+        if (status==CH375_USB_INT_DISK_READ)
+        {
+            uint8_t buffer[64];
+            ssize_t len = read_usb_data(buffer);
+            print_buffer (buffer,len);
+            char line[65];
+            strncpy (line,(char*) buffer,len);
+            printf ("%s\n",line);
+            writeCommand (CH376_CMD_BYTE_RD_GO);
+            if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+                error ("read file error");
+        }
+    }
+}
+void close_file ()
+{
+    int status;
+    writeCommand (CH376_CMD_FILE_CLOSE);
+    writeData (0);
+    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+        error ("file not closed");
+}
+void open_dir (char* name)
+{
+    int status;
+    writeCommand (CH376_CMD_SET_FILE_NAME);
+    writeDataMultiple ((uint8_t*) name,strlen(name));
+    writeCommand (CH376_CMD_OPEN_FILE);
+    if ((status=waitInterrupt ())!=CH375_USB_ERR_OPEN_DIR)
+        error ("directory not opened");
+}
+void usb_host_bus_reset ()
+{
+    bool result;
+    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
+    sleep (1);
+    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
+        error ("host mode not succeeded\n");
+    usleep (500000);
+}
 
 void init_device (uint8_t device_address)
 {
@@ -1315,6 +1414,25 @@ void init_device (uint8_t device_address)
         do_ethernet (device_address);
     if (hub_info)
         do_hub (device_address);
+    if (storage_info)
+        do_storage (device_address);
+}
+void do_storage (uint8_t device_address)
+{
+    // set reset bus and set host mode
+    usb_host_bus_reset ();
+
+    // try some high-level stuff
+    connect_disk ();
+    mount_disk ();
+    open_dir ("\\");
+    open_file ("AUTOEXEC.DSK");
+    read_file ();
+    close_file ();
+    open_dir ("\\");
+    open_file ("128MB.DSK");
+    //read_file();
+    close_file ();
 }
 void do_hid (uint8_t device_address)
 {
@@ -1445,89 +1563,6 @@ void do_hub (uint8_t device_address)
         init_device (device_address+1);
     }
 }
-void connect_disk ()
-{
-    writeCommand (CH376_CMD_DISK_CONNECT);
-    if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
-        error ("disk not connected");
-    
-}
-void mount_disk ()
-{
-    int status;
-    writeCommand (CH376_CMD_DISK_MOUNT);
-    status = waitInterrupt ();
-    if ((status!=CH375_USB_INT_SUCCESS))
-        error ("disk not mounted");
-}
-void abort_nak ()
-{
-    writeCommand (CH375_CMD_ABORT_NAK);
-}
-void open_file (char* name)
-{
-    int status;
-    writeCommand (CH376_CMD_SET_FILE_NAME);
-    writeDataMultiple ((uint8_t*) name,strlen(name));
-    writeCommand (CH376_CMD_OPEN_FILE);
-    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
-        error ("file not opened");
-    
-}
-#define CH376_CMD_BYTE_READ 0x3a
-#define CH376_CMD_BYTE_RD_GO 0x3b
-#define CH375_USB_INT_DISK_READ 0x1d
-void read_file ()
-{
-    int status;
-    while (true)
-    {
-        writeCommand (CH376_CMD_BYTE_READ);
-        writeData (64);
-        writeData (0);
-        status=waitInterrupt ();
-        if (status==CH375_USB_INT_SUCCESS)
-            return; // done
-        if (status==CH375_USB_INT_DISK_READ)
-        {
-            uint8_t buffer[64];
-            ssize_t len = read_usb_data(buffer);
-            print_buffer (buffer,len);
-            char line[65];
-            strncpy (line,(char*) buffer,len);
-            printf ("%s\n",line);
-            writeCommand (CH376_CMD_BYTE_RD_GO);
-            if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
-                error ("read file error");
-        }
-    }
-}
-void close_file ()
-{
-    int status;
-    writeCommand (CH376_CMD_FILE_CLOSE);
-    writeData (0);
-    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
-        error ("file not closed");
-}
-void open_dir (char* name)
-{
-    int status;
-    writeCommand (CH376_CMD_SET_FILE_NAME);
-    writeDataMultiple ((uint8_t*) name,strlen(name));
-    writeCommand (CH376_CMD_OPEN_FILE);
-    if ((status=waitInterrupt ())!=CH375_USB_ERR_OPEN_DIR)
-        error ("directory not opened");
-}
-void usb_host_bus_reset ()
-{
-    bool result;
-    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
-    sleep (1);
-    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
-        error ("host mode not succeeded\n");
-    usleep (500000);
-}
 int main(int argc, const char * argv[]) 
 {
     init_serial();
@@ -1536,25 +1571,9 @@ int main(int argc, const char * argv[])
 
     // set reset bus and set host mode
     usb_host_bus_reset ();
- 
-     // do the low-level things
+
+    // do the low-level things
     init_device (DEV_ADDRESS);
-
-    // set reset bus and set host mode
-    usb_host_bus_reset ();
-
-    // try some high-level stuff
-    connect_disk ();
-    mount_disk ();
-    open_dir ("\\");
-    open_file ("AUTOEXEC.DSK");
-    read_file ();
-    close_file ();
-    open_dir ("\\");
-    open_file ("720KB.DSK");
-    //read_file();
-    close_file ();
-    
 
     return 0;
 }

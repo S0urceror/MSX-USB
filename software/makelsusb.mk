@@ -14,11 +14,11 @@ CRT0 = crt0_msxdos_advanced.rel
 ADDR_CODE = 0x0180
 ADDR_DATA = 0
 
-VERBOSE = --verbose
-CCFLAGS = $(VERBOSE) $(PLATFORM) --code-loc $(ADDR_CODE) --data-loc $(ADDR_DATA) --no-std-crt0 --out-fmt-ihx
+VERBOSE = -V
+CCFLAGS = $(VERBOSE) $(PLATFORM) --code-loc $(ADDR_CODE) --data-loc $(ADDR_DATA) --no-std-crt0 --opt-code-size --out-fmt-ihx
 OBJECTS = $(OBJECTSDIR)/$(CRT0) 
-SOURCES = flash.c mystdio.c
-OUTFILE = flash.com
+SOURCES = lsusb.c
+OUTFILE = lsusb.com
 
 .PHONY: all compile link package clean
 
@@ -32,14 +32,12 @@ compile: $(SOURCES)
 
 link:
 		@echo "Linking"
-		$(CC) $(CCFLAGS) $(LIBS) $(OBJECTS) \
-			$(addprefix $(BINDIR)/,$(SOURCES:.c=.rel)) \
-			-o $(BINDIR)/$(basename $(OUTFILE)).ihx
+		$(CC) $(CCFLAGS) $(LIBS) $(OBJECTS) $(addprefix $(BINDIR)/,$(SOURCES:.c=.rel)) -o $(BINDIR)/$(basename $(OUTFILE)).ihx
 
 package: 
 		@echo "Building $(OUTFILE)..."
 		@$(HEXBIN) -e com $(BINDIR)/$(basename $(OUTFILE)).ihx
-		./symbol_gen.py $(BINDIR) flash
+		./symbol_gen.py $(BINDIR) lsusb
 		@echo "Done."
 
 clean:
