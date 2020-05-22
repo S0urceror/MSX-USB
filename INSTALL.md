@@ -26,6 +26,8 @@ There are also a couple of special instructions in BASIC at your disposal:
 * CALL INSERTDISK ("filename.ext") - load another disk image and mount it
 * CALL EJECTDISK - eject the current mounted disk image
 
+P.S. if you want to use MSXUSB on the RookieDrive please use [this](https://github.com/S0urceror/MSX-USB/raw/master/drivers/NextorUsbHost/dist/nextorrd.rom) version of the ROM.
+
 ### Multi purpose USB port
 The ROM image now also contains an UNAPI compatible USB Host driver.
 
@@ -36,8 +38,8 @@ You can do the following things:
 * BLOAD ("[USBKEYBD.BIN](https://github.com/S0urceror/MSX-USB/raw/master/drivers/UsbKeyboard/dist/usbkeybd.bin)"),R to install the USB HID Keyboard driver. This will enable any connected USB HID compliant keyboard.
 
 ## Flashing the image
-To flash the ROM's you need an appropriate flashing tool. For my SCC compatible mapper I use the OPF tool. I believe it was created by Manuel Pazos. You can find it [here](https://www.msxcartridgeshop.com/bin/opf.zip).
+To flash the ROM's you need an appropriate flashing tool. For this I created a program called Flash. You can download it [here](https://github.com/S0urceror/MSX-USB/raw/master/software/dist/flash.com)
 
-It is simple to use OPF. The following statement automatically finds the (mega-)flash cartridge and flashes image.rom.
+It is simple to use Flash. The following statement automatically finds the (mega-)flash cartridge and flashes image.rom.
 
-`OPF nextor.rom`
+`FLASH nextor.rom`

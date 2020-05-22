@@ -137,7 +137,7 @@ void do_tests (uint8_t slot)
         // select segment
         flash_segment[0x1000] = i;
         // debug purposes
-        print_hex_buffer (flash_segment, flash_segment+16);
+        // print_hex_buffer (flash_segment, flash_segment+16);
         /*
         if (flash_segment[0x00]==0xff && // empty segment? let's stop
             flash_segment[0x10]==0xff &&
@@ -243,7 +243,7 @@ BOOL erase_flash_sectors (uint8_t slot,uint8_t sector_start,uint8_t sector_end)
         // select start segment in sector
         flash_segment[0x1000] = i*8;
         // debug purposes
-        print_hex_buffer (flash_segment, flash_segment+16);
+        // print_hex_buffer (flash_segment, flash_segment+16);
         // write autoselect code
         flash_segment[0x555] = 0xaa;
         flash_segment[0x2aa] = 0x55;
@@ -260,7 +260,7 @@ BOOL erase_flash_sectors (uint8_t slot,uint8_t sector_start,uint8_t sector_end)
             break;   
         }
         // debug purposes
-        print_hex_buffer (flash_segment, flash_segment+16);
+        // print_hex_buffer (flash_segment, flash_segment+16);
     }
     // select ram in slot
     select_ramslot_40 ();
@@ -296,7 +296,7 @@ BOOL write_flash_segment (uint8_t slot,uint8_t segment)
     // select segment
     flash_segment[0x1000] = segment;
     // debug purposes
-    print_hex_buffer (flash_segment, flash_segment+16);
+    // print_hex_buffer (flash_segment, flash_segment+16);
     // write 8k bytes from 0x8000 to 0x4000
     int i;
     for (i=0;i<(8*1024);i++)
@@ -316,7 +316,7 @@ BOOL write_flash_segment (uint8_t slot,uint8_t segment)
         }
     }
     // debug purposes
-    print_hex_buffer (flash_segment, flash_segment+16);
+    // print_hex_buffer (flash_segment, flash_segment+16);
     // select ram in slot
     select_ramslot_40 ();
 
