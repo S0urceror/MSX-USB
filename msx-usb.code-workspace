@@ -92,7 +92,12 @@
 			"__tree": "cpp",
 			"iostream": "cpp",
 			"list": "cpp",
-			"map": "cpp"
+			"map": "cpp",
+			"CH376HFT.C": "cpp",
+			"FILE_SYS.C": "cpp",
+			"DEVICE.C": "cpp",
+			"DEBUG.C": "cpp",
+			"CH376FAT.C": "cpp"
 		}
 	}
 }

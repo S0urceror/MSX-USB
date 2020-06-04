@@ -6,10 +6,11 @@
     <setting id="default_machine">msx2_eu</setting>
     <setting id="scanline">0</setting>
     <setting id="blur">0</setting>
-    <setting id="maxframeskip">100</setting>
-    <setting id="scale_factor">3</setting>
+    <setting id="maxframeskip">0</setting>
     <setting id="osd_rom_path">/Users/mario/Downloads</setting>
-    <setting id="osd_disk_path">/Users/mario/Development/msx/USB/drivers/UsbEthernet/dist/mm</setting>
+    <setting id="osd_disk_path">/Users/mario/Development/msx/USB/drivers/UsbEthernet/dist</setting>
+    <setting id="scale_factor">3</setting>
+    <setting id="deinterlace">false</setting>
   </settings>
   <bindings>
     <bind key="keyb R+META">reset</bind>

@@ -29,6 +29,7 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
+#include <stdio.h>
 
 #define DEV_ADDRESS 1
 #define BOOT_PROTOCOL 0
@@ -230,8 +231,88 @@ struct _hub_info
 }* hub_info=NULL;
 struct _storage_info
 {
-    uint8_t bInterfaceNumber=255;
+    uint8_t interface_id=255;
+    uint8_t configuration_id=0;
+    uint8_t bulk_in_endpoint_id=0;
+    uint8_t bulk_in_packetsize;
+    uint8_t bulk_out_endpoint_id=0;
+    uint8_t bulk_out_packetsize;
 }* storage_info=NULL;
+typedef struct __attribute__((packed)) _command_block_wrapper 
+{
+    uint32_t dCBWSignature = 0x43425355;
+    uint32_t dCBWTag = 1;
+    uint32_t dCBWDataTransferLength;
+    uint8_t bmCBWFlags;
+    uint8_t bCBWLUN;
+    uint8_t bCBWCBLength;
+    uint8_t data [16];
+} command_block_wrapper;
+typedef struct __attribute__((packed)) _command_status_wrapper 
+{
+    uint32_t dCBWSignature;
+    uint32_t dCBWTag;
+    uint32_t dCSWDataResidue;
+    uint8_t bCSWStatus;
+} command_status_wrapper;
+typedef struct __attribute__((packed)) _scsi_inquiry
+{
+    uint8_t bOperationCode = 0x12;
+    uint8_t bLUN=0;
+    uint8_t bReserved1=0;
+    uint8_t bReserved2=0;
+    uint8_t bAllocationLength = 0x24;
+    uint8_t bReserved3=0;
+    uint8_t pad [6] = {0,0,0,0,0,0};
+} scsi_inquiry;
+typedef struct __attribute__((packed)) _scsi_read10
+{
+    uint8_t bOperationCode = 0x28;
+    uint8_t bLUN=0;
+    uint32_t dLBA=0;
+    uint8_t bReserved1=0;
+    uint16_t wTransferLength=0;
+    uint8_t bReserved2=0;
+    uint8_t pad [2]={0,0};
+} scsi_read10;
+typedef struct __attribute__((packed)) _scsi_request_sense
+{
+    uint8_t bOperationCode = 0x03;
+    uint8_t bLUN=0;
+    uint8_t bReserved1=0;
+    uint8_t bReserved2=0;
+    uint8_t bAllocationLength = 18;
+    uint8_t bReserved3=0;
+    uint8_t pad [6] = {0,0,0,0,0,0};
+} scsi_request_sense;
+typedef struct __attribute__((packed)) _scsi_test_unit_ready
+{
+    uint8_t bOperationCode = 0x00;
+    uint8_t bLUN=0;
+    uint8_t bReserved1=0;
+    uint8_t bReserved2=0;
+    uint8_t bReserved3=0;
+    uint8_t bReserved4=0;
+    uint8_t pad[6] = {0,0,0,0,0,0};
+} scsi_test_unit_ready;
+typedef struct __attribute__((packed)) _scsi_mode_sense
+{
+    uint8_t bOperationCode = 0x5a;
+    uint8_t bLUN=0;
+    uint8_t bPageCode=0;
+    uint8_t bSubpageCode=0;
+    uint8_t bReserved1=0;
+    uint8_t bReserved2=0;
+    uint8_t bReserved3=0;
+    uint16_t wAllocationLength=0;
+    uint8_t pad[3] = {0,0,0};
+} scsi_mode_sense;
+typedef struct __attribute__((packed)) _scsi_capacity
+{
+    uint8_t bOperationCode = 0x25;
+    uint8_t bLUN=0;
+    uint8_t pad[10] = {0,0,0,0,0,0,0,0,0,0};
+} scsi_capacity;
 
 void print_buffer (uint8_t* data, uint16_t length)
 {
@@ -371,11 +452,16 @@ uint8_t waitStatus ()
     uint8_t status,interrupt;
     int i=0;
     ssize_t bytes;
-    while ((bytes=readStatus(&interrupt)))
+    int counter = 1000;
+    while ((bytes=readStatus(&interrupt)) && counter>0)
     {
         if ((interrupt&0x80)==0)
             break;
+        usleep (1000);
+        counter --;
     }
+    if (counter<=0)
+        error ("timeout waitStatus");
     writeCommand(CH375_CMD_GET_STATUS);
     bytes = readData (&status);
     if (bytes)
@@ -446,14 +532,14 @@ void set_address (uint8_t address)
 {
      writeCommand (CH375_CMD_SET_ADDRESS);
      writeData(address);
-     if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
+     if (waitStatus ()!=CH375_USB_INT_SUCCESS)
          error ("ERROR: address not set\n");
 }
 void set_configuration (uint8_t configuration)
 {
      writeCommand(CH375_CMD_SET_CONFIG);
      writeData(configuration);
-     if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
+     if (waitStatus ()!=CH375_USB_INT_SUCCESS)
          error ("ERROR: configuration not set\n");
 }
 bool get_device_descriptor ()
@@ -463,7 +549,7 @@ bool get_device_descriptor ()
     
     writeCommand(CH375_CMD_GET_DESCR);
     writeData(CH375_USB_DEVICE_DESCRIPTOR);
-    if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
+    if (waitStatus ()!=CH375_USB_INT_SUCCESS)
         error ("ERROR: USB device descriptor not read 1\n");
     writeCommand(CH375_CMD_RD_USB_DATA);
     // read length of return package
@@ -527,7 +613,7 @@ int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t en
     {
         issue_token(endpoint_number, CH_PID_IN, endpoint_toggle, 0);
         endpoint_toggle = endpoint_toggle ^ 1;
-        if ((status=waitInterrupt())!=CH375_USB_INT_SUCCESS)
+        if ((status=waitStatus())!=CH375_USB_INT_SUCCESS)
         {
             if ((status&0x2f)==0b00101010) // 2A
             {
@@ -565,7 +651,7 @@ int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t en
 
 // USB data packet output
 ///////////////////////////////////////////////////////////////////////////
-void data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t endpoint_toggle)
+void data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle)
 {
     uint8_t* pTemp = pBuffer;
     uint16_t remaining_data_length = length;
@@ -577,10 +663,11 @@ void data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_device_
         write_usb_data(pTemp, amountwritten);
         pTemp+=amountwritten;
         remaining_data_length-=amountwritten;
-        endpoint_toggle = endpoint_toggle ^ 1;
         
         issue_token(endpoint_number, CH_PID_OUT, 0, endpoint_toggle);
-        while ((waitInterrupt()&0x2f)==0x2a); // absorb NAK
+        endpoint_toggle = endpoint_toggle ^ 1;
+
+        while ((waitStatus()&0x2f)==0x2a); // absorb NAK
     }
 }
 
@@ -600,7 +687,7 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
     write_usb_data (message,8);
     //uint8_t endpoint = 0;
     issue_token (endpoint, CH_PID_SETUP,0,0);
-    uint8_t interrupt = waitInterrupt();
+    uint8_t interrupt = waitStatus();
     if (interrupt != CH375_USB_INT_SUCCESS)
         return false;//error ("execute_control_transfer 0");
     
@@ -619,7 +706,7 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
     if (data_direction==OUT || requested_length==0)
     {
         issue_token(endpoint, CH_PID_IN, 1, 0);
-        while ((waitInterrupt()&0x2f)==0x2a); // absorb NAK
+        while ((waitStatus()&0x2f)==0x2a); // absorb NAK
         uint8_t tmp[endpoint_packet_size];
         bzero (tmp,endpoint_packet_size);
         ssize_t bytes = read_usb_data((uint8_t*)&tmp);
@@ -631,7 +718,7 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
         uint8_t interrupt;
         while (true)
         {
-            interrupt = waitInterrupt();
+            interrupt = waitStatus();
             if ((interrupt&0x2f)==0x2a) // absorb NAK
                 continue;
             if ((interrupt&0x2f)==0x2e) // absorb STALL
@@ -732,6 +819,28 @@ bool set_protocol2 (uint8_t target_device_address,uint8_t protocol_id,uint8_t in
 bool set_idle2 (uint8_t target_device_address,uint8_t duration,uint8_t report_id, uint8_t interface)
 {
     uint8_t cmd[] = {0x21,0x0A,report_id,duration,interface,0,0,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
+}
+
+// USB STORAGE COMMANDS
+///////////////////////////////////////////////////////////////////////////
+uint8_t get_max_luns (uint8_t target_device_address,uint8_t interface)
+{
+    uint8_t nr_luns = 0;
+    uint8_t cmd[] = {0b10100001,0b11111110,0,0,interface,0,1,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    if (result)
+        nr_luns = *data;
+    free (data);
+    return nr_luns;
+}
+bool bulkonly_mass_storage_reset (uint8_t target_device_address,uint8_t interface)
+{
+    uint8_t cmd[] = {0b00100001,0b11111111,0,0,interface,0,0,0};
     uint8_t* data=NULL;
     bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
     free (data);
@@ -1178,7 +1287,8 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                 {
                     interface_protocol_name = "BBB";
                     storage_info = new _storage_info();
-                    storage_info->bInterfaceNumber = interface->bInterfaceNumber;
+                    storage_info->interface_id = interface->bInterfaceNumber;
+                    storage_info->configuration_id = config->bConfigurationvalue;
                 }
                 printf ("      bInterfaceProtocol\t%d\t%s\n",interface->bInterfaceProtocol,interface_protocol_name.c_str());
                 printf ("      iInterface\t\t%d\t%s\n",interface->iInterface,get_string2 (device_address,interface->iInterface).c_str());
@@ -1246,6 +1356,19 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                     hub_info->hub_interrupt_millis = endpoint->bInterval;
                     hub_info->hub_configuration_id = config->bConfigurationvalue;
                 }
+                if (interface->bInterfaceClass==0x08 && interface->bInterfaceSubClass==0x06 && interface->bInterfaceProtocol==0x50)
+                {
+                    if ((endpoint->bmAttributes&0b00000011) == 0b10 && endpoint->bEndpointAddress&0b10000000) // bulk IN
+                    {
+                        storage_info->bulk_in_endpoint_id = endpoint->bEndpointAddress&0b01111111;
+                        storage_info->bulk_in_packetsize = endpoint->wMaxPacketSize;
+                    }      
+                    if ((endpoint->bmAttributes&0b00000011) == 0b10 && !(endpoint->bEndpointAddress&0b10000000)) // bulk OUT
+                    {
+                        storage_info->bulk_out_endpoint_id = endpoint->bEndpointAddress&0b01111111;
+                        storage_info->bulk_out_packetsize = endpoint->wMaxPacketSize;
+                    }                     
+                }
                 ptr += *ptr;
                 break;
             case 0x21: // HID descriptor
@@ -1312,7 +1435,7 @@ void do_storage (uint8_t device_address);
 void connect_disk ()
 {
     writeCommand (CH376_CMD_DISK_CONNECT);
-    if (waitInterrupt ()!=CH375_USB_INT_SUCCESS)
+    if (waitStatus ()!=CH375_USB_INT_SUCCESS)
         error ("disk not connected");
     
 }
@@ -1320,7 +1443,7 @@ void mount_disk ()
 {
     int status;
     writeCommand (CH376_CMD_DISK_MOUNT);
-    status = waitInterrupt ();
+    status = waitStatus ();
     if ((status!=CH375_USB_INT_SUCCESS))
         error ("disk not mounted");
 }
@@ -1334,7 +1457,7 @@ void open_file (char* name)
     writeCommand (CH376_CMD_SET_FILE_NAME);
     writeDataMultiple ((uint8_t*) name,strlen(name));
     writeCommand (CH376_CMD_OPEN_FILE);
-    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+    if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
         error ("file not opened");
     
 }
@@ -1349,7 +1472,7 @@ void read_file ()
         writeCommand (CH376_CMD_BYTE_READ);
         writeData (64);
         writeData (0);
-        status=waitInterrupt ();
+        status=waitStatus ();
         if (status==CH375_USB_INT_SUCCESS)
             return; // done
         if (status==CH375_USB_INT_DISK_READ)
@@ -1361,7 +1484,7 @@ void read_file ()
             strncpy (line,(char*) buffer,len);
             printf ("%s\n",line);
             writeCommand (CH376_CMD_BYTE_RD_GO);
-            if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+            if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
                 error ("read file error");
         }
     }
@@ -1371,7 +1494,7 @@ void close_file ()
     int status;
     writeCommand (CH376_CMD_FILE_CLOSE);
     writeData (0);
-    if ((status=waitInterrupt ())!=CH375_USB_INT_SUCCESS)
+    if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
         error ("file not closed");
 }
 void open_dir (char* name)
@@ -1380,7 +1503,7 @@ void open_dir (char* name)
     writeCommand (CH376_CMD_SET_FILE_NAME);
     writeDataMultiple ((uint8_t*) name,strlen(name));
     writeCommand (CH376_CMD_OPEN_FILE);
-    if ((status=waitInterrupt ())!=CH375_USB_ERR_OPEN_DIR)
+    if ((status=waitStatus ())!=CH375_USB_ERR_OPEN_DIR)
         error ("directory not opened");
 }
 void usb_host_bus_reset ()
@@ -1417,22 +1540,257 @@ void init_device (uint8_t device_address)
     if (storage_info)
         do_storage (device_address);
 }
+
+uint32_t tag = 1;
+uint8_t storage_out_toggle=0;
+uint8_t storage_in_toggle=0;
+
+bool do_scsi_command (uint8_t device_address,uint8_t lun,bool read,uint8_t* command,uint8_t command_len,uint8_t *&buffer,uint32_t buffer_len)
+{
+    command_block_wrapper cbw;
+    command_status_wrapper csw;
+    int bytes_read;
+
+    // CHECK CAPACITY
+    memset (&cbw,0,sizeof (command_block_wrapper));
+    cbw.dCBWSignature = 0x43425355;
+    cbw.dCBWTag = tag++;
+    cbw.bCBWLUN = lun;
+    cbw.dCBWDataTransferLength = buffer_len;
+    if (cbw.dCBWDataTransferLength>0 && read)
+        cbw.bmCBWFlags = 0b10000000; // Data-In;
+    else
+        cbw.bmCBWFlags = 0b00000000; // Data-Out;
+    cbw.bCBWCBLength = command_len;
+    memcpy (cbw.data,command,command_len);
+    print_buffer ((uint8_t*) &cbw,sizeof (command_block_wrapper));
+    data_out_transfer ((uint8_t*) &cbw,sizeof(command_block_wrapper),device_address,storage_info->bulk_out_endpoint_id,storage_info->bulk_out_packetsize,storage_out_toggle);
+    if (cbw.dCBWDataTransferLength>0)
+    {
+        if (read)
+        {
+            // get command results
+            bytes_read = data_in_transfer (buffer_len,device_address,storage_info->bulk_in_endpoint_id,storage_info->bulk_in_packetsize,storage_in_toggle,buffer);
+            if (bytes_read==0 || buffer==NULL)
+                return false;
+            print_buffer (buffer,buffer_len);
+        }
+        else
+        {
+            /* code */
+        }
+    }
+    // get CSW
+    uint8_t* csw_result;
+    bytes_read = data_in_transfer (sizeof (command_status_wrapper),device_address,storage_info->bulk_in_endpoint_id,storage_info->bulk_in_packetsize,storage_in_toggle,csw_result);
+    if (bytes_read==0 || csw_result==NULL)
+        return false;
+    memcpy (&csw,csw_result,sizeof(command_status_wrapper));
+    free (csw_result);
+
+    //print_buffer (csw_result,sizeof (command_status_wrapper));
+    if (csw.dCBWSignature!= 0x53425355 || csw.dCBWTag!=cbw.dCBWTag || csw.bCSWStatus!=0)
+    {
+        printf ("\tSignature: %x\n",csw.dCBWSignature);
+        printf ("\tTag: %x (%s)\n",csw.dCBWTag,csw.dCBWTag==cbw.dCBWTag?"okay":"nok");
+        printf ("\tResidue: %x\n",csw.dCSWDataResidue);
+        printf ("\tStatus: %x (%s)\n",csw.bCSWStatus,csw.bCSWStatus==0?"Success":"Failed");
+        return false;
+    }
+
+    return true;
+}
+
+bool scsi_read_block (uint8_t device_address, uint32_t blocknr, uint16_t blocksize,uint8_t *&buffer)
+{
+    scsi_read10 read;
+    uint32_t swapped =  ((blocknr>>24)&0xff) | // move byte 3 to byte 0
+                        ((blocknr<<8)&0xff0000) | // move byte 1 to byte 2
+                        ((blocknr>>8)&0xff00) | // move byte 2 to byte 1
+                        ((blocknr<<24)&0xff000000); // byte 0 to byte 3
+    read.dLBA = swapped;
+    read.wTransferLength = 1; // blocks requested
+    read.wTransferLength = (read.wTransferLength>>8) | (read.wTransferLength<<8); // convert endianness
+    return do_scsi_command (device_address,0,true,(uint8_t*) &read,sizeof(read),buffer,blocksize);
+}
+
 void do_storage (uint8_t device_address)
 {
-    // set reset bus and set host mode
-    usb_host_bus_reset ();
+    // USB HID?
+    if (storage_info && storage_info->configuration_id>0)
+    {
+        uint8_t* buffer=NULL;
+        int max_luns;
 
-    // try some high-level stuff
-    connect_disk ();
-    mount_disk ();
-    open_dir ("\\");
-    open_file ("AUTOEXEC.DSK");
-    read_file ();
-    close_file ();
-    open_dir ("\\");
-    open_file ("128MB.DSK");
-    //read_file();
-    close_file ();
+        printf ("\nWe found an USB Storage device, lets start using it.\n");
+        if (!set_configuration2(device_address,storage_info->configuration_id))
+                error ("error setting Storage configuration");
+        
+        // bulkonly_mass_storage_reset (device_address,storage_info->interface_id);
+        // max_luns = get_max_luns (device_address,storage_info->interface_id);
+        // printf ("\tMax LUNs: %d\n",max_luns);
+
+        // INQUIRY
+        scsi_inquiry inquiry;
+        if (do_scsi_command (device_address,0,true,(uint8_t*) &inquiry,sizeof(inquiry),buffer,0x24))
+        {
+            printf ("\tPDT: %d\n",buffer[0]);
+            printf ("\tRemovable: %s\n",0b10000000 & buffer[1]?"yes":"no");
+            printf ("\tAdditional length: %d\n",buffer[4]);
+            char vendor[9];
+            strncpy (vendor,(const char*) &buffer[8],8);
+            vendor[8] = 0;
+            printf ("\tVendor: %s\n",vendor);
+            char product[17];
+            strncpy (product,(const char*) &buffer[16],16);
+            product[16]=0;
+            printf ("\tProduct: %s\n",product);
+            char rev[5];
+            strncpy (rev,(const char*) &buffer[32],4);
+            rev[4]=0;
+            printf ("\tRevision: %s\n",rev);
+
+            if (buffer[0]!=0)
+            {
+                printf ("\tNo Direct-access block device\n");
+                free (buffer);
+                return;
+            }
+            free (buffer);
+        }
+        
+        // TEST UNIT READY
+        scsi_test_unit_ready ready;
+        bool device_ready=false;
+        while (device_ready==false)
+        {
+            if (do_scsi_command (device_address,0,false,(uint8_t*) &ready,sizeof(scsi_test_unit_ready),buffer,0))
+            {
+                device_ready = true;
+            }
+            else
+            {
+                // REQUEST SENSE
+                scsi_request_sense sense;
+                if (do_scsi_command(device_address,0,true,(uint8_t*) &sense,sizeof (scsi_request_sense),buffer,sense.bAllocationLength))
+                {
+                    std::string sense_key;
+                    switch (buffer[2])
+                    {
+                        case 1 : sense_key = "Soft error"; break;
+                        case 2 : sense_key = "Not ready"; break;
+                        case 3 : sense_key = "Medium error"; break;
+                        case 4 : sense_key = "Hardware error"; break;
+                        case 5 : sense_key = "Illegal request"; break;
+                        case 6 : sense_key = "Unit attention"; break;
+                        case 7 : sense_key = "Data protect"; break;
+                    }
+                    printf ("\tSense Key: %d (%s)\n",buffer[2],sense_key.c_str());
+                    printf ("\tAdditional sense code: %d\n",buffer[12]);
+                    printf ("\tAdditional sense code qualifier: %d\n",buffer[13]);
+                    free (buffer);
+                }
+            }
+        }
+        
+        // CHECK CAPACITY
+        scsi_capacity capacity;
+        uint32_t lba,len;
+        if (do_scsi_command (device_address,0,true,(uint8_t*) &capacity,sizeof(capacity),buffer,0x8))
+        {
+            lba = buffer[0]*16777216+buffer[1]*65536+buffer[2]*256+buffer[3];
+            len = buffer[4]*16777216+buffer[5]*65536+buffer[6]*256+buffer[7];
+            printf ("\tMax LBA: %ld\n",lba);
+            printf ("\tBlock length in bytes: %ld\n",len);
+            free (buffer);
+        }
+
+        /*
+        // MODE SENSE
+        scsi_mode_sense mode;
+        mode.bPageCode = 0x3f; // all mode pages
+        //mode.bPageCode = 0x04; // Flexible Disk
+        mode.bSubpageCode = 0x00;
+        mode.wAllocationLength = 192;
+        if (do_scsi_command (device_address,0,true,(uint8_t*) &mode,sizeof(mode),buffer,192))
+        {
+            free (buffer);
+        }
+        */
+
+        // READ MBR
+        if (scsi_read_block (device_address,0,len,buffer))
+        {
+            if (buffer[0x1fe]==0x55 && buffer[0x1ff]==0xaa) // Boot signature present?
+            {
+                if (buffer[0]==0 && buffer[1]==0) // MBR
+                {
+                    uint8_t type = buffer[0x1be + 4];
+                    uint32_t first_partition = 0;
+                    if (type == 0x01 || type == 0x04 || type == 0x06 || type == 0x0b || type == 0x0c || type == 0x0e)
+                    {
+                        uint8_t* ptr = (buffer + 0x1be + 8);
+                        first_partition = *((uint32_t*) ptr);
+                        printf ("\tMBR, first partition at block: 0x%x\n",first_partition);
+                    }
+                    free (buffer);
+                    // READ BOOTSECTOR
+                    uint8_t cluster_map = 2;
+                    if (scsi_read_block (device_address,first_partition,len,buffer))
+                    {
+                        if (buffer[0x1fe]==0x55 && buffer[0x1ff]==0xaa) // Boot signature present
+                        {
+                            char OEM[9];
+                            uint16_t bytes_per_sector = *((uint16_t*)(buffer+0x0b));
+                            uint8_t sectors_per_cluster = buffer[0x0d];
+                            uint32_t total_sectors = *((uint16_t*)(buffer+0x13));
+                            if (total_sectors==0)
+                                total_sectors = *((uint32_t*)(buffer+0x24));
+                            uint32_t total_clusters = total_sectors / sectors_per_cluster;
+                            uint32_t partition_size = total_sectors * bytes_per_sector;
+                            strncpy (OEM,(char*) buffer+3,8);
+                            OEM[8]=0;
+                            printf ("\tBoot, OEM name: %s\n",OEM);
+                            char FAT[9];
+                            strncpy (FAT,(char*) buffer+0x36,8);
+                            FAT[8]=0;
+                            printf ("\tFilesystem label: %s\n",FAT);
+                            strncpy (FAT,(char*) buffer+0x52,8);
+                            FAT[8]=0;
+                            printf ("\tFilesystem label: %s\n",FAT);
+                            cluster_map = buffer[0x2c];
+                            free (buffer);
+                        }
+                    }
+                }
+                else 
+                {
+                    char OEM[9];
+                    strncpy (OEM,(char*) buffer+3,8);
+                    OEM[8]=0;
+                    printf ("\tBoot, OEM name: %s\n",OEM);
+                    free (buffer);
+                }
+            }
+        }
+
+        /*
+        // try some high-level stuff
+        // set reset bus and set host mode
+        usb_host_bus_reset ();
+        connect_disk ();
+        mount_disk ();
+        open_dir ("\\");
+        open_file ("AUTOEXEC.DSK");
+        read_file ();
+        close_file ();
+        open_dir ("\\");
+        open_file ("128MB.DSK");
+        //read_file();
+        close_file ();
+        */
+    }
+    storage_info = NULL;
 }
 void do_hid (uint8_t device_address)
 {

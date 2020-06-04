@@ -14,13 +14,35 @@ PRODUCTID:			ds 16 ;UINT8 ProductIdStr[16];			/* 10H */
 PRODUCTREV:			ds 8 ;UINT8	ProductRevStr[4];			/* 20H */ 
 	ENDS
 
+	STRUCT _USB_DEVICE_INFO
+BASE:
+DEVICE_ADDRESS					DB
+NUM_CONFIGS						DB
+NUM_INTERFACES					DB
+NUM_ENDPOINTS					DB
+WANTED_CLASS					DB
+WANTED_SUB_CLASS				DB
+WANTED_PROTOCOL					DB
+INTERFACE_ID					DB
+CONFIG_ID						DB
+MAX_PACKET_SIZE					DB
+DATA_BULK_IN_ENDPOINT_ID		DB
+DATA_BULK_OUT_ENDPOINT_ID		DB
+DATA_BULK_IN_ENDPOINT_TOGGLE	DB
+DATA_BULK_OUT_ENDPOINT_TOGGLE	DB
+HUB_PORTS						DB
+HUB_PORT_STATUS					DS 4
+	ENDS
+
 	STRUCT WRKAREA
 BASE:				; Offset to the base of the data structure 
 STATUS:				db ; bit 0 = CH376s present, bit 1 = initialised, bit 2 = USB device present, bit 3 = USB device mounted, bit 4 = virtual DSK file inserted, bit 5 = DSK changed
 DSK_NAME:			ds 13
 DIR_NAME:			ds 9
-USB_DEVICE_ADDRESS	db 1
+MAX_DEVICE_ADDRESS:	db 0
 DEVICE_INFO:		DEVINFO
+USB_DEVICE_INFO:	_USB_DEVICE_INFO
+USB_DESCRIPTOR		ds 140 ; memory area to hold the usb device+config descriptor of the current interrogated device
 IO_BUFFER:    		ds 040h
 USB_DESCRIPTORS		ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
 NXT_DIRECT			ds NXT_DIRECT_END - NXT_DIRECT_START
@@ -28,8 +50,8 @@ JUMP_TABLE			ds JUMP_TABLE_END - JUMP_TABLE_START
 	ENDS
 
 TXT_START:              db "Starting CH376s driver v0.5\r\n",0,"$"
-TXT_FOUND:              db "+CH376s connected\r\n",0,"$"
-TXT_NOT_FOUND:          db "-CH376s NOT connected\r\n",0,"$"
+TXT_FOUND:              db "+MSXUSB connected\r\n",0,"$"
+TXT_NOT_FOUND:          db "-MSXUSB NOT connected\r\n",0,"$"
 TXT_DEVICE_CONNECTED: 	db "+USB device connected\r\n",0,"$"
 TXT_NO_DEVICE_CONNECTED: db "-USB device NOT connected\r\n",0,"$"
 TXT_MODE_SET:           db "+USB mode set\r\n",0,"$"

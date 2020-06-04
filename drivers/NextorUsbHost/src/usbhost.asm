@@ -109,27 +109,38 @@ FN_INFO:
     xor  a
     ret
 
-TMP_BUFFER: equ 08100h
 ; Connect attached USB device and reset it
 ; Input: (none)
 ; Output: A = nr of connected USB devices, zero if none or error
 FN_CONNECT:
+    ; check of we already did a scan before
+    call GET_USB_DEVICE_ADDRESS
+    and a
+    ret nz ; yes, return the old value
     ; start scanning from address 1
     ld a, 1
     call SET_USB_DEVICE_ADDRESS
     ; reset USB bus and device
     call USB_HOST_BUS_RESET
 FN_CONNECT2: ; skip bus reset (for hubs)
+    ld bc, WRKAREA.USB_DESCRIPTOR
+    call WRKAREAPTR
+    push ix, ix
     ; Hub connected?
-	ld hl, TMP_BUFFER
+	pop hl
     ld d, 0 ; from reset device
 	call FN_GETDESCRIPTORS
 	jr nc, _CONTINUE_DESCRIPTORS
-    xor a ; zero
-	ret
+    pop ix
+    call GET_USB_DEVICE_ADDRESS
+    cp 1
+    jr nz, _CONNECT_DONE
+    xor a
+    call SET_USB_DEVICE_ADDRESS
+    jr _CONNECT_DONE ; could not get descriptor now, maybe later, skip rest of checks
 _CONTINUE_DESCRIPTORS:
 	; USB HUB?
-	ld hl, TMP_BUFFER
+    pop hl
 	call CHECK_DESCRIPTOR_HUB
 	jr nc, _CONTINUE_HUB
     jr _CONNECT_DONE:
@@ -162,13 +173,13 @@ FN_SYNC_MODE:
 GET_USB_DEVICE_ADDRESS:
     push ix
     call MY_GWORK
-    ld a, (ix+WRKAREA.USB_DEVICE_ADDRESS)
+    ld a, (ix+WRKAREA.MAX_DEVICE_ADDRESS)
     pop ix
     ret
 SET_USB_DEVICE_ADDRESS:
     push ix
     call MY_GWORK
-    ld (ix+WRKAREA.USB_DEVICE_ADDRESS),a
+    ld (ix+WRKAREA.MAX_DEVICE_ADDRESS),a
     pop ix
     ret
 
@@ -575,7 +586,7 @@ CH_SET_ADDRESS:
 ;         A  = USB error code
 ;         BC = Amount of data actually transferred (if IN transfer and no error)
 CH_GET_HUB_DESCRIPTOR:
-    push ix,hl,de
+    push iy,ix,hl,de
     push hl
     ; return USB descriptor stored in WRKAREA
     push bc
@@ -589,7 +600,7 @@ CH_GET_HUB_DESCRIPTOR:
     pop de ; was HL = memory to receive descriptor
     call HW_CONTROL_TRANSFER
 
-    pop de,hl,ix
+    pop de,hl,ix,iy
     cp CH_USB_INT_SUCCESS
     ret z ; no error
     scf ; error
@@ -601,7 +612,7 @@ CH_GET_HUB_DESCRIPTOR:
 ;        D = device address
 ;        HL= pointer to 4-bytes memory to receive port status
 GET_HUB_PORT_STATUS:
-    push ix,hl,de,bc
+    push iy,ix,hl,de,bc
     push hl
     push bc
     ld bc, CMD_GET_HUB_PORT_STATUS-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: {0b10100011,0,0,0,portnr,0,4,0};
@@ -615,7 +626,7 @@ GET_HUB_PORT_STATUS:
     pop de ; was HL = memory to receive port status
     call HW_CONTROL_TRANSFER
     ;
-    pop bc,de,hl,ix
+    pop bc,de,hl,ix,iy
     cp CH_USB_INT_SUCCESS
     ret z ; no error
     scf ; error
@@ -626,7 +637,7 @@ GET_HUB_PORT_STATUS:
 ; C = feature to set
 ; D = device address
 SET_HUB_PORT_FEATURE:
-    push ix,hl,de,bc
+    push iy,ix,hl,de,bc
     push bc
     ld bc, CMD_SET_HUB_PORT_FEATURE-CMD_GET_DEVICE_DESCRIPTOR ; Address of the command: {0b00100011,0x03,feature_selector,0,port,value,0,0};
     call GET_CONTROL_PACKET
@@ -638,7 +649,7 @@ SET_HUB_PORT_FEATURE:
     ;
     ld a, d ; device address
     call HW_CONTROL_TRANSFER
-    pop bc,de,hl,ix
+    pop bc,de,hl,ix,iy
     cp CH_USB_INT_SUCCESS
     ret z ; no error
     scf ; error
@@ -647,43 +658,40 @@ SET_HUB_PORT_FEATURE:
 CHECK_DEVICE_DESCRIPTOR:
     push af
     ld a, (ix+DEVICE_DESCRIPTOR.bNumConfigurations)
-    ld (USB_NUM_CONFIGS),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.NUM_CONFIGS),a
     ld a, (ix+DEVICE_DESCRIPTOR.bMaxPacketSize0)
-    ld (USB_MAX_PACKET_SIZE),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE),a
     pop af
     ret
 
 CHECK_CONFIG_DESCRIPTOR:
     push af
     ld a, (ix+CONFIG_DESCRIPTOR.bNumInterfaces)
-    ld (USB_NUM_INTERFACES),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.NUM_INTERFACES),a
     ld a, (ix+CONFIG_DESCRIPTOR.bConfigurationvalue)
-    ld (USB_CONFIG_ID),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.CONFIG_ID),a
 _CHECK_CONFIG_NEXT:
-    ld hl, USB_NUM_CONFIGS
-    dec (hl)
+    dec (iy+WRKAREA.USB_DEVICE_INFO.NUM_CONFIGS)
     pop af
     ret
     
 CHECK_INTERFACE_DESCRIPTOR:
     push af,bc
     ld a, (ix+INTERFACE_DESCRIPTOR.bNumEndpoints)
-    ld (USB_NUM_ENDPOINTS),a
-    ld a, (ix+INTERFACE_DESCRIPTOR.bInterfaceClass)
-    ld hl, USB_WANTED_CLASS
-    cp (hl)
+    ld (iy+WRKAREA.USB_DEVICE_INFO.NUM_ENDPOINTS),a
+    ld b, (ix+INTERFACE_DESCRIPTOR.bInterfaceClass)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.WANTED_CLASS)
+    cp b
     jr nz, _INTERFACE_NOT_INTERESTING
     ld b, (ix+INTERFACE_DESCRIPTOR.bInterfaceSubClass)
-    ld hl, USB_WANTED_SUB_CLASS
-    ld a, (hl)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.WANTED_SUB_CLASS)
     cp 0ffh ; wildcard
     jr z, _NEXT_CHECK2
     cp b
     jr nz, _INTERFACE_NOT_INTERESTING
 _NEXT_CHECK2:
     ld b, (ix+INTERFACE_DESCRIPTOR.bInterfaceProtocol)
-    ld hl, USB_WANTED_PROTOCOL
-    ld a, (hl)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.WANTED_PROTOCOL)
     cp 0ffh ; wildcard
     jr z, _NEXT_CHECK3
     cp b
@@ -691,17 +699,33 @@ _NEXT_CHECK2:
 _NEXT_CHECK3:
     ; found the right interface
     ld a, (ix+INTERFACE_DESCRIPTOR.bInterfaceNumber)
-    ld (USB_INTERFACE_ID),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.INTERFACE_ID),a
 _INTERFACE_NOT_INTERESTING:
-    ld hl, USB_NUM_INTERFACES
-    dec (hl)
+    dec (iy+WRKAREA.USB_DEVICE_INFO.NUM_INTERFACES)
     pop bc,af
     ret
 
 CHECK_ENDPOINT_DESCRIPTOR:
     push af
-    ld hl, USB_NUM_ENDPOINTS
-    dec (hl)
+
+    ; data interface
+    ld a, (ix+ENDPOINT_DESCRIPTOR.bmAttributes)
+    and 0b00000011
+    cp 0b00000010
+    jr nz,_CHECK_ENDPOINT_DESCRIPTOR_END ; not Bulk endpoint
+
+    ld a, (ix+ENDPOINT_DESCRIPTOR.bEndpointAddress)
+    bit 7,a
+    jr z, _CHECK_BULK_OUTPUT
+    and 0b01111111
+    ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_ID), a
+    jr _CHECK_ENDPOINT_DESCRIPTOR_END
+_CHECK_BULK_OUTPUT:
+    and 0b01111111
+    ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_ID), a
+_CHECK_ENDPOINT_DESCRIPTOR_END:
+
+    dec (iy+WRKAREA.USB_DEVICE_INFO.NUM_ENDPOINTS)
     pop af
     ret
 
@@ -719,13 +743,13 @@ _USB_CHECK_NEXT:
     cp 0x05 ; ENDPOINT_DESCRIPTOR
     call z, CHECK_ENDPOINT_DESCRIPTOR
     ; check if we're done checking
-    ld a, (USB_NUM_CONFIGS)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.NUM_CONFIGS)
     and a
     jr nz, _DO_AGAIN
-    ld a, (USB_NUM_INTERFACES)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.NUM_INTERFACES)
     and a
     jr nz, _DO_AGAIN
-    ld a, (USB_NUM_ENDPOINTS)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.NUM_ENDPOINTS)
     and a
     jr nz, _DO_AGAIN
     ; no more endpoints, interfaces and configs to scan
@@ -736,39 +760,29 @@ _DO_AGAIN:
 _DONE:
     ret
 
-USB_NUM_CONFIGS EQU 08200h
-USB_NUM_INTERFACES EQU 08201h
-USB_NUM_ENDPOINTS EQU 08203h
-USB_WANTED_CLASS EQU 08204h
-USB_WANTED_SUB_CLASS EQU 08205h
-USB_WANTED_PROTOCOL EQU 08206h
-USB_INTERFACE_ID EQU 08207h
-USB_CONFIG_ID EQU 08208h
-USB_MAX_PACKET_SIZE EQU 08209h
-;
-USB_HUB_PORTS EQU 0820Ah
-USB_HUB_PORT_STATUS EQU 0820Bh
-
 ; Parse the descriptor to see if a mass storage device 
 ; is connected that the high-level driver supports
 ;
 ; Input: HL points to buffer with descriptor
 ; Output: Cy = 0 (found), Cy = 1 (not found)
 CHECK_DESCRIPTOR_MASS_STORAGE:
-    ld ix, TMP_BUFFER
+    call MY_GWORK
+    ld iy, ix ; iy pointing to start of WRKAREA
+    ld bc, WRKAREA.USB_DESCRIPTOR
+    add ix, bc ; ix pointing to buffer
     ; init value
     ld a, 0ffh
-    ld (USB_INTERFACE_ID),a
-    ld (USB_CONFIG_ID),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.INTERFACE_ID),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.CONFIG_ID),a
     ; start searching
     ld a, 8 ; mass storage
-    ld (USB_WANTED_CLASS),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.WANTED_CLASS),a
     ld a, 6 ; SCSI command set
-    ld (USB_WANTED_SUB_CLASS),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.WANTED_SUB_CLASS),a
     ld a, 050h
-    ld (USB_WANTED_PROTOCOL),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.WANTED_PROTOCOL),a
     call PARSE_USB_DESCRIPTORS
-    ld a, (USB_INTERFACE_ID)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.INTERFACE_ID)
     cp 0ffh
     jr nz, _FOUND_MASS_STORAGE
     scf ; set Cy
@@ -780,25 +794,28 @@ _FOUND_MASS_STORAGE:
 ; Parse the descriptor to see if a USB hub 
 ; is connected that the high-level driver supports
 ;
-; Input: HL points to buffer with descriptor
+; Input: (none), assumed that descriptor is loaded in WRKAREA.USB_DESCRIPTOR
 ; Output: Cy = 0 (found), Cy = 1 (not found)
 CHECK_DESCRIPTOR_HUB:
-    ld ix, TMP_BUFFER
+    call MY_GWORK
+    ld iy, ix ; iy pointing to start of WRKAREA
+    ld bc, WRKAREA.USB_DESCRIPTOR
+    add ix, bc ; ix pointing to buffer
     ; init value
     ld a, 0ffh
-    ld (USB_INTERFACE_ID),a
-    ld (USB_CONFIG_ID),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.INTERFACE_ID),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.CONFIG_ID),a
     ; start searching
     ld a, 9 ; USB Hub device
-    ld (USB_WANTED_CLASS),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.WANTED_CLASS),a
     ld a, 0 ; always zero
-    ld (USB_WANTED_SUB_CLASS),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.WANTED_SUB_CLASS),a
     ld a, 0ffh ; don't care
-    ld (USB_WANTED_PROTOCOL),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.WANTED_PROTOCOL),a
     call PARSE_USB_DESCRIPTORS
-    ld a, (USB_INTERFACE_ID)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.INTERFACE_ID)
     cp 0ffh
-    jr nz, _FOUND_MASS_STORAGE
+    jr nz, _FOUND_HUB
     scf ; set Cy
     ret
 _FOUND_HUB:
@@ -807,29 +824,30 @@ _FOUND_HUB:
 
 ; Initialise HUB device
 INIT_HUB:
+    call MY_GWORK
+    ld iy, ix ; iy pointing to start of WRKAREA
+    ld bc, WRKAREA.USB_DESCRIPTOR
+    add ix, bc ; ix pointing to buffer
     ; activate HUB
-    ld a, (USB_MAX_PACKET_SIZE) 
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE) 
     ld b,a
     call GET_USB_DEVICE_ADDRESS
     ld d, a
-    ld a, (USB_CONFIG_ID)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.CONFIG_ID)
     push bc,de
     call CH_SET_CONFIGURATION
     pop de,bc
     ret c
     ; get HUB descriptor
-    ld hl, TMP_BUFFER
+    ld hl, ix ; WRKAREA.USB_DESCRIPTOR
     call CH_GET_HUB_DESCRIPTOR
     ret c
-    ld ix, TMP_BUFFER
     ld a, (ix+HUB_DESCRIPTOR.bNrPorts)
-    ld (USB_HUB_PORTS),a
+    ld (iy+WRKAREA.USB_DEVICE_INFO.HUB_PORTS),a
     ; power up all ports
     ld b, a ; counter
     ld e, 1
     ld c, 8 ; PORT_POWER
-    ;call GET_USB_DEVICE_ADDRESS
-    ;ld d, a
 _POWER_UP_AGAIN:
     ld a, e
     call SET_HUB_PORT_FEATURE
@@ -837,17 +855,17 @@ _POWER_UP_AGAIN:
     inc e
     djnz _POWER_UP_AGAIN
     ; check which ones have something connected
-    ld a, (USB_HUB_PORTS)
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.HUB_PORTS)
     ld b, a ; counter
     ld e, 1 ; start index 1
-    ;call GET_USB_DEVICE_ADDRESS
-    ;ld d, a
 _HUB_STATUS_AGAIN:
     push bc
-    ld a, (USB_MAX_PACKET_SIZE) 
+    ld hl, iy
+    ld bc, WRKAREA.USB_DEVICE_INFO.HUB_PORT_STATUS
+    add hl, bc
+    ld a, (iy+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE) 
     ld b,a
     ld a, e
-    ld hl, USB_HUB_PORT_STATUS
     call GET_HUB_PORT_STATUS
     pop bc
     ret c
@@ -868,21 +886,25 @@ _HUB_STATUS_AGAIN:
     ret
 
 ; Input - E = portnumber on hub to initialise
+;         D = USB device address
 INIT_HUB_DEVICE:
     push bc, de
-    ;call GET_USB_DEVICE_ADDRESS
-    ;ld d, a
     ; reset usb bus on port(s)
     ld a, e ; e contains port number
     ld c, 4 ; RESET
     call SET_HUB_PORT_FEATURE
-
+    ret c
+    ; wait 250ms
+    push bc
+    ld bc, WAIT_ONE_SECOND/4
+    call WAIT
+    pop bc
     ; recursively initialise device
     call GET_USB_DEVICE_ADDRESS
     inc a
     call SET_USB_DEVICE_ADDRESS
     call FN_CONNECT2
-
+    ;
     pop de, bc
     ret
 

@@ -613,8 +613,8 @@ CH_READ_DATA:
     ; prepare to return
     pop af
     ld c,a
-    ld (hl),0 ; zero at end of buffer - just in case
-    or a
+    ;ld (hl),0 ; zero at end of buffer - just in case
+    ;and a
     ret
 
 ; --------------------------------------
@@ -718,6 +718,8 @@ hub_descriptor_size EQU 0
 feature_selector EQU 0
 port EQU 0
 value EQU 0
+; USB Storage command variables
+storage_interface_id EQU 0
 
 ; Generic USB commands
 USB_DESCRIPTORS_START:
@@ -737,6 +739,9 @@ CMD_SET_PROTOCOL: DB 0x21,0x0B,protocol_id,0,interface_id,0,0,0
 CMD_GET_HUB_DESCRIPTOR: DB 10100000b,6,0,029h,0,0,hub_descriptor_size,0
 CMD_SET_HUB_PORT_FEATURE: DB 00100011b,3,feature_selector,0,port,value,0,0
 CMD_GET_HUB_PORT_STATUS: DB 10100011b,0,0,0,port,0,4,0
+; USB STORAGE commands
+CMD_GET_MAX_LUNS: DB 10100001b,11111110b,0,0,storage_interface_id,0,1,0
+CMD_MASS_STORAGE_RESET: DB 00100001b,11111111b,0,0,storage_interface_id,0,0,0
 
 USB_DESCRIPTORS_END:
 
@@ -799,7 +804,7 @@ HW_DATA_IN_TRANSFER:
 
 ; This entry point is used when target device address is already set
 CH_DATA_IN_TRANSFER:
-    ld a,0
+    ld a,0  ;No XOR because that would damage flags
     rra     ;Toggle to bit 7 of A
     ld ix,0 ;IX = Received so far count
     push de
@@ -878,7 +883,7 @@ HW_DATA_OUT_TRANSFER:
 
 ; This entry point is used when target device address is already set
 CH_DATA_OUT_TRANSFER:
-    ld a,0
+    ld a,0  ;No XOR because that would damage flags
     rra     ;Toggle to bit 6 of A
     rra
     push de

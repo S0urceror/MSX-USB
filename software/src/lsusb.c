@@ -239,6 +239,7 @@ void print_descriptors (char* buffer)
                 printf ("  bDeviceClass\t\t\t%d\r\n",device->bDeviceClass);
                 printf ("  bDeviceSubClass\t\t%d\r\n",device->bDeviceSubClass);
                 printf ("  bDeviceProtocol\t\t%d\r\n",device->bDeviceProtocol);
+                printf ("  bMaxPacketSize0\t\t%d\r\n",device->bMaxPacketSize0);
                 printf ("  idVendor\t\t\t0x%x\r\n",device->idVendor);
                 printf ("  idProduct\t\t\t0x%x\r\n",device->idProduct);
                 printf ("  bcdDevice\t\t\t%d.%d\r\n",(device->bcdDevice & 0xff00)>>8, device->bcdDevice & 0xff);

@@ -18,10 +18,9 @@
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
-            //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/drivers/UsbKeyboard/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "cwd": "../Emulators/OpenMSX/share"
+            "args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            "cwd": "../Emulators/OpenMSX/share",
+            "preLaunchTask": "Driver - Nextor+UsbHost"
         },
         {
             "name": "(lldb) Launch MSXUSB RD",
@@ -29,8 +28,17 @@
             "request": "launch",
             "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
             "args": ["-machine", "Philips_NMS_8250_MSM2", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "cwd": "../Emulators/OpenMSX/share"
+            "cwd": "../Emulators/OpenMSX/share",
+            "preLaunchTask": "Driver - Nextor+UsbHost"
+        },
+        {
+            "name": "(lldb) Launch MSXUSB LOW",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_MSM3", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml"],
+            "cwd": "../Emulators/OpenMSX/share",
+            "preLaunchTask": "Driver - Nextor+UsbHost"
         },
         {
             "name": "(lldb) Launch Rookiedrive",
