@@ -182,7 +182,7 @@ BOOL flash_ident ()
     uint8_t manufacturer = flash_segment[0];
     uint8_t device = flash_segment[1];
     myprint ("M: %x, D: %x\r\n",manufacturer,device);
-    if (device==0xa4 || device==0xb7)  // device ID is correct
+    if (device==0xa4 || device==0xb5 || device==0xb6 || device==0xb7)  // device ID is correct
     {
         // reset
         flash_segment[0] = 0xf0;
