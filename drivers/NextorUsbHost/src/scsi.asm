@@ -84,6 +84,7 @@ _DO_SCSI_CMD_NEXT
     call HW_DATA_OUT_TRANSFER
     pop iy ; ++
     push af ; 0 or error_code +++
+    ld a, 0
     rra ; move Cy to bit 7
     ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
     pop af ; 0 or error_code ++
@@ -123,6 +124,7 @@ _DO_SCSI_CMD_NEXT2:
     push iy ; ++
     call HW_DATA_IN_TRANSFER
     pop iy ; +
+    ld a, 0
     rra ; move Cy to bit 7
     ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
     jr _DO_SCSI_CMD_NEXT3
@@ -144,6 +146,7 @@ _DO_SCSI_CMD_WRITE3:
     push iy ; ++
     call HW_DATA_OUT_TRANSFER
     pop iy ; +
+    ld a, 0
     rra ; move Cy to bit 7
     ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
 _DO_SCSI_CMD_NEXT3:
@@ -170,6 +173,7 @@ _DO_SCSI_CMD_NEXT3:
     push ix,iy ; ++
     call HW_DATA_IN_TRANSFER
     pop iy,ix ; 
+    ld a, 0
     rra ; move Cy to bit 7
     ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
 

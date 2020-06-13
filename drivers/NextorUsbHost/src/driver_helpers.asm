@@ -49,39 +49,39 @@ NXT_DIRECT			ds NXT_DIRECT_END - NXT_DIRECT_START
 JUMP_TABLE			ds JUMP_TABLE_END - JUMP_TABLE_START
 	ENDS
 
-TXT_START:              db "Starting CH376s driver v0.5\r\n",0,"$"
-TXT_FOUND:              db "+MSXUSB connected\r\n",0,"$"
-TXT_NOT_FOUND:          db "-MSXUSB NOT connected\r\n",0,"$"
-TXT_DEVICE_CONNECTED: 	db "+USB device connected\r\n",0,"$"
-TXT_NO_DEVICE_CONNECTED: db "-USB device NOT connected\r\n",0,"$"
-TXT_MODE_SET:           db "+USB mode set\r\n",0,"$"
-TXT_MODE_NOT_SET:       db "+USB mode NOT set\r\n",0,"$"
-TXT_DISK_CONNECTED:     db "+Disk connected\r\n",0,"$"
-TXT_DISK_NOT_CONNECTED: db "-Disk NOT connected\r\n",0,"$"
-TXT_DISK_MOUNTED:       db "+Disk mounted\r\n",0,"$"
-TXT_DISK_NOT_MOUNTED:   db "-Disk NOT mounted\r\n",0,"$"
-TXT_NO_MAKE_MODEL:      db "-Device name NOT read\r\n",0,"$"
-TXT_MAKE_MODEL:         db "+Device name: ",0,"$"
-TXT_DIR_OPENED:     	db "+Directory opened\r\n",0,"$"
-TXT_DIR_NOT_OPENED: 	db "-Directory NOT opened\r\n",0,"$"
-TXT_NO_DIR_ENTRY:       db "-Directory entry NOT read\r\n",0,"$"
-TXT_CD_FAILED:          db "-Directory does NOT exist\r\n",0,"$"
-TXT_SEC_LOCATE_FAILED:  db "-Cannot set file pointer to sector\r\n",0,"$"
-TXT_SEC_READ_FAILED:    db "-Request sector failed\r\n",0,"$"
-TXT_DISK_READ_FAILED:   db "-Disk read sector failed\r\n",0,"$"
-TXT_CD_OKAY:            db "+Directory opened\r\n",0,"$"
-TXT_FILEOPEN_OKAY:      db "+File opened: ",0,"$"
-TXT_FILEOPEN_FAILED:    db "-File NOT opened\r\n",0,"$"
-TXT_SEC_LOCATE_OKAY:    db "+File pointer set to sector\r\n",0,"$"
-TXT_SEC_READ_OKAY:      db "+Sector read requested\r\n",0,"$"
-TXT_DISK_READ_OKAY:     db "+Disk sector read\r\n",0,"$"
-TXT_RESET:              db "+CH376s reset\r\n",0,"$"
-TXT_FILECLOSED_OKAY:    db "+File closed\r\n",0,"$"
+TXT_START:              db "MSXUSB driver v0.5\r\nGNU General Public License\r\n=============================\r\n\r\n",0
+TXT_FOUND:              db "+MSXUSB cartridge found\r\n",0
+TXT_NOT_FOUND:          db "-Insert MSXUSB compatible cartridge\r\n",0
+TXT_DEVICE_CONNECTED: 	db "+USB device connected\r\n",0
+TXT_NO_DEVICE_CONNECTED: db "-USB device NOT connected\r\n",0
+TXT_MODE_SET:           db "+USB mode set\r\n",0
+TXT_MODE_NOT_SET:       db "+USB mode NOT set\r\n",0
+TXT_DISK_CONNECTED:     db "+Disk connected\r\n",0
+TXT_DISK_NOT_CONNECTED: db "-Disk NOT connected\r\n",0
+TXT_DISK_MOUNTED:       db "+Disk mounted\r\n",0
+TXT_DISK_NOT_MOUNTED:   db "-Disk NOT mounted\r\n",0
+TXT_NO_MAKE_MODEL:      db "-Device name NOT read\r\n",0
+TXT_MAKE_MODEL:         db "+Device name: ",0
+TXT_DIR_OPENED:     	db "+Directory opened\r\n",0
+TXT_DIR_NOT_OPENED: 	db "-Directory NOT opened\r\n",0
+TXT_NO_DIR_ENTRY:       db "-Directory entry NOT read\r\n",0
+TXT_CD_FAILED:          db "-Directory does NOT exist\r\n",0
+TXT_SEC_LOCATE_FAILED:  db "-Cannot set file pointer to sector\r\n",0
+TXT_SEC_READ_FAILED:    db "-Request sector failed\r\n",0
+TXT_DISK_READ_FAILED:   db "-Disk read sector failed\r\n",0
+TXT_CD_OKAY:            db "+Directory opened\r\n",0
+TXT_FILEOPEN_OKAY:      db "+File opened: ",0
+TXT_FILEOPEN_FAILED:    db "-File NOT opened\r\n",0
+TXT_SEC_LOCATE_OKAY:    db "+File pointer set to sector\r\n",0
+TXT_SEC_READ_OKAY:      db "+Sector read requested\r\n",0
+TXT_DISK_READ_OKAY:     db "+Disk sector read\r\n",0
+TXT_RESET:              db "+CH376s reset\r\n",0
+TXT_FILECLOSED_OKAY:    db "+File closed\r\n",0
 TXT_ROOT_DIR			db "\\",0,0,0,0,0,0,0
 TXT_WILDCARD			db "*",0,0,0,0,0,0,0
 TXT_ROOT_WILDCARD		db "\\*",0,0,0,0,0,0
 TXT_USB_DRIVE			db "USB:",0
 TXT_NEXTOR_DSK			db "\\NEXTOR.DSK",0
-TXT_NEWLINE				db "\r\n",0,"$"
-TXT_DIRECTORY_ENTRY: 	db "\r",09h,09h,"<DIR>\r",0,"$"
+TXT_NEWLINE				db "\r\n",0
+TXT_DIRECTORY_ENTRY: 	db "\r",09h,09h,"<DIR>\r",0
 TXT_AUTOEXEC_TXT:		db "\\AUTOEXEC.TXT",0

@@ -44,15 +44,17 @@ NXT_DIRECT				ds NXT_DIRECT_END - NXT_DIRECT_START
 JUMP_TABLE				ds JUMP_TABLE_END - JUMP_TABLE_START
 	ENDS
 
-TXT_START:              db "Starting CH376s driver v0.5\r\n",0,"$"
-TXT_FOUND:              db "+MSXUSB connected\r\n",0,"$"
-TXT_NOT_FOUND:          db "-MSXUSB NOT connected\r\n",0,"$"
-TXT_NEWLINE				db "\r\n",0,"$"
-TXT_DEVICE_CHECK_OK:	db " device(s) connected\r\n",0,"$"
-TXT_DEVICE_CHECK_NOK:	db "-No USB device connected\r\n",0,"$"
-TXT_STORAGE_CHECK_NOK:	db "-No USB storage\r\n",0,"$"
-TXT_STORAGE_CHECK_OK:	db "+USB Storage:",0,"$"
-TXT_INQUIRY_OK:			db "\r\n- ",0,"$"
-TXT_INQUIRY_NOK:		db "\r\n-Error (Inquiry)\r\n",0,"$"
-TXT_TEST_START:			db "\r\n+Storage coming online",0,"$"
-TXT_TEST_OK:			db "\r\n+Booting...\r\n",0,"$"
+TXT_START:              db "MSXUSB v0.5  (c) Sourceror\r\n"
+						db "GNU General Public License\r\n"
+						db "=============================\r\n\r\n",0
+TXT_FOUND:              db "+MSXUSB cartridge found\r\n",0
+TXT_NOT_FOUND:          db "-Insert MSXUSB cartridge\r\n",0
+TXT_NEWLINE				db "\r\n",0
+TXT_DEVICE_CHECK_OK:	db " device(s) connected\r\n",0
+TXT_DEVICE_CHECK_NOK:	db "-No USB device connected\r\n",0
+TXT_STORAGE_CHECK_NOK:	db "-No USB storage\r\n",0
+TXT_STORAGE_CHECK_OK:	db "+Found USB Storage:",0
+TXT_INQUIRY_OK:			db "\r\n ",0
+TXT_INQUIRY_NOK:		db "\r\n-Error (Inquiry)\r\n",0
+TXT_TEST_START:			db "\r\n+Testing storage device",0
+TXT_TEST_OK:			db "\r\n+All systems go!\r\n",0

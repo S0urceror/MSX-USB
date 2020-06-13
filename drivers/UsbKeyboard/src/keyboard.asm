@@ -101,23 +101,33 @@ KEYPRESS:
     ld ix, USB_HID_BOOT_KEYBOARD_BUFFER
     ld iy, OLD_HID_BOOT_KEYBOARD_BUFFER
     
-    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode1)
-    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode1)
-    cp c
-    jr nz, KEYPRESS_DONE ; haven't seen before, must be new keypress, we're done
-    
-    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode2)
-    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode2)
+    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode6)
+    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode6)
     cp c
     jr nz, KEYPRESS_DONE ; haven't seen before, must be new keypress, we're done
 
+    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode5)
+    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode5)
+    cp c
+    jr nz, KEYPRESS_DONE ; haven't seen before, must be new keypress, we're done
+
+    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode4)
+    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode4)
+    cp c
+    jr nz, KEYPRESS_DONE ; haven't seen before, must be new keypress, we're done
+    
     ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode3)
     ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode3)
     cp c
     jr nz, KEYPRESS_DONE ; haven't seen before, must be new keypress, we're done
+
+    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode2)
+    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode2)
+    cp c
+    jr nz, KEYPRESS_DONE ; haven't seen before, must be new keypress, we're done
     
-    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode4)
-    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode4)
+    ld a, (ix+BOOT_KEYBOARD_INPUT_REPORT.Keycode1)
+    ld c, (iy+BOOT_KEYBOARD_INPUT_REPORT.Keycode1)
     cp c
     jr nz, KEYPRESS_DONE ; haven't seen before, must be new keypress, we're done
 
@@ -134,65 +144,95 @@ KEYPRESS_DONE:
 
 _SCANCODES_ASCII: 
 ;   scancode,normal,shifted,ctrl
-    DB 0x04,'a','A',0
-    DB 0x05,'b','B',2
-    DB 0x06,'c','C',3
-    DB 0x07,'d','D',0
-    DB 0x08,'e','E',5
-    DB 0x09,'f','F',6
-    DB 0x0a,'g','G',0
-    DB 0x0b,'h','H',0
-    DB 0x0c,'i','I',0
-    DB 0x0d,'j','J',0
-    DB 0x0e,'k','K',0
-    DB 0x0f,'l','L',0
-    DB 0x10,'m','M',0
-    DB 0x11,'n','N',14
-    DB 0x12,'o','O',15
-    DB 0x13,'p','P',16
-    DB 0x14,'q','Q',17
-    DB 0x15,'r','R',0
-    DB 0x16,'s','S',19
-    DB 0x17,'t','T',20
-    DB 0x18,'u','U',21
-    DB 0x19,'v','V',0
-    DB 0x1a,'w','W',0
-    DB 0x1b,'x','X',0
-    DB 0x1c,'y','Y',25
-    DB 0x1d,'z','Z',26
-    DB 0x1e,'1','!',0
-    DB 0x1f,'2','@',0
-    DB 0x20,'3','#',0
-    DB 0x21,'4','$',0
-    DB 0x22,'5','%',0
-    DB 0x23,'6','^',0
-    DB 0x24,'7','&',0
-    DB 0x25,'8','*',0
-    DB 0x26,'9','(',0
-    DB 0x27,'0',')',0
-    DB 0x28,13,13,0 ; ENTER
-    DB 0x29,27,27,0 ; ESC
-    DB 0x2a,8,8,0  ; BACKSPACE
-    DB 0x2b,9,9,0  ; TAB
-    DB 0x2c,' ',' ',0; SPACE
-    DB 0x2d,'-','_',0
-    DB 0x2e,'=','+',0
-    DB 0x2f,'[','{',0
-    DB 0x30,']','}',0
-    DB 0x32,0x5c,0x7c,0
-    DB 0x33,';',':',0
-    DB 0x34,"\'","\"",0
-    DB 0x35,'`','~',0
-    DB 0x36,',','<',0
-    DB 0x37,'.','>',0
-    DB 0x38,'/','?',0
-    DB 0x49,0x12,0x12,0 ; insert key
-    DB 0x4a,0xb,0xc,0 ; home key
-    DB 0x4c,0x7f,0x7f,0 ; delete key
-    DB 0x4f,0x1c,0x1c,0 ; right arrow
-    DB 0x50,0x1d,0x1d,0 ; left arrow
-    DB 0x51,0x1f,0x1f,0 ; down arrow
-    DB 0x52,0x1e,0x1e,0 ; up arrow
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 'a','A',0
+    DB 'b','B',2
+    DB 'c','C',3
+    DB 'd','D',0
+    DB 'e','E',5
+    DB 'f','F',6
+    DB 'g','G',0
+    DB 'h','H',0
+    DB 'i','I',0
+    DB 'j','J',0
+    DB 'k','K',0
+    DB 'l','L',0
+    ;0x10
+    DB 'm','M',0
+    DB 'n','N',14
+    DB 'o','O',15
+    DB 'p','P',16
+    DB 'q','Q',17
+    DB 'r','R',0
+    DB 's','S',19
+    DB 't','T',20
+    DB 'u','U',21
+    DB 'v','V',0
+    DB 'w','W',0
+    DB 'x','X',0
+    DB 'y','Y',25
+    DB 'z','Z',26
+    DB '1','!',0
+    DB '2','@',0
+    ;0x20
+    DB '3','#',0
+    DB '4','$',0
+    DB '5','%',0
+    DB '6','^',0
+    DB '7','&',0
+    DB '8','*',0
+    DB '9','(',0
+    DB '0',')',0
+    DB 13,13,0 ; ENTER
+    DB 27,27,7 ; ESC
+    DB 8,8,0  ; BACKSPACE
+    DB 9,9,0  ; TAB
+    DB ' ',' ',0; SPACE
+    DB '-','_',0
+    DB '=','+',0
+    DB '[','{',0
+    ;0x30
+    DB ']','}',0
+    DB '\','|',0
+    DB 0x5c,0x7c,0
+    DB ';',':',0
+    DB "\'","\"",0
+    DB '`','~',0
+    DB ',','<',0
+    DB '.','>',0
+    DB '/','?',0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    ;0x40
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0,0,0
+    DB 0x12,0x12,0 ; insert key
+    DB 0xb,0xc,0 ; home key
+    DB 0x13,0,0 ; page up key
+    DB 0x7f,0x7f,0 ; delete key
+    DB 0x0e,0,0 ; end key
+    DB 0,0,0 ; page down key
+    DB 0x1c,6,0x0e ; right arrow
+    ;0x50
+    DB 0x1d,2,2 ; left arrow
+    DB 0x1f,0x1f,0 ; down arrow
+    DB 0x1e,0x1e,0 ; up arrow
+
 _SCANCODES_ASCII_END:
 
 ; A = SCANCODE
@@ -206,28 +246,18 @@ _SCANCODES_ASCII_END:
 ;     KEY_MOD_RALT   0x40
 ;     KEY_MOD_RMETA  0x80
 CONVERT_SCANCODE:
-    ld d,b ; modifier keys
-    ld e,a ; scancode
+    ld d, b ; modifier keys
+    ; calculate a times 3
+    ld c, a
+    add a, a ; times 2
+    add a, c ; times 3
+    ld b, 0
+    ld c, a
     ld hl, _SCANCODES_ASCII
-    ld bc, _SCANCODES_ASCII_END - _SCANCODES_ASCII
-_AGAIN:
-    ld a, e
-    cpi
-    jr z, _FOUND
-    inc hl
-    inc hl
-    inc hl
-    dec bc
-    dec bc
-    dec bc
-    ld a, b
-    or c
-    jr nz,_AGAIN
-    xor a
-    ret ; not found
-_FOUND:
+    add hl,bc
+
     ld a, d ; modifier keys
-    or a
+    and a
     jr z, _CONTINUE
     inc hl
     cp 0x02

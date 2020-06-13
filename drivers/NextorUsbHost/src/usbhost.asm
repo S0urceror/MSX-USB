@@ -245,13 +245,7 @@ FN_GETDESCRIPTORS:
     ; get device descriptor
     call CH_GET_DEVICE_DESCRIPTOR
     jr nc, _INIT_USBHID_NEXT
-    ; if not OK, set_speed (2), get device descriptor
-    ld a, CH_SPEED_LOW
-    call CH_SET_SPEED
-    ret c
-    ld hl, ix ;DEVICE_DESCRIPTOR
-    call CH_GET_DEVICE_DESCRIPTOR
-    ret c
+    ret
 _INIT_USBHID_NEXT:
     ; store number of configurations
     ld a, (ix+DEVICE_DESCRIPTOR.bNumConfigurations)
@@ -284,8 +278,8 @@ _SKIP_GET_ADDRESS:
     ld hl, iy 
     call CH_GET_CONFIG_DESCRIPTOR ; call first with max packet size to discover real size
     ret c
-    ld a, e
     ld c, (iy+CONFIG_DESCRIPTOR.wTotalLength) ; lower 8 bits
+    ld a, e
     call CH_GET_CONFIG_DESCRIPTOR ; call again with real size
     ld b, 0
     add iy, bc
@@ -911,7 +905,7 @@ INIT_HUB_DEVICE:
     include "usb_descriptors.asm"
 	include "unapi.asm"
 
-TXT_UNAPI_INIT DB "+UNAPI MSXUSB initialised\r\n",0
+TXT_UNAPI_INIT DB "+UNAPI initialised\r\n",0
 UNAPI_ID DB "MSXUSB",0
 ;UNAPI_INFO: db "MSXUSB driver by Sourceror",0
 ;Moved to start of unused space in Nextor kernel

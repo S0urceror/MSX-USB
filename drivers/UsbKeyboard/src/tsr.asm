@@ -21,6 +21,7 @@ CSRSW: equ 0FCA9h
 PUTPNT EQU 0F3F8h
 GETPNT EQU 0F3FAh
 KEYBUF EQU 0FBF0h
+CHSNS  EQU 0009Ch
 
    org 8000h
 TSR_ORG:
@@ -31,13 +32,17 @@ TSR_START:
     ld a, 255
     ld (CSRSW),a
 _SCAN_AGAIN:
+    ; check if a key is put in the keyboard buffer by KEYINT
+    call CHSNS
+    jr nz, _KEY_MSX_KEYBOARD_IN_BUFFER
+    ; no? scan our USB keyboard
     call READ_HID_KEYBOARD
     call c, UNHOOK_US ; when error or ALT+Q
     or a
     jr z, _SCAN_AGAIN
-
     call C0F55
 
+_KEY_MSX_KEYBOARD_IN_BUFFER:
     ret
  
     include "keyboard.asm"
