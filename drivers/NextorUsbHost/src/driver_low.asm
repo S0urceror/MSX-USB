@@ -262,6 +262,9 @@ DRV_INIT:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	call USBHOST_INIT
 
+	; reset USB bus and device
+    call USB_HOST_BUS_RESET
+
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
     jr nc, _HW_TEST_OKAY
@@ -269,12 +272,13 @@ DRV_INIT:
     call PRINT
     and a
     ret
+
 _HW_TEST_OKAY:
 	ld (ix+WRKAREA.STATUS),00000001b
    	ld hl, TXT_FOUND
     call PRINT
 
-	; reset bus and device
+	; enumerate and initialise USB devices
 	push ix
 	call FN_CONNECT
 	pop ix

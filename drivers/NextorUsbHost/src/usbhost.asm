@@ -120,8 +120,6 @@ FN_CONNECT:
     ; start scanning from address 1
     ld a, 1
     call SET_USB_DEVICE_ADDRESS
-    ; reset USB bus and device
-    call USB_HOST_BUS_RESET
 FN_CONNECT2: ; skip bus reset (for hubs)
     ld bc, WRKAREA.USB_DESCRIPTOR
     call WRKAREAPTR
