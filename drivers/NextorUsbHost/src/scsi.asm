@@ -70,23 +70,23 @@ _DO_SCSI_CMD_WRITE:
 _DO_SCSI_CMD_NEXT
     ; data_out_transfer
     ld hl, ix
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
     ld d, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_ID)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_ID)
     ld e, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE)
     rla ; move bit 7 to Cy
     pop bc ; usb_storage_device_id +
     push bc ; usb_storage_device_id ++
     ld a, b
-    ld bc, _SCSI_COMMAND_BLOCK_WRAPPER+16
+    ld bc, _SCSI_COMMAND_BLOCK_WRAPPER+16 ; 16 byte commands + wrapper
     push iy ; +++
     call HW_DATA_OUT_TRANSFER
     pop iy ; ++
     push af ; 0 or error_code +++
     ld a, 0
     rra ; move Cy to bit 7
-    ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
+    ld (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
     pop af ; 0 or error_code ++
     and a
     jr z, _DO_SCSI_CMD_NEXT2
@@ -108,11 +108,11 @@ _DO_SCSI_CMD_NEXT2:
     bit 7,a
     jr z, _DO_SCSI_CMD_WRITE3
     ; read response from USB SCSI device to IX
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
     ld d, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_ID)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_ID)
     ld e, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE)
     rla ; move bit 7 to Cy
     pop bc ; usb_storage_device_id +
     pop hl ; was ix passed to DO_SCSI_CMD = read/write buffer 
@@ -126,15 +126,15 @@ _DO_SCSI_CMD_NEXT2:
     pop iy ; +
     ld a, 0
     rra ; move Cy to bit 7
-    ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
+    ld (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
     jr _DO_SCSI_CMD_NEXT3
 _DO_SCSI_CMD_WRITE3:
     ; write contents IX to USB SCSI device
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
     ld d, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_ID)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_ID)
     ld e, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE)
     rla ; move bit 7 to Cy
     pop bc ; usb_storage_device_id +
     pop hl ; was ix passed to DO_SCSI_CMD = read/write buffer 
@@ -148,7 +148,7 @@ _DO_SCSI_CMD_WRITE3:
     pop iy ; +
     ld a, 0
     rra ; move Cy to bit 7
-    ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
+    ld (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
 _DO_SCSI_CMD_NEXT3:
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; RECEIVE CSW
@@ -160,11 +160,11 @@ _DO_SCSI_CMD_NEXT3:
     ld bc, WRKAREA.SCSI_CSW
     add hl,bc
     ld ix, hl
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
     ld d, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_ID)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_ID)
     ld e, a
-    ld a, (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE)
+    ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE)
     rla ; move bit 7 to Cy
     pop bc ; usb_storage_device_id +
     ld a, b
@@ -175,7 +175,7 @@ _DO_SCSI_CMD_NEXT3:
     pop iy,ix ; 
     ld a, 0
     rra ; move Cy to bit 7
-    ld (iy+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
+    ld (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
 
     ld a, (ix+_SCSI_COMMAND_STATUS_WRAPPER.CBWSTATUS)
     and a
@@ -193,7 +193,7 @@ _DO_SCSI_CMD_NEXT3:
 SCSI_INQUIRY:
     push ix ; ix points to SLTWRK
 
-    ld a, (ix+WRKAREA.USB_DEVICE_INFO.DEVICE_ADDRESS)
+    ld a, (ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
     ld bc, WRKAREA.SCSI_BUFFER
     add ix, bc
     ld iy, ix
@@ -247,7 +247,7 @@ SCSI_INQUIRY:
 ; Output: Cy=0 no error, Cy=1 error
 SCSI_TEST:
     push ix
-    ld a,(ix+WRKAREA.USB_DEVICE_INFO.DEVICE_ADDRESS)
+    ld a,(ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
     ld bc, WRKAREA.SCSI_BUFFER
     add ix,bc
     ld b, 0
@@ -269,7 +269,7 @@ SCSI_TEST:
 ; Output: Cy=0 no error, Cy=1 error
 SCSI_REQUEST_SENSE:
     push ix
-    ld a,(ix+WRKAREA.USB_DEVICE_INFO.DEVICE_ADDRESS)
+    ld a,(ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
     ld bc, WRKAREA.SCSI_BUFFER
     add ix,bc
     ld b, 0
@@ -316,7 +316,7 @@ SCSI_READ:
     ld (ix+_SCSI_PACKET_READ.LBA),a
     ; do read
     call MY_GWORK
-    ld a,(ix+WRKAREA.USB_DEVICE_INFO.DEVICE_ADDRESS)
+    ld a,(ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
     ld de, 512
     ld hl, 0
 _TOTAL_BYTES_RD
@@ -366,7 +366,7 @@ SCSI_WRITE:
     ld (ix+_SCSI_PACKET_WRITE.LBA),a
     ; do read
     call MY_GWORK
-    ld a,(ix+WRKAREA.USB_DEVICE_INFO.DEVICE_ADDRESS)
+    ld a,(ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
     ld de, 512
     ld hl, 0
 _TOTAL_BYTES_WR
@@ -384,14 +384,19 @@ _TOTAL_BYTES_WR
 ; --------------------------------------
 ; SCSI_MAX_LUNS
 ;
-; Input: HL=pointer to memory to receive result
-;        A=interface id
-;        B=max_packetsize
-;        D=device address 
+; Input:  Input: IX=pointer to WRKAREA
 ; Output: Cy=0 no error, Cy=1 error
 SCSI_MAX_LUNS:
     push iy,ix,hl,de,bc
-    ld iy, hl ; Address of the input or output data buffer
+
+    push ix
+    ld bc, WRKAREA.SCSI_MAX_LUNS
+	call WRKAREAPTR
+	ld iy, ix
+    pop ix
+	ld d,(ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
+	ld b,(ix+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
+	ld a,(ix+WRKAREA.STORAGE_DEVICE_INFO.INTERFACE_ID)
 
     ; get SLTWRK in HL for this ROM page
     push bc
@@ -410,13 +415,19 @@ SCSI_MAX_LUNS:
     scf ; error
     ret
 
+; --------------------------------------
+; SCSI_INIT
+;
+; Input: IX=pointer to WRKAREA
+;
 SCSI_INIT:
     ld a, 1
 	ld (ix+WRKAREA.SCSI_TAG),a
 	xor a
-	ld (ix+WRKAREA.USB_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
-	ld (ix+WRKAREA.USB_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
+	ld (ix+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
+	ld (ix+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
     ret
+
 
 SCSI_PACKET_INQUIRY         _SCSI_PACKET_INQUIRY
 SCSI_PACKET_TEST            _SCSI_PACKET_TEST

@@ -295,38 +295,18 @@ _USB_MODE_OKAY:
 	ld (ix+WRKAREA.STATUS),00000011b
     ld hl, TXT_DEVICE_CHECK_OK
     call PRINT
-
-    ; A holds the number of connected devices, try all of them
-    ld d, 1 ; start with device number 1
-    ld b, a
-_AGAIN_:
-    ; get descriptors 
-    push bc, de, ix
-	ld bc, WRKAREA.USB_DESCRIPTOR
-	ld hl, ix
-	add hl, bc
-    call FN_GETDESCRIPTORS
-    ; check if USB storage is connected
-    call CHECK_DESCRIPTOR_MASS_STORAGE
-    pop ix, de, bc
-    jr nc, _FOUND_
-    inc d
-    djnz _AGAIN_
+	ld a, (ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
+	and a
+	jr nz, _FOUND_
     ld hl, TXT_STORAGE_CHECK_NOK
     call PRINT
     ret
 _FOUND_:
-	ld a, d
-    ld (ix+WRKAREA.USB_DEVICE_INFO.DEVICE_ADDRESS),a
 	ld hl, TXT_STORAGE_CHECK_OK
     call PRINT
-	; SET CONFIGURATION
-	ld a, (ix+WRKAREA.USB_DEVICE_INFO.MAX_PACKET_SIZE)
-    ld b, a
-	ld a, (ix+WRKAREA.USB_DEVICE_INFO.CONFIG_ID)
-	call CH_SET_CONFIGURATION
+	; start communicating with SCSI device
+	call SCSI_MAX_LUNS
 	ret c
-	; INQUIRY
 	call SCSI_INIT
 	call SCSI_INQUIRY
 	jr nc, _INQUIRY_OKAY
@@ -483,6 +463,7 @@ DRV_VERSION:
 ; it must be done via the CALLB0 routine in kernel page 0.
 
 DRV_BASSTAT:
+	scf
 	ret
 
 ;-----------------------------------------------------------------------------

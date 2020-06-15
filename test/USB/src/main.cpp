@@ -31,7 +31,6 @@
 #include <iostream>
 #include <stdio.h>
 
-#define DEV_ADDRESS 1
 #define BOOT_PROTOCOL 0
 #define HID_CLASS 0x03
 #define HID_BOOT 0x01
@@ -102,6 +101,8 @@ int serial=-1;
 #define CH_PID_SETUP 0x0D
 #define CH_PID_IN  0x09
 #define CH_PID_OUT 0x01
+
+uint8_t device_counter=1;
 
 typedef struct __attribute__((packed)) _USB_DEVICE_DESCRIPTOR {
      uint8_t bLength;
@@ -210,7 +211,8 @@ struct _hid_info
     uint16_t mouse_packetsize;
     uint8_t keyboard_endpoint,keyboard_millis,keyboard_interface=255;
     uint16_t keyboard_packetsize;
-    uint8_t hid_configuration_id=0;
+    uint8_t configuration_id=0;
+    uint8_t device_address;
 }* hid_info=NULL;
 struct _ethernet_info 
 {
@@ -218,16 +220,18 @@ struct _ethernet_info
     uint8_t ethernet_interrupt_endpoint,ethernet_bulk_in_endpoint,ethernet_bulk_out_endpoint;
     uint8_t ethernet_interrupt_millis;
     uint16_t ethernet_interrupt_packetsize,ethernet_bulk_in_packetsize,ethernet_bulk_out_packetsize;
-    uint8_t ethernet_configuration_id=0;
+    uint8_t configuration_id=0;
     uint8_t ethernet_alternate_setting;
+    uint8_t device_address;
 }* ethernet_info=NULL;
 struct _hub_info
 {
     uint8_t hub_interface=255;
-    uint8_t hub_configuration_id=0;
+    uint8_t configuration_id=0;
     uint8_t hub_interrupt_endpoint;
     uint16_t hub_interrupt_packetsize;
     uint8_t hub_interrupt_millis;
+    uint8_t device_address;
 }* hub_info=NULL;
 struct _storage_info
 {
@@ -237,6 +241,7 @@ struct _storage_info
     uint8_t bulk_in_packetsize;
     uint8_t bulk_out_endpoint_id=0;
     uint8_t bulk_out_packetsize;
+    uint8_t device_address;
 }* storage_info=NULL;
 typedef struct __attribute__((packed)) _command_block_wrapper 
 {
@@ -873,6 +878,33 @@ bool set_interface2 (uint8_t target_device_address,uint8_t interface_id,uint8_t 
     free (data);
     return result;
 }
+bool clear_endpoint_feature2 (uint8_t target_device_address,uint8_t endpoint_id)
+{
+    uint8_t cmd[] = {0b00000010,1,0,0,endpoint_id,0,0,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
+}
+bool set_endpoint_feature2 (uint8_t target_device_address,uint8_t endpoint_id)
+{
+    uint8_t cmd[] = {0b00000010,3,0,0,endpoint_id,0,0,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    free (data);
+    return result;
+}
+uint16_t get_endpoint_status (uint8_t target_device_address,uint8_t endpoint_id)
+{
+    uint16_t status = 0;
+    uint8_t cmd[] = {0b10000010,0,0,0,endpoint_id,0,2,0};
+    uint8_t* data=NULL;
+    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    if (result)
+        status = *data;
+    free (data);
+    return status;
+}
 bool set_packet_filter2 (uint8_t target_device_address,uint8_t interface_id,uint8_t packet_filter)
 {
     uint8_t cmd[] = {0b00100001,0x43,packet_filter,0,interface_id,0,0,0}; // set ethernet packet filter
@@ -880,7 +912,7 @@ bool set_packet_filter2 (uint8_t target_device_address,uint8_t interface_id,uint
     bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
     free (data);
     return result;
-    }
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // USB HUB commands
@@ -998,7 +1030,8 @@ bool read_boot_mouse (uint8_t target_device_address,uint8_t mouse_endpoint_id,ui
 bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8_t millis,uint16_t in_packetsize)
 {
     uint8_t endpoint_toggle = 0;
-    while (true)
+    int count=5;
+    while (count--)
     {
         uint8_t* buffer = NULL;
         int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
@@ -1074,7 +1107,7 @@ bool check_network_connection (uint8_t target_device_address,uint8_t endpoint_id
 void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t in_packetsize)
 {
     uint8_t endpoint_toggle = 0;
-    int count = 20;
+    int count = 5;
     in_packetsize=1514;
 
     set_retry (0x0f);    
@@ -1127,12 +1160,12 @@ bool get_descriptors (uint8_t address, uint8_t* buffer, int& buffer_length)
     uint8_t* buffer_ptr;
 
     bool result = get_device_descriptor2(0,buffer, buffer_length);
-    if (!result)
-    {
+    //if (!result)
+    //{
         // 2-set to 1.5 Mhz low-speed mode, 0-set to 12 Mhz high-speed mode (default)
-        set_speed(2);
-        result = get_device_descriptor2(address,buffer, buffer_length);
-    }
+    //    set_speed(2);
+    //    result = get_device_descriptor2(address,buffer, buffer_length);
+    //}
     if (!result)
         error("unable to get device descriptor");
 
@@ -1317,14 +1350,14 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                     hid_info->keyboard_endpoint = endpoint->bEndpointAddress&0b01111111;
                     hid_info->keyboard_packetsize = endpoint->wMaxPacketSize;
                     hid_info->keyboard_millis = endpoint->bInterval;
-                    hid_info->hid_configuration_id = config->bConfigurationvalue;
+                    hid_info->configuration_id = config->bConfigurationvalue;
                 }
                 if (interface->bInterfaceClass==0x03 && interface->bInterfaceProtocol==0x02) // mouse
                 {
                     hid_info->mouse_endpoint = endpoint->bEndpointAddress&0b01111111;
                     hid_info->mouse_packetsize = endpoint->wMaxPacketSize;
                     hid_info->mouse_millis = endpoint->bInterval;
-                    hid_info->hid_configuration_id = config->bConfigurationvalue;
+                    hid_info->configuration_id = config->bConfigurationvalue;
                 }
                 if (interface->bInterfaceClass==0x02 && interface->bInterfaceSubClass==0x06) // ethernet control
                 {
@@ -1334,7 +1367,7 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                         ethernet_info->ethernet_interrupt_millis = endpoint->bInterval;
                         ethernet_info->ethernet_interrupt_packetsize = endpoint->wMaxPacketSize;
                     }
-                    ethernet_info->ethernet_configuration_id = config->bConfigurationvalue;
+                    ethernet_info->configuration_id = config->bConfigurationvalue;
                 }
                 if (interface->bInterfaceClass==0x0a && interface->bInterfaceSubClass==0x00) // ethernet data
                 {
@@ -1354,7 +1387,7 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
                     hub_info->hub_interrupt_endpoint = endpoint->bEndpointAddress&0b01111111;
                     hub_info->hub_interrupt_packetsize = endpoint->wMaxPacketSize;
                     hub_info->hub_interrupt_millis = endpoint->bInterval;
-                    hub_info->hub_configuration_id = config->bConfigurationvalue;
+                    hub_info->configuration_id = config->bConfigurationvalue;
                 }
                 if (interface->bInterfaceClass==0x08 && interface->bInterfaceSubClass==0x06 && interface->bInterfaceProtocol==0x50)
                 {
@@ -1427,10 +1460,10 @@ void print_descriptors (uint8_t device_address, uint8_t* buffer, int buffer_leng
         }
     }
 }
-void do_hid (uint8_t device_address);
-void do_ethernet (uint8_t device_address);
-void do_hub (uint8_t device_address);
-void do_storage (uint8_t device_address);
+void do_hid (_hid_info&);
+void do_ethernet (_ethernet_info&);
+void do_hub (_hub_info&);
+void do_storage (_storage_info&);
 
 void connect_disk ()
 {
@@ -1516,6 +1549,11 @@ void usb_host_bus_reset ()
     usleep (500000);
 }
 
+std::vector <_hid_info> hids;
+std::vector <_hub_info> hubs;
+std::vector <_storage_info> storages;
+std::vector <_ethernet_info> ethernets;
+
 void init_device (uint8_t device_address)
 {
     uint8_t buffer[1024];
@@ -1532,20 +1570,45 @@ void init_device (uint8_t device_address)
     print_descriptors (device_address, buffer, buffer_length);
     
     if (hid_info)
-        do_hid (device_address);
+    {
+        hid_info->device_address = device_address;
+        if (!set_configuration2(hid_info->device_address,hid_info->configuration_id))
+                error ("error setting Hid configuration");
+        hids.push_back (*hid_info);
+        hid_info=NULL;
+    }
     if (ethernet_info)
-        do_ethernet (device_address);
+    {
+        ethernet_info->device_address = device_address;
+        if (!set_configuration2(ethernet_info->device_address,ethernet_info->configuration_id))
+                error ("error setting Ethernet configuration");
+        ethernets.push_back (*ethernet_info);
+        ethernet_info=NULL;
+    }
     if (hub_info)
-        do_hub (device_address);
+    {
+        hub_info->device_address = device_address;
+        if (!set_configuration2(hub_info->device_address,hub_info->configuration_id))
+            error ("error setting Hub configuration");
+        hubs.push_back (*hub_info);
+        do_hub (*hub_info);
+        hub_info=NULL;
+    }
     if (storage_info)
-        do_storage (device_address);
+    {
+        storage_info->device_address = device_address;
+        if (!set_configuration2(storage_info->device_address,storage_info->configuration_id))
+                error ("error setting Storage configuration");
+        storages.push_back (*storage_info);
+        storage_info=NULL;
+    }
 }
 
 uint32_t tag = 1;
 uint8_t storage_out_toggle=0;
 uint8_t storage_in_toggle=0;
 
-bool do_scsi_command (uint8_t device_address,uint8_t lun,bool read,uint8_t* command,uint8_t command_len,uint8_t *&buffer,uint32_t buffer_len)
+bool do_scsi_command (_storage_info& storage_info,uint8_t lun,bool read,uint8_t* command,uint8_t command_len,uint8_t *&buffer,uint32_t buffer_len)
 {
     command_block_wrapper cbw;
     command_status_wrapper csw;
@@ -1564,13 +1627,13 @@ bool do_scsi_command (uint8_t device_address,uint8_t lun,bool read,uint8_t* comm
     cbw.bCBWCBLength = command_len;
     memcpy (cbw.data,command,command_len);
     print_buffer ((uint8_t*) &cbw,sizeof (command_block_wrapper));
-    data_out_transfer ((uint8_t*) &cbw,sizeof(command_block_wrapper),device_address,storage_info->bulk_out_endpoint_id,storage_info->bulk_out_packetsize,storage_out_toggle);
+    data_out_transfer ((uint8_t*) &cbw,sizeof(command_block_wrapper),storage_info.device_address,storage_info.bulk_out_endpoint_id,storage_info.bulk_out_packetsize,storage_out_toggle);
     if (cbw.dCBWDataTransferLength>0)
     {
         if (read)
         {
             // get command results
-            bytes_read = data_in_transfer (buffer_len,device_address,storage_info->bulk_in_endpoint_id,storage_info->bulk_in_packetsize,storage_in_toggle,buffer);
+            bytes_read = data_in_transfer (buffer_len,storage_info.device_address,storage_info.bulk_in_endpoint_id,storage_info.bulk_in_packetsize,storage_in_toggle,buffer);
             if (bytes_read==0 || buffer==NULL)
                 return false;
             print_buffer (buffer,buffer_len);
@@ -1582,7 +1645,7 @@ bool do_scsi_command (uint8_t device_address,uint8_t lun,bool read,uint8_t* comm
     }
     // get CSW
     uint8_t* csw_result;
-    bytes_read = data_in_transfer (sizeof (command_status_wrapper),device_address,storage_info->bulk_in_endpoint_id,storage_info->bulk_in_packetsize,storage_in_toggle,csw_result);
+    bytes_read = data_in_transfer (sizeof (command_status_wrapper),storage_info.device_address,storage_info.bulk_in_endpoint_id,storage_info.bulk_in_packetsize,storage_in_toggle,csw_result);
     if (bytes_read==0 || csw_result==NULL)
         return false;
     memcpy (&csw,csw_result,sizeof(command_status_wrapper));
@@ -1601,7 +1664,7 @@ bool do_scsi_command (uint8_t device_address,uint8_t lun,bool read,uint8_t* comm
     return true;
 }
 
-bool scsi_read_block (uint8_t device_address, uint32_t blocknr, uint16_t blocksize,uint8_t *&buffer)
+bool scsi_read_block (_storage_info& storage_info, uint32_t blocknr, uint16_t blocksize,uint8_t *&buffer)
 {
     scsi_read10 read;
     uint32_t swapped =  ((blocknr>>24)&0xff) | // move byte 3 to byte 0
@@ -1611,28 +1674,24 @@ bool scsi_read_block (uint8_t device_address, uint32_t blocknr, uint16_t blocksi
     read.dLBA = swapped;
     read.wTransferLength = 1; // blocks requested
     read.wTransferLength = (read.wTransferLength>>8) | (read.wTransferLength<<8); // convert endianness
-    return do_scsi_command (device_address,0,true,(uint8_t*) &read,sizeof(read),buffer,blocksize);
+    return do_scsi_command (storage_info,0,true,(uint8_t*) &read,sizeof(read),buffer,blocksize);
 }
 
-void do_storage (uint8_t device_address)
+void do_storage (_storage_info& storage_info)
 {
     // USB HID?
-    if (storage_info && storage_info->configuration_id>0)
+    if (storage_info.configuration_id>0)
     {
         uint8_t* buffer=NULL;
         int max_luns;
-
-        printf ("\nWe found an USB Storage device, lets start using it.\n");
-        if (!set_configuration2(device_address,storage_info->configuration_id))
-                error ("error setting Storage configuration");
         
-        // bulkonly_mass_storage_reset (device_address,storage_info->interface_id);
-        // max_luns = get_max_luns (device_address,storage_info->interface_id);
-        // printf ("\tMax LUNs: %d\n",max_luns);
+        //bulkonly_mass_storage_reset (storage_info.device_address,storage_info.interface_id);
+        max_luns = get_max_luns (storage_info.device_address,storage_info.interface_id);
+        printf ("\tMax LUNs: %d\n",max_luns);
 
         // INQUIRY
         scsi_inquiry inquiry;
-        if (do_scsi_command (device_address,0,true,(uint8_t*) &inquiry,sizeof(inquiry),buffer,0x24))
+        if (do_scsi_command (storage_info,0,true,(uint8_t*) &inquiry,sizeof(inquiry),buffer,0x24))
         {
             printf ("\tPDT: %d\n",buffer[0]);
             printf ("\tRemovable: %s\n",0b10000000 & buffer[1]?"yes":"no");
@@ -1664,7 +1723,7 @@ void do_storage (uint8_t device_address)
         bool device_ready=false;
         while (device_ready==false)
         {
-            if (do_scsi_command (device_address,0,false,(uint8_t*) &ready,sizeof(scsi_test_unit_ready),buffer,0))
+            if (do_scsi_command (storage_info,0,false,(uint8_t*) &ready,sizeof(scsi_test_unit_ready),buffer,0))
             {
                 device_ready = true;
             }
@@ -1672,7 +1731,7 @@ void do_storage (uint8_t device_address)
             {
                 // REQUEST SENSE
                 scsi_request_sense sense;
-                if (do_scsi_command(device_address,0,true,(uint8_t*) &sense,sizeof (scsi_request_sense),buffer,sense.bAllocationLength))
+                if (do_scsi_command(storage_info,0,true,(uint8_t*) &sense,sizeof (scsi_request_sense),buffer,sense.bAllocationLength))
                 {
                     std::string sense_key;
                     switch (buffer[2])
@@ -1696,7 +1755,7 @@ void do_storage (uint8_t device_address)
         // CHECK CAPACITY
         scsi_capacity capacity;
         uint32_t lba,len;
-        if (do_scsi_command (device_address,0,true,(uint8_t*) &capacity,sizeof(capacity),buffer,0x8))
+        if (do_scsi_command (storage_info,0,true,(uint8_t*) &capacity,sizeof(capacity),buffer,0x8))
         {
             lba = buffer[0]*16777216+buffer[1]*65536+buffer[2]*256+buffer[3];
             len = buffer[4]*16777216+buffer[5]*65536+buffer[6]*256+buffer[7];
@@ -1712,14 +1771,14 @@ void do_storage (uint8_t device_address)
         //mode.bPageCode = 0x04; // Flexible Disk
         mode.bSubpageCode = 0x00;
         mode.wAllocationLength = 192;
-        if (do_scsi_command (device_address,0,true,(uint8_t*) &mode,sizeof(mode),buffer,192))
+        if (do_scsi_command (storage_info.device_address,0,true,(uint8_t*) &mode,sizeof(mode),buffer,192))
         {
             free (buffer);
         }
         */
 
         // READ MBR
-        if (scsi_read_block (device_address,0,len,buffer))
+        if (scsi_read_block (storage_info,0,len,buffer))
         {
             if (buffer[0x1fe]==0x55 && buffer[0x1ff]==0xaa) // Boot signature present?
             {
@@ -1736,7 +1795,7 @@ void do_storage (uint8_t device_address)
                     free (buffer);
                     // READ BOOTSECTOR
                     uint8_t cluster_map = 2;
-                    if (scsi_read_block (device_address,first_partition,len,buffer))
+                    if (scsi_read_block (storage_info,first_partition,len,buffer))
                     {
                         if (buffer[0x1fe]==0x55 && buffer[0x1ff]==0xaa) // Boot signature present
                         {
@@ -1790,49 +1849,48 @@ void do_storage (uint8_t device_address)
         close_file ();
         */
     }
-    storage_info = NULL;
 }
-void do_hid (uint8_t device_address)
+void do_hid (_hid_info& hid_info)
 {
     // USB HID?
-    if (hid_info && hid_info->hid_configuration_id>0)
+    if (hid_info.configuration_id>0)
     {
         printf ("\nWe found an USB HID device, lets start using it.\n");
-        if (hid_info->mouse_interface!=255 && hid_info->keyboard_interface!=255)
+        if (hid_info.mouse_interface!=255 && hid_info.keyboard_interface!=255)
         {
             // enable device configuration
-            if (!set_configuration2(device_address,hid_info->hid_configuration_id))
-                error ("error setting HID configuration");
+            //(hid_info.device_address,hid_info.hid_configuration_id))
+            //    error ("error setting HID configuration");
             // set boot protocol for mouse and read it
-            //if (!set_protocol2 (device_address,BOOT_PROTOCOL,hid_info->mouse_interface)) // select boot protocol for our device
+            //if (!set_protocol2 (hid_info.device_address,BOOT_PROTOCOL,hid_info->mouse_interface)) // select boot protocol for our device
             //    error ("error setting boot protocol for mouse");
-            //set_idle2(device_address, 0x0, 0,mouse_interface); // wait on change
+            //set_idle2(hid_info.device_address, 0x0, 0,mouse_interface); // wait on change
             // set boot protocol for keyboard and read it
-            if (!set_protocol2 (device_address,BOOT_PROTOCOL,hid_info->keyboard_interface)) // select boot protocol for our device
+            if (!set_protocol2 (hid_info.device_address,BOOT_PROTOCOL,hid_info.keyboard_interface)) // select boot protocol for our device
                 error ("error setting boot protocol for keyboard");
-            set_idle2(device_address, 0x80, 0,hid_info->keyboard_interface); // scan every ~500ms
+            set_idle2(hid_info.device_address, 0x80, 0,hid_info.keyboard_interface); // scan every ~500ms
             
-            read_boot_keyboard (device_address,hid_info->keyboard_endpoint,hid_info->keyboard_millis,hid_info->keyboard_packetsize); // assume endpoint 2
-            //read_boot_mouse (device_address,mouse_endpoint,mouse_millis,mouse_packetsize); // assume endpoint 2
+            read_boot_keyboard (hid_info.device_address,hid_info.keyboard_endpoint,hid_info.keyboard_millis,hid_info.keyboard_packetsize); 
+            //read_boot_mouse (device_address,mouse_endpoint,mouse_millis,mouse_packetsize);
         }
     }
 }
-void do_ethernet (uint8_t device_address)
+void do_ethernet (_ethernet_info& ethernet_info)
 {
-    if (ethernet_info && ethernet_info->ethernet_configuration_id>0)
+    if (ethernet_info.configuration_id>0)
     {
         printf ("\nWe found an USB CDC ECM device, lets start using it.\n");
-        if (ethernet_info->ethernet_control_interface==255 || ethernet_info->ethernet_data_interface==255)
+        if (ethernet_info.ethernet_control_interface==255 || ethernet_info.ethernet_data_interface==255)
             return; 
         // enable device configuration
-        if (!set_configuration2(device_address,ethernet_info->ethernet_configuration_id))
-            error ("error setting Ethernet configuration");
+        //if (!set_configuration2(ethernet_info.device_address,ethernet_info.ethernet_configuration_id))
+        //    error ("error setting Ethernet configuration");
         // set alternate interface
-        if (!set_interface2 (device_address,ethernet_info->ethernet_data_interface,ethernet_info->ethernet_alternate_setting))
+        if (!set_interface2 (ethernet_info.device_address,ethernet_info.ethernet_data_interface,ethernet_info.ethernet_alternate_setting))
             error ("error setting alternate interface");
 
         // check if the network cable is connected
-        bool result = check_network_connection (device_address,ethernet_info->ethernet_interrupt_endpoint,ethernet_info->ethernet_interrupt_millis,ethernet_info->ethernet_interrupt_packetsize);
+        bool result = check_network_connection (ethernet_info.device_address,ethernet_info.ethernet_interrupt_endpoint,ethernet_info.ethernet_interrupt_millis,ethernet_info.ethernet_interrupt_packetsize);
         if (!result)
             error ("please connect a network cable");
         else
@@ -1843,26 +1901,23 @@ void do_ethernet (uint8_t device_address)
             const uint8_t PACKET_TYPE_DIRECTED =        0b00000100;
             const uint8_t PACKET_TYPE_ALL_MULTICAST =   0b00000010;
             const uint8_t PACKET_TYPE_PROMISCUOUS =     0b00000001;
-            if (!set_packet_filter2 (device_address,ethernet_info->ethernet_control_interface,PACKET_TYPE_BROADCAST|PACKET_TYPE_DIRECTED))
+            if (!set_packet_filter2 (ethernet_info.device_address,ethernet_info.ethernet_control_interface,PACKET_TYPE_BROADCAST|PACKET_TYPE_DIRECTED))
                 error ("error setting packet filter");
-            dump_in_packets (device_address,ethernet_info->ethernet_bulk_in_endpoint,ethernet_info->ethernet_bulk_in_packetsize);
+            dump_in_packets (ethernet_info.device_address,ethernet_info.ethernet_bulk_in_endpoint,ethernet_info.ethernet_bulk_in_packetsize);
         }
     }
 }
 
-void do_hub (uint8_t device_address)
+void do_hub (_hub_info& hub_info)
 {
-    if (hub_info && hub_info->hub_configuration_id>0)
+    if (hub_info.configuration_id>0)
     {
-        if (hub_info->hub_interface==255)
+        if (hub_info.hub_interface==255)
             return;
-        // enable device configuration
-        if (!set_configuration2(device_address,hub_info->hub_configuration_id))
-            error ("error setting Hub configuration");
 
         int length;
         USB_HUB_DESCRIPTOR* hub = new USB_HUB_DESCRIPTOR();
-        bool result = get_hub_descriptor2(device_address,(uint8_t*) hub,length);
+        bool result = get_hub_descriptor2(hub_info.device_address,(uint8_t*) hub,length);
         if (!result)
             error("unable to get hub descriptor");
         printf ("  Hub Descriptor:\n");
@@ -1885,12 +1940,11 @@ void do_hub (uint8_t device_address)
         const uint8_t HUB_PORT_BITMASK = (1 << (HUB_PORT_NUMBER));
         for (int i=1;i<=hub->bNrPorts;i++)
         {
-            if (!set_hub_port_feature2 (device_address,PORT_POWER,i,0)) // power all ports
+            if (!set_hub_port_feature2 (hub_info.device_address,PORT_POWER,i,0)) // power all ports
                 error ("error powering Hub port");
         }   
         //if (!set_hub_port_feature2 (device_address,PORT_POWER,HUB_PORT_NUMBER,0)) // power all ports
         //        error ("error powering Hub port");
-        delete hub;
 
         // wait something happens on any of the powered ports
         //while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
@@ -1900,8 +1954,17 @@ void do_hub (uint8_t device_address)
 
         for (int i=1;i<=hub->bNrPorts;i++)
         {
-            status = get_hub_portstatus (device_address,i)&0xffff;
+            status = get_hub_portstatus (hub_info.device_address,i)&0xffff;
+            if (status & 0x0001)
+            {
+                if (!set_hub_port_feature2 (hub_info.device_address,PORT_RESET,i,0)) // reset port 1
+                    error ("error resetting Hub port");
+                usleep (250000);
+                // endpoint 0 should now be equal to the resetted device
+                init_device (device_counter++);
+            }
         } 
+        delete hub;
         // check if low speed
         //status = get_hub_portstatus (device_address,HUB_PORT_NUMBER)&0xffff;
         //if (status&0x0200) // low speed
@@ -1909,8 +1972,8 @@ void do_hub (uint8_t device_address)
             // no idea to handle this...
         //}
 
-        if (!set_hub_port_feature2 (device_address,PORT_RESET,HUB_PORT_NUMBER,0)) // reset port 1
-            error ("error resetting Hub port 1");
+        //if (!set_hub_port_feature2 (device_address,PORT_RESET,HUB_PORT_NUMBER,0)) // reset port 1
+        //    error ("error resetting Hub port 1");
         // wait for change of port 1 => bit 2
         //while (!(get_hub_change (device_address,hub_info->hub_interrupt_endpoint,hub_info->hub_interrupt_millis,hub_info->hub_interrupt_packetsize)&HUB_PORT_BITMASK));
         //status = get_hub_portstatus (device_address,HUB_PORT_NUMBER);
@@ -1918,20 +1981,27 @@ void do_hub (uint8_t device_address)
         //    error ("error clearing feature Hub port");
         
         // endpoint 0 should now be equal to the resetted device
-        init_device (device_address+1);
+        //init_device (device_address+1);
     }
 }
 int main(int argc, const char * argv[]) 
 {
     init_serial();
-    check_exists();
     reset_all();
-
+    check_exists();
+    
     // set reset bus and set host mode
     usb_host_bus_reset ();
 
     // do the low-level things
-    init_device (DEV_ADDRESS);
+    init_device (device_counter++);
 
+    for (int i=0;i<hids.size();i++)
+        do_hid (hids[i]);
+    for (int i=0;i<storages.size();i++)
+        do_storage (storages[i]);
+    for (int i=0;i<ethernets.size();i++)
+        do_ethernet (ethernets[i]);
+    
     return 0;
 }
