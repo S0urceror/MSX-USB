@@ -50,11 +50,12 @@ void FT_SetName( FCB *p_fcb, const char *p_name )  // Routine servant à vérifi
 
 int main(char *argv[], int argc)
 {   
-    uint8_t slot;
+    uint8_t slot=0;
+    uint8_t argnr=0;
     myprint ("MSXUSB Flash, (c) 2020 S0urceror\r\n\r\n");
-    if (argc != 1)
+    if (argc < 1)
     {
-        myprint ("Error: please specify which file to flash");
+        myprint ("FLASH.COM [flags] [romfile]\r\n\r\nOptions:\r\n/T - perform tests\r\n/S0 - skip flash detection and select slot 0\r\n/S1 - skip flash detection and select slot 1\r\n/S2 - skip flash detection and select slot 2\r\n/S3 - skip flash detection and select slot 3\r\n");
         return (0);
     }
     if (ReadSP ()<(0x8000+SEGMENT_SIZE))
@@ -62,31 +63,40 @@ int main(char *argv[], int argc)
         myprint ("Not enough memory to read file segment");
         return (0);
     }
-    // find the slot where the flash rom is sitting
-    if (!((slot = find_flash())<4))
-    {
-        myprint ("Cannot find slot with flash");
-        return (0);
+    if (strcmp (argv[0],"/S0")==0) {
+        slot = 0;argnr++;
     } 
-    else 
-    {
-        myprint ("Found flash in slot: %d\r\n",slot);
-        press_any_key();
+    if (strcmp (argv[0],"/S1")==0) {
+        slot = 1;argnr++;
+    } 
+    if (strcmp (argv[0],"/S2")==0) {
+        slot = 2;argnr++;
+    } 
+    if (strcmp (argv[0],"/S3")==0) {
+        slot = 3;argnr++;
     }
-    
-    if (strcmp (argv[0],"/T")==0 || strcmp (argv[0],"/t")==0)
+    if (argnr==0)
+    {   
+        // find the slot where the flash rom is sitting
+        if (!((slot = find_flash())<4))
+        {
+            myprint ("Cannot find slot with flash\r\n");
+            return (0);
+        } 
+    }
+    myprint ("Found flash in slot: %d\r\n",slot);
+    if (strcmp (argv[argnr],"/T")==0 || strcmp (argv[argnr],"/t")==0)
     {
         // test mode
         do_tests (slot);
         return (0);
     }
-
     // open file
     FCB fcb;
-    FT_SetName (&fcb,argv[0]);
+    FT_SetName (&fcb,argv[argnr]);
     if(fcb_open( &fcb ) != FCB_SUCCESS) 
     {
-        myprint ("Error: opening file");
+        myprint ("Error: opening file\r\n");
         return (0);   
     }
     myprint ("Opened: %s\r\n",argv[0]);
@@ -137,7 +147,7 @@ void do_tests (uint8_t slot)
         // select segment
         flash_segment[0x1000] = i;
         // debug purposes
-        // print_hex_buffer (flash_segment, flash_segment+16);
+        print_hex_buffer (flash_segment, flash_segment+16);
         /*
         if (flash_segment[0x00]==0xff && // empty segment? let's stop
             flash_segment[0x10]==0xff &&
@@ -182,7 +192,7 @@ BOOL flash_ident ()
     uint8_t manufacturer = flash_segment[0];
     uint8_t device = flash_segment[1];
     myprint ("M: %x, D: %x\r\n",manufacturer,device);
-    if (device==0xa4 || device==0xb5 || device==0xb6 || device==0xb7)  // device ID is correct
+    if (device==0xa4)  // device ID is correct
     {
         // reset
         flash_segment[0] = 0xf0;
