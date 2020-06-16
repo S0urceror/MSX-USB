@@ -1152,7 +1152,6 @@
   (segment (start 637.032 -677.672) (end 662.177998 -677.672) (width 0.4) (layer B.Cu) (net 1) (tstamp 5E89B1EC))
   (segment (start 662.177998 -677.672) (end 662.439999 -677.934001) (width 0.4) (layer B.Cu) (net 1) (tstamp 5E89B1E9))
   (via (at 662.939998 -678.434) (size 1) (drill 0.4) (layers F.Cu B.Cu) (net 1) (tstamp 5E89B1E6))
-  (segment (start 647.7 -718.566) (end 647.7 -718.82) (width 0.4) (layer B.Cu) (net 64))
   (via (at 618.744 -674.116) (size 1) (drill 0.4) (layers F.Cu B.Cu) (net 1))
   (segment (start 619.76 -674.116) (end 618.744 -674.116) (width 0.4) (layer B.Cu) (net 1))
   (segment (start 618.23 -674.63) (end 618.744 -674.116) (width 0.4) (layer F.Cu) (net 1))
@@ -2067,5 +2066,6 @@
   (segment (start 649.51601 -709.676) (end 651.001996 -709.676) (width 0.25) (layer B.Cu) (net 61))
   (segment (start 660.146 -677.475685) (end 660.146 -701.494358) (width 0.25) (layer F.Cu) (net 61))
   (segment (start 657.713555 -708.768001) (end 651.910003 -708.768001) (width 0.25) (layer F.Cu) (net 61))
+  (segment (start 647.7 -718.566) (end 647.7 -718.82) (width 0.4) (layer B.Cu) (net 64))
 
 )

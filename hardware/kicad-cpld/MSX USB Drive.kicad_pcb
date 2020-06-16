@@ -637,7 +637,7 @@
     (fp_text reference U5 (at 7.62 -2.33) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value SST39SF040 (at 7.62 40.43) (layer F.Fab)
+    (fp_text value AM29f040 (at 7.62 40.43) (layer F.Fab)
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_arc (start 7.62 -1.33) (end 6.62 -1.33) (angle -180) (layer F.SilkS) (width 0.12))

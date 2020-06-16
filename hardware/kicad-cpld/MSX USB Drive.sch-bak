@@ -529,7 +529,6 @@ Text GLabel 6750 1850 2    50   Input ~ 0
 RESET_
 NoConn ~ 4450 1750
 NoConn ~ 4450 1850
-NoConn ~ 4450 3050
 $Comp
 L Connector:AVR-JTAG-10 J1
 U 1 1 5E822CA8
@@ -553,4 +552,6 @@ F 3 "" H 1600 6300 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 NoConn ~ 1700 6300
+Text GLabel 4450 3050 0    50   Input ~ 0
+A12
 $EndSCHEMATC

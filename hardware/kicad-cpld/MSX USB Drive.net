@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source "/Users/mario/Development/msx/USB/hardware/kicad-cpld/MSX USB Drive.sch")
-    (date "2020 May 03, Sunday 23:09:18")
+    (date "2020 June 16, Tuesday 09:25:49")
     (tool "Eeschema (5.1.5-0-10_14)")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -50,7 +50,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 5D243AE7))
     (comp (ref U5)
-      (value SST39SF040)
+      (value AM29f040)
       (footprint msx-usb-kicad-cpld:DIP-32_W15.24mm_Socket)
       (datasheet http://ww1.microchip.com/downloads/en/DeviceDoc/25022B.pdf)
       (libsource (lib Memory_Flash) (part SST39SF040) (description "Silicon Storage Technology (SSF) 512k x 8 Flash ROM"))
