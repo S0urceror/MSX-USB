@@ -7,7 +7,10 @@
             "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": "$errmatcher-sjasmplus"
         },
         {
@@ -42,10 +45,7 @@
             "label": "Software - flash",
             "type": "shell",
             "command": "make -C ./software/ -f makeflash.mk",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {

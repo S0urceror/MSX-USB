@@ -37,7 +37,7 @@ WANTED_PROTOCOL					DB
 
 	STRUCT WRKAREA
 BASE:					; Offset to the base of the data structure 
-STATUS:					db ; bit 0 = CH376s present, bit 1 = initialised, bit 2 = USB device present, bit 3 = USB device mounted, bit 5 = DSK changed
+STATUS:					db ; bit 0 = CH376s present, bit 1 = initialised, bit 2 = USB device present, bit 3 = USB device mounted, bit 5 = DSK changed, bit 7 = Flash disk present
 MAX_DEVICE_ADDRESS:		db 0
 USB_DEVICE_INFO:		_USB_DEVICE_INFO
 STORAGE_DEVICE_INFO:	_USB_DEVICE_INFO
@@ -52,9 +52,10 @@ USB_DESCRIPTOR			ds 140 ; memory area to hold the usb device+config descriptor o
 USB_DESCRIPTORS			ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
 NXT_DIRECT				ds NXT_DIRECT_END - NXT_DIRECT_START
 JUMP_TABLE				ds JUMP_TABLE_END - JUMP_TABLE_START
+FLASH_READ				ds FLASH_READ_END - FLASH_READ_START
 	ENDS
 
-TXT_START:              db "MSXUSB v0.5  (c) Sourceror\r\n"
+TXT_START:              db "MSXUSB v0.6  (c) Sourceror\r\n"
 						db "GNU General Public License\r\n"
 						db "=============================\r\n\r\n",0
 TXT_FOUND:              db "+MSXUSB cartridge found\r\n",0
@@ -68,3 +69,8 @@ TXT_INQUIRY_OK:			db "\r\n ",0
 TXT_INQUIRY_NOK:		db "\r\n-Error (Inquiry)\r\n",0
 TXT_TEST_START:			db "\r\n+Testing storage device",0
 TXT_TEST_OK:			db "\r\n+All systems go!\r\n",0
+TXT_FLASHDISK_OK:		db "+ROM disk detected\r\n",0
+
+RD_MANUFACTURER:		db "S0urceror",0
+RD_DEVICE_NAME:			db "Flash ROM Disk",0
+RD_SERIAL:				db "v0.1",0
