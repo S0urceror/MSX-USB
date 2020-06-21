@@ -6,7 +6,7 @@
     <setting id="default_machine">msx2_eu</setting>
     <setting id="scanline">0</setting>
     <setting id="blur">0</setting>
-    <setting id="maxframeskip">0</setting>
+    <setting id="maxframeskip">100</setting>
     <setting id="osd_rom_path">/Users/mario/Downloads</setting>
     <setting id="osd_disk_path">/Users/mario/Development/msx/USB/drivers/UsbKeyboard</setting>
     <setting id="scale_factor">3</setting>

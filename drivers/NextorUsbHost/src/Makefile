@@ -44,6 +44,7 @@ $(OUTPUT_DIR)/nextorrd.rom: $(OUTPUT_DIR)/driverrd.rom $(OUTPUT_DIR)/chgbnkrd.bi
 	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.0-beta2.base.dat $(OUTPUT_DIR)/nextorrd.rom \
 							/d:$(OUTPUT_DIR)/driverrd.rom /m:$(OUTPUT_DIR)/chgbnkrd.bin \
 							/e:$(OUTPUT_DIR)/extra1k.dat
+	cat $(OUTPUT_DIR)/nextorrd.rom $(OUTPUT_DIR)/RDDISK.DSK > $(OUTPUT_DIR)/nextorrd_complete.rom
 	
 clean:
 	-rm $(OUTPUT_DIR)/*.rom

@@ -55,7 +55,11 @@ JUMP_TABLE				ds JUMP_TABLE_END - JUMP_TABLE_START
 FLASH_READ				ds FLASH_READ_END - FLASH_READ_START
 	ENDS
 
+	IFDEF __ROOKIEDRIVE
+TXT_START:              db "MSXUSB-RD v0.6 (c) Sourceror\r\n"
+	ELSE
 TXT_START:              db "MSXUSB v0.6  (c) Sourceror\r\n"
+	ENDIF
 						db "GNU General Public License\r\n"
 						db "=============================\r\n\r\n",0
 TXT_FOUND:              db "+MSXUSB cartridge found\r\n",0
