@@ -144,7 +144,7 @@ cont:   ld      hl,#0x100
 _heap_top::
 	.dw 0
 
-        ;.area   _GSINIT      WAS HERE, MOVED DOWN TO gsinext
+        ;.area   _GSINIT ; S0urceror, bug static initialisers not run with jump to gsinit
 gsinit::
         ld	bc,#l__INITIALIZER
         ld	a,b
@@ -154,7 +154,7 @@ gsinit::
         ld	hl,#s__INITIALIZER
         ldir
 gsinext:
-        .area   _GSINIT
+        .area   _GSINIT ; S0urceror, fixed for static initialisers
         .area   _GSFINAL
         ret
 
