@@ -19,7 +19,7 @@ FLASH_INIT:
     ld bc, FLASH_READ_END-FLASH_READ_START
     ldir
     ; check contents of flash sector 0
-    ld de, 8000h
+    ld de, 0c000h
     ld hl, 4000h
     ld bc, 2
     ld a, (CUR_BANK)
@@ -33,23 +33,23 @@ FLASH_INIT:
     ; update status in WRKAREA to indicate IF we have flash disk
 _FLASH_INIT_NEXT:
     ei
-    ld a, (8000h)
-    inc a
-    ld b,a
-    ld a, (8001h)
-    inc a
-    add b
-    pop ix
-    jr nz,_FLASH_INIT_OK
-    scf ; no flash disk at this place
-    ret
-    ; not FF's?
+	pop ix
+	; starting with EBh FEh?
+    ld a, (0c000h)
+	cp 0EBh
+	jr nz,_FLASH_INIT_NOK
+    ld a, (0c001h)
+	cp 0FEh
+	jr nz,_FLASH_INIT_NOK
 _FLASH_INIT_OK:
     ld a,(ix+WRKAREA.STATUS)
     set 7,a
     ld (ix+WRKAREA.STATUS),a
     ld hl, TXT_FLASHDISK_OK
     call PRINT
+    ret
+_FLASH_INIT_NOK:
+    scf ; no flash disk at this place
     ret
 
 FLASH_READ_START

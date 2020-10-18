@@ -58,16 +58,16 @@ CH_SET_CONFIGURATION:
     push af
     push bc
     ld bc, 2*8
-    ld a,JP_CONTROL_PACKET
-    call main.JP_MSXUSB
+    ld a, USB_CONTROL_PACKET
+    call UNAPI_ENTRY
     pop bc
     pop af
     ;ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
     ld ix, hl
     ld (ix+2),a
     ld c, d ; device address
-    ld a,JP_CONTROL_TRANSFER
-    call main.JP_MSXUSB
+    ld a, USB_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -87,8 +87,8 @@ CH_SET_PROTOCOL:
     push af
     push bc
     ld bc, 8*8
-    ld a,JP_CONTROL_PACKET
-    call main.JP_MSXUSB
+    ld a, USB_CONTROL_PACKET
+    call UNAPI_ENTRY
     pop bc
     pop af
     ;ld hl, CMD_SET_PROTOCOL ; Address of the command: 0x21,0x0B,protocol_id,0,interface_id,0,0,0
@@ -96,8 +96,8 @@ CH_SET_PROTOCOL:
     ld (ix+2),a
     ld (ix+4),e
     ld c, d ; device address
-    ld a,JP_CONTROL_TRANSFER
-    call main.JP_MSXUSB
+    ld a, USB_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -118,8 +118,8 @@ CH_SET_IDLE:
     push af
     push bc
     ld bc, 7*8
-    ld a,JP_CONTROL_PACKET
-    call main.JP_MSXUSB
+    ld a, USB_CONTROL_PACKET
+    call UNAPI_ENTRY
     pop bc
     pop af
     ;ld hl, CMD_SET_IDLE ; Address of the command: 0x21,0x0A,report_id,duration,interface_id,0,0,0
@@ -128,8 +128,8 @@ CH_SET_IDLE:
     ld (ix+3),a
     ld (ix+4),e
     ld c, d ; device address
-    ld a,JP_CONTROL_TRANSFER
-    call main.JP_MSXUSB
+    ld a, USB_CONTROL_TRANSFER
+    call UNAPI_ENTRY
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error

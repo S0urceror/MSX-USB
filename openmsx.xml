@@ -7,10 +7,12 @@
     <setting id="scanline">0</setting>
     <setting id="blur">0</setting>
     <setting id="maxframeskip">100</setting>
-    <setting id="osd_rom_path">/Users/mario/Downloads</setting>
-    <setting id="osd_disk_path">/Users/mario/Development/msx/USB/drivers/UsbKeyboard</setting>
     <setting id="scale_factor">3</setting>
     <setting id="deinterlace">false</setting>
+    <setting id="auto_enable_reverse">off</setting>
+    <setting id="osd_disk_path">/Users/mario/Development/msx/Emulators/openMSX/share</setting>
+    <setting id="osd_rom_path">/Users/mario/Development/msx/USB/drivers/NextorUsbHost/dist</setting>
+    <setting id="invalid_ppi_mode_callback">ppimodecallback</setting>
   </settings>
   <bindings>
     <bind key="keyb R+META">reset</bind>

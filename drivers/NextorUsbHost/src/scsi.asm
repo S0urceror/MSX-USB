@@ -27,7 +27,7 @@
 ; Output: Cy when error
 DO_SCSI_CMD:
     push ix, af, de, bc, hl ; +++++
-    ld bc, WRKAREA.SCSI_BUFFER
+    ld bc, WRKAREA.SCSI_DEVICE_INFO.BUFFER
     call WRKAREAPTR
     ld iy,ix
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -53,12 +53,12 @@ DO_SCSI_CMD:
     ld (ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWDATATRANSFERLENGTH),e
     ld (ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWDATATRANSFERLENGTH+1),d
     ; set tag
-    ld bc, WRKAREA.BASE - WRKAREA.SCSI_BUFFER
+    ld bc, WRKAREA.BASE - WRKAREA.SCSI_DEVICE_INFO.BUFFER
     add iy, bc ; iy points now to WRKAREA
-    ld a, (iy+WRKAREA.SCSI_TAG)
+    ld a, (iy+WRKAREA.SCSI_DEVICE_INFO.TAG)
     ld (ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWTAG),a
     inc a
-    ld (iy+WRKAREA.SCSI_TAG),a
+    ld (iy+WRKAREA.SCSI_DEVICE_INFO.TAG),a
     pop af ; usb_storage_device_id +
     push af ; usb_storage_device_id ++
     jr c, _DO_SCSI_CMD_WRITE
@@ -157,7 +157,7 @@ _DO_SCSI_CMD_NEXT3:
     ; data_in_transfer
     ; check if all went right, set Cy accordingly
     ld hl, iy
-    ld bc, WRKAREA.SCSI_CSW
+    ld bc, WRKAREA.SCSI_DEVICE_INFO.CSW
     add hl,bc
     ld ix, hl
     ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
@@ -185,6 +185,11 @@ _DO_SCSI_CMD_NEXT3:
     or a ; clear Cy
 	ret
 
+    MACRO SAFE_SCSI_CMD
+        DI
+        call DO_SCSI_CMD
+        EI
+    ENDM
 ; --------------------------------------
 ; SCSI_INQUIRY
 ;
@@ -194,7 +199,7 @@ SCSI_INQUIRY:
     push ix ; ix points to SLTWRK
 
     ld a, (ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
-    ld bc, WRKAREA.SCSI_BUFFER
+    ld bc, WRKAREA.SCSI_DEVICE_INFO.BUFFER
     add ix, bc
     ld iy, ix
     
@@ -203,7 +208,7 @@ SCSI_INQUIRY:
     ld de, 0x24
     ld hl, SCSI_PACKET_INQUIRY
     push iy
-    call DO_SCSI_CMD
+    SAFE_SCSI_CMD
     pop iy
     pop ix
     ret c
@@ -248,14 +253,14 @@ SCSI_INQUIRY:
 SCSI_TEST:
     push ix
     ld a,(ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
-    ld bc, WRKAREA.SCSI_BUFFER
+    ld bc, WRKAREA.SCSI_DEVICE_INFO.BUFFER
     add ix,bc
     ld b, 0
     ld c, _SCSI_PACKET_TEST
     ld de, 0 ; no result data, only status in CBWSTATUS
     ld hl, SCSI_PACKET_TEST
 
-    call DO_SCSI_CMD
+    SAFE_SCSI_CMD
     pop ix
     ret c
 
@@ -270,14 +275,14 @@ SCSI_TEST:
 SCSI_REQUEST_SENSE:
     push ix
     ld a,(ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
-    ld bc, WRKAREA.SCSI_BUFFER
+    ld bc, WRKAREA.SCSI_DEVICE_INFO.BUFFER
     add ix,bc
     ld b, 0
     ld c, _SCSI_PACKET_REQUEST_SENSE
     ld de, 18
     ld hl, SCSI_PACKET_REQUEST_SENSE
 
-    call DO_SCSI_CMD
+    SAFE_SCSI_CMD
     pop ix
     ret c
 
@@ -328,7 +333,7 @@ _TOTAL_BYTES_RD
     pop hl
     ld ix, hl ; receive buffer is also holding modified scsi read command
     or a ; clear Cy = read bytes from scsi
-    call DO_SCSI_CMD
+    SAFE_SCSI_CMD
     ret 
 
 ; --------------------------------------
@@ -341,7 +346,7 @@ _TOTAL_BYTES_RD
 SCSI_WRITE:
     push hl, de, bc ; +++
     ; copy SCSI_PACKET_READ to receive buffer
-    ld bc, WRKAREA.SCSI_BUFFER+_SCSI_COMMAND_BLOCK_WRAPPER
+    ld bc, WRKAREA.SCSI_DEVICE_INFO.BUFFER+_SCSI_COMMAND_BLOCK_WRAPPER
     call WRKAREAPTR
     ld de, ix
     ld hl, SCSI_PACKET_WRITE
@@ -378,7 +383,7 @@ _TOTAL_BYTES_WR
     pop ix ; sector buffer +
     pop hl ; CMD buffer
     scf ; set Cy = write bytes to scsi
-    call DO_SCSI_CMD
+    SAFE_SCSI_CMD
     ret
 
 ; --------------------------------------
@@ -390,7 +395,7 @@ SCSI_MAX_LUNS:
     push iy,ix,hl,de,bc
 
     push ix
-    ld bc, WRKAREA.SCSI_MAX_LUNS
+    ld bc, WRKAREA.SCSI_DEVICE_INFO.MAX_LUNS
 	call WRKAREAPTR
 	ld iy, ix
     pop ix
@@ -422,7 +427,7 @@ SCSI_MAX_LUNS:
 ;
 SCSI_INIT:
     ld a, 1
-	ld (ix+WRKAREA.SCSI_TAG),a
+	ld (ix+WRKAREA.SCSI_DEVICE_INFO.TAG),a
 	xor a
 	ld (ix+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
 	ld (ix+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a

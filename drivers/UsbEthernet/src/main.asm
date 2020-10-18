@@ -22,10 +22,9 @@ BDOS        EQU 5
 
 ; major and minor version number of MSXUSB UNAPI that we need
 MSXUSB_UNAPI_P:    equ  0
-MSXUSB_UNAPI_S:    equ  2
+MSXUSB_UNAPI_S:    equ  3
 
-FN_INFO:      EQU  0
-FN_JUMPTABLE: EQU  1
+    include "msxusbunapi.asm"
 
 JP_CHECK                EQU 0*8
 JP_CONNECT              EQU 1*8
@@ -112,6 +111,7 @@ _FOUND_:
     
     ret 
 
+
 GET_UNAPI_MSXUSB:
     ; copy our ID to ARG
     ld	hl,MSXUSB_UNAPI_ID
@@ -141,7 +141,7 @@ GET_UNAPI_MSXUSB:
     and  10000000b
     jp  nz,ERROR
     ; okay MSXUSB in ROM, check if it supports our version
-    ld a, FN_INFO
+    ld a, USB_INFO
     call UNAPI_ENTRY
     ld a, d
     cp MSXUSB_UNAPI_P
@@ -150,9 +150,9 @@ GET_UNAPI_MSXUSB:
     cp MSXUSB_UNAPI_S
     jp nz, ERROR
     ; get JUMPTABLE
-    ld a, FN_JUMPTABLE
+    ld a, USB_JUMPTABLE
+    ld hl, JUMP_TABLE_START
     call UNAPI_ENTRY
-    ld (JUMP_TABLE), hl
     ; all fine
     ld hl, TXT_MSXUSB_FOUND
     call PRINT_DOS
@@ -196,8 +196,7 @@ _NORMAL_MAPPER_TABLE:
     ret
 
 USB_CHECK_ADAPTER:
-    ld a, JP_CHECK
-    call main.JP_MSXUSB
+    call FN_CHECK
     jp c, ERROR
 
     ld hl, TXT_ADAPTER_OKAY
@@ -206,8 +205,7 @@ USB_CHECK_ADAPTER:
     ret 
     
 USB_CONNECT_DEVICE:
-    ld a, JP_CONNECT
-    call main.JP_MSXUSB
+    call FN_CONNECT
     and a
     jp z, ERROR ; nr devices connected is 0
     
@@ -219,8 +217,7 @@ USB_CONNECT_DEVICE:
     
 USB_GET_DESCRIPTORS:
     ld hl, DESCRIPTORS
-    ld a,JP_GET_DESCRIPTORS
-    call main.JP_MSXUSB
+    call FN_GET_DESCRIPTORS
     jp c, ERROR
     ret
 
@@ -545,13 +542,19 @@ COPY_TSR_SEG:
     ; copy TSR to new segment
     ld hl, TSR+(TSR_START-TSR_ORG)
     ld bc, TSR_END - TSR_START
-    ld de, TSR_START ; start page 2
+    ld de, TSR_START ; start page 1
     ldir
     ; copy SHARED_VARIABLES to new segment
     ld hl, SHARED_VARS_START
     ld bc, TSR_SHARED_VARS_END - TSR_SHARED_VARS_START
-    ld de, TSR_SHARED_VARS_START ; start page 2
+    ld de, TSR_SHARED_VARS_START ; start page 1
     ldir
+    ; get new jumptable for the new addresses
+    ; get JUMPTABLE
+    ld a, USB_JUMPTABLE
+    ld hl, TSR_JUMP_TABLE_START
+    call UNAPI_ENTRY
+    ;
     ; map old segment into page 1
     pop af
     call _PUT_P1
@@ -608,17 +611,6 @@ PRINT_DOS:
     pop bc,de,hl
     ret
 
-   MODULE main
-JP_MSXUSB:
-    push af,bc
-    ld c,a
-    ld b,0
-    ld ix, (JUMP_TABLE)
-    add ix,bc
-    pop bc,af
-    jp (ix)
-   ENDMODULE
-
     include "usb_descriptors.asm"
     include "usb.asm"
     include "unapi_init.asm"
@@ -648,6 +640,12 @@ TXT_RAM_HELPER_FOUND: DB "+ Ram Helper Unapi found\r\n$",0
 TXT_RAM_HELPER_NOT_FOUND: DB "- Ram Helper Unapi NOT found\r\n$",0
 
 MSXUSB_UNAPI_ID DB "MSXUSB",0
+; UNAPI_ENTRY
+UNAPI_ENTRY:
+    rst 30h
+IMP_SLOT: db 0 ; to be replaced with current slot id
+IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
+    ret
 
 ;--- Mapper support routines
 _ALL_SEG:	ds	3
@@ -689,6 +687,7 @@ RH_MAPTAB_ENTRY_SIZE:   db 8    ;Size of an entry in the mappers table:
                                 ;- 2 in DOS 1 (mappers table provided by the RAM helper)
 
 SHARED_VARS_START:
+;
 DEVICE_ADDRESS              DB 0
 ; CDC ECM identifiers
 CONTROL_INTERFACE_ID:       DB 0
@@ -705,14 +704,15 @@ MAC_ADDRESS                 DW 0,0,0
 OLD_EXTBIO:                 DS 5
 MAPPER_SEGMENT:             DB 0
 MAPPER_SLOT:                DB 0
-; MSX USB
-JUMP_TABLE:                 DW 0 ; pointer to MSXUSB jumptable
-; UNAPI_ENTRY
-UNAPI_ENTRY:
-    rst 30h
-IMP_SLOT: db 0 ; to be replaced with current slot id
-IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
-    ret
+JUMP_TABLE_START:
+FN_CHECK: DS 8
+FN_CONNECT: DS 8
+FN_GET_DESCRIPTORS: DS 8
+FN_CONTROL_TRANSFER: DS 8
+FN_DATA_IN_TRANSFER: DS 8
+FN_DATA_OUT_TRANSFER: DS 8
+FN_SYNC_MODE: DS 8
+FN_CONTROL_PACKET: DS 8
 SHARED_VARS_END:
 
 TSR: 

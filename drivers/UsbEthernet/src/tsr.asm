@@ -27,20 +27,16 @@ ETHERNET_IMPLEMENTATION_S:  equ  1
 ARG:    equ  0F847h
 EXTBIO: equ  0FFCAh
 
-;TODO: this place seems not to clash with INL but better to reserve from HIMEM at boot
-ETH_WORK_AREA: equ 0B800h
-
-PACKET_TYPE_MULTICAST equ 00010000b
-PACKET_TYPE_BROADCAST equ 00001000b
-PACKET_TYPE_DIRECTED equ 0000100b
-PACKET_TYPE_ALL_MULTICAST equ 00000010b
-PACKET_TYPE_PROMISCUOUS equ 00000001b
+PACKET_TYPE_MULTICAST      equ 00010000b
+PACKET_TYPE_BROADCAST      equ 00001000b
+PACKET_TYPE_DIRECTED       equ 00000100b
+PACKET_TYPE_ALL_MULTICAST  equ 00000010b
+PACKET_TYPE_PROMISCUOUS    equ 00000001b
 
    org 4000h
 TSR_ORG:
 
 TSR_START:
-TSR_JUMPTABLE:
    jp DO_EXTBIO
    jp RESERVED1
    jp RESERVED2
@@ -65,17 +61,6 @@ FN_9:  dw  ETH_SEND_FRAME  ;Send a frame
 FN_10: dw  ETH_OUT_STATUS  ;Check frame transmission status
 FN_11: dw  ETH_SET_HWADD   ;Set the Ethernet address
 MAX_FN equ 11
-
-   MODULE tsr
-JP_MSXUSB:
-    push af,bc
-    ld c,a
-    ld b,0
-    ld ix, (TSR_JUMP_TABLE)
-    add ix,bc
-    pop bc,af
-    jp (ix)
-   ENDMODULE
 
 ;************************
 ;***  FUNCTIONS CODE  ***
@@ -109,8 +94,7 @@ ETH_RESET:
    ; Bits 5-0: Number of retries after device timeout
    ; Default after reset and SET_USB_MODE is 8Fh
    ld b, 00001111b ; return within immediately
-   ld a,JP_SYNC_MODE
-   call tsr.JP_MSXUSB
+   call TSR_FN_SYNC_MODE
    ret
 
 ;--- ETH_GET_HWADD: Get hardware address
@@ -129,13 +113,12 @@ ETH_GET_HWADD:
 ETH_GET_NETSTAT:
    ;
    ld b, 10001111b ; default
-   ld a,JP_SYNC_MODE
-   call tsr.JP_MSXUSB
+   call TSR_FN_SYNC_MODE
    ;
    ld a, (ETH_INT_READ_TOGGLE) ; get stored toggle value
    rla ; high bit shifted to Cy
    ;
-   ld hl, ETH_WORK_AREA ;ECM_NOTIFICATION_EVENT_BUFFER
+   ld hl, SCRATCH_AREA ;ECM_NOTIFICATION_EVENT_BUFFER
    ld bc, ECM_NOTIFICATION_EVENT
    ld a, (TSR_ETHERNET_MAX_PACKET_SIZE)
    ld d, a
@@ -143,8 +126,7 @@ ETH_GET_NETSTAT:
    ld e, a
    ld a, (TSR_DEVICE_ADDRESS)
    call _PACK_E
-   ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
-   call tsr.JP_MSXUSB
+   call TSR_FN_DATA_IN_TRANSFER ; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
@@ -152,14 +134,13 @@ ETH_GET_NETSTAT:
    ld (ETH_INT_READ_TOGGLE),a ; stored in memory   
    ;
    ld b, 00001111b ; return immediately
-   ld a,JP_SYNC_MODE
-   call tsr.JP_MSXUSB
+   call TSR_FN_SYNC_MODE
    ;
    pop af
    cp CH_USB_INT_SUCCESS
    jr nz, _READ_ETH_ERROR
 _READ_ETH_CONTINUE:
-   ld ix,ETH_WORK_AREA ;ECM_NOTIFICATION_EVENT_BUFFER
+   ld ix,SCRATCH_AREA ;ECM_NOTIFICATION_EVENT_BUFFER
    ld a, (ix+ECM_NOTIFICATION_EVENT.bmRequestType)
    cp 10100001b
    jr nz,ETH_GET_NETSTAT
@@ -250,8 +231,7 @@ _ETH_FILTERS_NEXT3:
 CH_SET_PACKET_FILTER:
    push bc,af
    ld bc, 6*8
-   ld a,JP_CONTROL_PACKET
-   call tsr.JP_MSXUSB
+   call TSR_FN_CONTROL_PACKET
    pop af,bc
    ld ix, hl
    ; set packet_filter
@@ -265,8 +245,7 @@ CH_SET_PACKET_FILTER:
    ; set device_address
    ld a, (TSR_DEVICE_ADDRESS)
    ld c, a
-   ld a,JP_CONTROL_TRANSFER
-   call tsr.JP_MSXUSB
+   call TSR_FN_CONTROL_TRANSFER
    cp CH_USB_INT_SUCCESS
    ret z ; no error
    scf ; error
@@ -291,8 +270,7 @@ GET_BULK_IN_PACKET:
    ld e, a
    ld a, (TSR_DEVICE_ADDRESS)
    call _PACK_E
-   ld a,JP_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
-   call tsr.JP_MSXUSB
+   call TSR_FN_DATA_IN_TRANSFER; A=USB result code, Cy=toggle bit, BC = Amount of data actually received
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
@@ -314,7 +292,7 @@ GET_ETHERNET_FRAME:
    ld bc, (FRAME_SIZE)
    ret
 _GET_NEW_FRAME:
-   ld hl, ETH_WORK_AREA
+   ld hl, ETH_PACKET
 _GET_NEXT_PACKET:
    call GET_BULK_IN_PACKET ; BC holds amount of data retrieved
    cp CH_USB_INT_SUCCESS
@@ -343,9 +321,9 @@ _GET_ETHERNET_FRAME_NO_SUCCESS:
 ETH_IN_STATUS:
    call GET_ETHERNET_FRAME
    push af
-   ld a, (ETH_WORK_AREA+12)
+   ld a, (ETH_PACKET+12)
    ld h,a
-   ld a, (ETH_WORK_AREA+13)
+   ld a, (ETH_PACKET+13)
    ld l,a
    pop af
    ret
@@ -365,14 +343,14 @@ ETH_GET_FRAME:
    ld bc, 0
    ret
 _ETH_GET_FRAME_AVAILABLE:
-   ld a, h
-   or l
-   jr z, _ETH_GET_FRAME_NO_COPY
-   ex de,hl
-   ld hl, ETH_WORK_AREA
-   push bc
-   ldir
-   pop bc
+   ;ld a, h
+   ;or l
+   ;jr z, _ETH_GET_FRAME_NO_COPY
+   ;ex de,hl
+   ;ld hl, ETH_WORK_AREA
+   ;push bc
+   ;ldir
+   ;pop bc
 _ETH_GET_FRAME_NO_COPY:
    xor a
    ld (FRAME_IN_MEMORY),a
@@ -400,8 +378,7 @@ SEND_BULK_OUT_PACKET:
    ld e, a
    ld a, (TSR_DEVICE_ADDRESS)
    call _PACK_E
-   ld a,JP_DATA_OUT_TRANSFER; A=USB result code, Cy=toggle bit
-   call tsr.JP_MSXUSB
+   call TSR_FN_DATA_OUT_TRANSFER; A=USB result code, Cy=toggle bit
    ;
    push af
    ld a, 0 ; deliberately no XOR because that wipes Cy
@@ -501,6 +478,7 @@ TSR_END:
    DB 0
 
 TSR_SHARED_VARS_START:
+;
 TSR_DEVICE_ADDRESS               DB 0
 ; CDC ECM identifiers
 TSR_CONTROL_INTERFACE_ID:        DB 0
@@ -512,17 +490,23 @@ TSR_DATA_BULK_OUT_ENDPOINT_ID:   DB 0
 TSR_ETHERNET_MAX_PACKET_SIZE:    DB 0
 TSR_ETHERNET_CONFIG_ID:          DB 0
 TSR_ETHERNET_MAX_SEGMENT_SIZE:   DW 0
-TSR_MAC_ADDRESS DW 503eh,0aa7bh,601ah
+TSR_MAC_ADDRESS                  DW 503eh,0aa7bh,601ah
 ; EXTBIO variables
 TSR_OLD_EXTBIO:                  DS 5
 TSR_MAPPER_SEGMENT:              DB 0
 TSR_MAPPER_SLOT:                 DB 0
-; MSX USB
-TSR_JUMP_TABLE:                  DW 0 ; pointer to MSXUSB jumptable
-; UNAPI_ENTRY
-TSR_UNAPI_ENTRY:
-   rst 30h
-   db 0 ; to be replaced with current slot id
-   dw 0 ; to be replaced with UNAPI_ENTRY
-   ret
+TSR_JUMP_TABLE_START:
+TSR_FN_CHECK: DS 8
+TSR_FN_CONNECT: DS 8
+TSR_FN_GET_DESCRIPTORS: DS 8
+TSR_FN_CONTROL_TRANSFER: DS 8
+TSR_FN_DATA_IN_TRANSFER: DS 8
+TSR_FN_DATA_OUT_TRANSFER: DS 8
+TSR_FN_SYNC_MODE: DS 8
+TSR_FN_CONTROL_PACKET: DS 8
 TSR_SHARED_VARS_END:
+
+; temp space to receive ethernet packet
+;ETH_WORK_AREA:                   DS 1522
+SCRATCH_AREA:                   EQU 0b800h
+ETH_PACKET: EQU 08b7ah

@@ -57,16 +57,14 @@ CH_SET_CONFIGURATION:
     push af
     push bc
     ld bc, 2*8
-    ld a,JP_CONTROL_PACKET
-    call main.JP_MSXUSB
+    call FN_CONTROL_PACKET
     pop bc
     pop af
     ;ld hl, CMD_SET_CONFIGURATION ; Address of the command: 0x00,0x09,configuration_id,0,0,0,0,0
     ld ix, hl
     ld (ix+2),a
     ld c, d ; device address
-    ld a,JP_CONTROL_TRANSFER
-    call main.JP_MSXUSB
+    call FN_CONTROL_TRANSFER
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -86,8 +84,7 @@ CH_SET_INTERFACE:
     push af
     push bc
     ld bc, 5*8
-    ld a,JP_CONTROL_PACKET
-    call main.JP_MSXUSB
+    call FN_CONTROL_PACKET
     pop bc
     pop af
     ;ld hl, CMD_SET_INTERFACE ; Address of the command: 0x01,11,alternative_setting,0,interface_id,0,0,0
@@ -95,8 +92,7 @@ CH_SET_INTERFACE:
     ld (ix+2),a
     ld (ix+4),e
     ld c, d ; device address
-    ld a,JP_CONTROL_TRANSFER
-    call main.JP_MSXUSB
+    call FN_CONTROL_TRANSFER
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error
@@ -117,8 +113,7 @@ CH_GET_STRING:
     push af
     push bc
     ld bc, 3*8
-    ld a,JP_CONTROL_PACKET
-    call main.JP_MSXUSB
+    call FN_CONTROL_PACKET
     pop bc
     pop af
     ;ld hl, CMD_GET_STRING ; Address of the command: 0x80,6,string_id,3,0,0,255,0
@@ -126,8 +121,7 @@ CH_GET_STRING:
     ld (ix+2),a
     ld c, d ; device address
     pop de ; buffer to receiver string
-    ld a,JP_CONTROL_TRANSFER
-    call main.JP_MSXUSB
+    call FN_CONTROL_TRANSFER
     pop hl,ix
     cp CH_USB_INT_SUCCESS
     ret z ; no error

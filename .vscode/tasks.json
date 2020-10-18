@@ -7,52 +7,66 @@
             "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": "$errmatcher-sjasmplus"
+            "group": "build",
+            "problemMatcher": "$problem-matcher-sjasmplus"
         },
         {
             "label": "Driver - UsbKeyboard",
             "type": "shell",
             "command": "make -C ./drivers/UsbKeyboard/src/",
             "group": "build",
-            "problemMatcher": []
+            "problemMatcher": "$problem-matcher-sjasmplus"
         },
         {
             "label": "Driver - UsbEthernet",
             "type": "shell",
             "command": "make -C ./drivers/UsbEthernet/src/",
             "group": "build",
-            "problemMatcher": []
+            "problemMatcher": "$problem-matcher-sjasmplus"
         },
         {
-            "label": "Test - USB C++",
+            "label": "Test - USB via Arduino C++",
             "type": "shell",
-            "command": "make -C ./test/USB/src/",
+            "command": "make -C ./test/usb_via_arduino/src/",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "Software - echo",
+            "label": "Software - nc",
             "type": "shell",
-            "command": "make -C ./software/",
+            "command": "make -C ./software/nc/",
             "group": "build",
             "problemMatcher": []
         },
         {
             "label": "Software - flash",
             "type": "shell",
-            "command": "make -C ./software/ -f makeflash.mk",
+            "command": "make -C ./software/flash/",
             "group": "build",
             "problemMatcher": []
         },
         {
             "label": "Software - lsusb",
             "type": "shell",
-            "command": "make -C ./software/ -f makelsusb.mk",
+            "command": "make -C ./software/lsusb/",
             "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Software - uIP Hello",
+            "type": "shell",
+            "command": "make -C ./software/uip_hello/",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Software - uIP wget",
+            "type": "shell",
+            "command": "make -C ./software/uip_wget/",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {

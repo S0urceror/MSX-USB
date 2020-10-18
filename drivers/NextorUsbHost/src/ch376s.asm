@@ -91,52 +91,53 @@ CH_MODE_HOST: equ 6
 ;
 ; Input: A = 1 if file-length is updated in dir, 0 if not
 ; Output: none
-CH_FILE_CLOSE:
-    ld b,a
-    ld a, CH_CMD_FILE_CLOSE
-    out (CH_COMMAND_PORT), a ; start reading
-    ld a, b
-    out (CH_DATA_PORT), a
-    call CH_WAIT_INT_AND_GET_RESULT
-    ret
+;CH_FILE_CLOSE:
+;    ld b,a
+;    ld a, CH_CMD_FILE_CLOSE
+;    out (CH_COMMAND_PORT), a ; start reading
+;    ld a, b
+;    out (CH_DATA_PORT), a
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    ret
 
 ; --------------------------------------
 ; CH_FILE_READ
 ;
 ; Input: HL points to buffer to receive data
 ; Output: none
-CH_FILE_READ:
-    ld a, CH_CMD_BYTE_READ
-    out (CH_COMMAND_PORT), a ; start reading
-    ld a, 64 ; buffer size
-    out (CH_DATA_PORT), a ; 64 bytes requested
-    xor a
-    out (CH_DATA_PORT),a
+;CH_FILE_READ:
+;    ld a, CH_CMD_BYTE_READ
+;    out (CH_COMMAND_PORT), a ; start reading
+;    ld a, 64 ; buffer size
+;    out (CH_DATA_PORT), a ; 64 bytes requested
+;    xor a
+;    out (CH_DATA_PORT),a
 
-_FILE_READ_NEXT:
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_DISK_READ ; data read
-    jp z, _FILE_READ_DATA
-    cp CH_USB_INT_SUCCESS ; done reading
-    jp z, _FILE_READ_SUCCESS
-    scf ; error flag
-    ret
+;_FILE_READ_NEXT:
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_DISK_READ ; data read
+;    jp z, _FILE_READ_DATA
+;    cp CH_USB_INT_SUCCESS ; done reading
+;    jp z, _FILE_READ_SUCCESS
+;    scf ; error flag
+;    ret
 
-_FILE_READ_DATA:
-    ; read the contents of the sector in the buffer pointed by HL
-    call CH_READ_DATA 
-    ld a, c
-    or a
-    scf 
-    ret z
-    
-    ld a, CH_CMD_BYTE_RD_GO
-    out (CH_COMMAND_PORT), a ; request next block
-    jp _FILE_READ_NEXT
+;_FILE_READ_DATA:
+;    ; read the contents of the sector in the buffer pointed by HL
+;    call CH_READ_DATA 
+;    ld a, c
+;    or a
+;    scf 
+;    ret z
+;    
+;    ld a, CH_CMD_BYTE_RD_GO
+;    out (CH_COMMAND_PORT), a ; request next block
+;    jp _FILE_READ_NEXT
 
-_FILE_READ_SUCCESS:
-    or a
-    ret
+;_FILE_READ_SUCCESS:
+;    or a
+;    ret
+
 ; --------------------------------------
 ; CH_DISK_READ
 ;
@@ -145,46 +146,45 @@ _FILE_READ_SUCCESS:
 ;        (IX) should contain a 4 byte sector allowed count plus a 4 byte LBA
 ;        can be overwritten.
 ; Output: Cy = 1 on error
-CH_DISK_READ:
-    ld a, CH_CMD_DISK_READ
-    out (CH_COMMAND_PORT), a ; start reading
+;CH_DISK_READ:
+;    ld a, CH_CMD_DISK_READ
+;    out (CH_COMMAND_PORT), a ; start reading
 
-    ;ld ix, hl
-    ld a,(ix+4)
-    out (CH_DATA_PORT), a
-    ld a,(ix+5)
-    out (CH_DATA_PORT), a
-    ld a,(ix+6)
-    out (CH_DATA_PORT), a
-    ld a,(ix+7)
-    out (CH_DATA_PORT), a
-    ld a, (ix)
-    out (CH_DATA_PORT), a
+;    ld a,(ix+4)
+;    out (CH_DATA_PORT), a
+;    ld a,(ix+5)
+;    out (CH_DATA_PORT), a
+;    ld a,(ix+6)
+;    out (CH_DATA_PORT), a
+;    ld a,(ix+7)
+;    out (CH_DATA_PORT), a
+;    ld a, (ix)
+;    out (CH_DATA_PORT), a
 
-_DISK_READ_NEXT:
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_DISK_READ ; data read
-    jp z, _DISK_READ_DATA
-    cp CH_USB_INT_SUCCESS ; done reading
-    jp z, _DISK_READ_SUCCESS
-    scf ; error flag
-    ret
+;_DISK_READ_NEXT:
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_DISK_READ ; data read
+;    jp z, _DISK_READ_DATA
+;    cp CH_USB_INT_SUCCESS ; done reading
+;    jp z, _DISK_READ_SUCCESS
+;    scf ; error flag
+;    ret
 
-_DISK_READ_DATA:
-    ; read the contents of the sector in the buffer pointed by HL
-    call CH_READ_DATA 
-    ld a, c
-    or a
-    scf 
-    ret z
+;_DISK_READ_DATA:
+;    ; read the contents of the sector in the buffer pointed by HL
+;    call CH_READ_DATA 
+;    ld a, c
+;    or a
+;    scf 
+;    ret z
     
-    ld a, CH_CMD_DISK_RD_GO
-    out (CH_COMMAND_PORT), a ; request next block
-    jp _DISK_READ_NEXT
+;    ld a, CH_CMD_DISK_RD_GO
+;    out (CH_COMMAND_PORT), a ; request next block
+;    jp _DISK_READ_NEXT
 
-_DISK_READ_SUCCESS:
-    or a
-    ret
+;_DISK_READ_SUCCESS:
+;    or a
+;    ret
 
 ; --------------------------------------
 ; CH_DISK_WRITE
@@ -193,55 +193,54 @@ _DISK_READ_SUCCESS:
 ;        IX points to the IO buffer
 ;        (IX) should contain a 4 byte sector allowed count plus a 4 byte LBA
 ; Output: Cy = 1 on error
-CH_DISK_WRITE:
-    ld a, CH_CMD_DISK_WRITE
-    out (CH_COMMAND_PORT), a ; start writing
+;CH_DISK_WRITE:
+;    ld a, CH_CMD_DISK_WRITE
+;    out (CH_COMMAND_PORT), a ; start writing
 
-    ;ld ix, hl
-    ld a,(ix+4)
-    out (CH_DATA_PORT), a
-    ld a,(ix+5)
-    out (CH_DATA_PORT), a
-    ld a,(ix+6)
-    out (CH_DATA_PORT), a
-    ld a,(ix+7)
-    out (CH_DATA_PORT), a
-    ld a, (ix)
-    out (CH_DATA_PORT), a
+;    ld a,(ix+4)
+;    out (CH_DATA_PORT), a
+;    ld a,(ix+5)
+;    out (CH_DATA_PORT), a
+;    ld a,(ix+6)
+;    out (CH_DATA_PORT), a
+;    ld a,(ix+7)
+;    out (CH_DATA_PORT), a
+;    ld a, (ix)
+;    out (CH_DATA_PORT), a
 
-    ; multiply sector count by 8 separate writes per sector
-    sla a
-    sla a
-    sla a
-    ld d, a
+;    ; multiply sector count by 8 separate writes per sector
+;    sla a
+;    sla a
+;    sla a
+;    ld d, a
 
-_DISK_WRITE_NEXT:
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_DISK_WRITE ; ready to write data
-    jp z, _DISK_WRITE_DATA
-    cp CH_USB_INT_SUCCESS ; done reading
-    jp z, _DISK_WRITE_SUCCESS
-    scf ; error flag
-    ret
+;_DISK_WRITE_NEXT:
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_DISK_WRITE ; ready to write data
+;    jp z, _DISK_WRITE_DATA
+;    cp CH_USB_INT_SUCCESS ; done reading
+;    jp z, _DISK_WRITE_SUCCESS
+;    scf ; error flag
+;    ret
 
-_DISK_WRITE_DATA:
-    ; failsafe, check if d already points to zero
-    ld a, d
-    or a
-    jr z, _DISK_WRITE_SUCCESS
+;_DISK_WRITE_DATA:
+;    ; failsafe, check if d already points to zero
+;    ld a, d
+;    or a
+;    jr z, _DISK_WRITE_SUCCESS
 
-    ; write the contents of the sector in the buffer pointed by HL
-    ld b, 64 ; 64 bytes per write
-    call CH_WRITE_DATA 
-    dec d
+;    ; write the contents of the sector in the buffer pointed by HL
+;    ld b, 64 ; 64 bytes per write
+;    call CH_WRITE_DATA 
+;    dec d
 
-    ld a, CH_CMD_DISK_WR_GO
-    out (CH_COMMAND_PORT), a ; request next block
-    jp _DISK_WRITE_NEXT
+;    ld a, CH_CMD_DISK_WR_GO
+;    out (CH_COMMAND_PORT), a ; request next block
+;    jp _DISK_WRITE_NEXT
 
-_DISK_WRITE_SUCCESS:
-    or a
-    ret
+;_DISK_WRITE_SUCCESS:
+;    or a
+;    ret
 
 ; --------------------------------------
 ; CH_SEC_WRITE
@@ -250,13 +249,13 @@ _DISK_WRITE_SUCCESS:
 ;        IX = IO_BUFFER address
 ; Output: Cy = 1 on error
 ;         (IX) contains LBA
-CH_SEC_WRITE:
-    ld b,a
-    ld a, CH_CMD_SEC_WRITE
-    out (CH_COMMAND_PORT), a
-    ld a, b
-    out (CH_DATA_PORT), a
-    jr _CH_SEC_IO
+;CH_SEC_WRITE:
+;    ld b,a
+;    ld a, CH_CMD_SEC_WRITE
+;    out (CH_COMMAND_PORT), a
+;    ld a, b
+;    out (CH_DATA_PORT), a
+;    jr _CH_SEC_IO
 
 ; --------------------------------------
 ; CH_SEC_READ
@@ -265,86 +264,187 @@ CH_SEC_WRITE:
 ;        IX = IO_BUFFER address
 ; Output: Cy = 1 on error
 ;         (IX) contains LBA
-CH_SEC_READ:
-    ld b,a
-    ld a, CH_CMD_SEC_READ
-    out (CH_COMMAND_PORT), a
-    ld a, b
-    out (CH_DATA_PORT), a
+;CH_SEC_READ:
+;    ld b,a
+;    ld a, CH_CMD_SEC_READ
+;    out (CH_COMMAND_PORT), a
+;    ld a, b
+;    out (CH_DATA_PORT), a
 
-_CH_SEC_IO
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_SUCCESS ; file sector found
-    scf ; error flag
-    ret nz
+;_CH_SEC_IO
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_SUCCESS ; file sector found
+;    scf ; error flag
+;    ret nz
 
-    push hl,bc
-    ld hl,ix
-    call CH_READ_DATA ; read absolute sector number
-    ld a, c
-    pop bc,hl
-    ; we should have 8 bytes
-    ; READ_BUFFER + 0,1,2,3 = nr. of sectors that we are allowed to read/write, zero is EOF
-    ; READ_BUFFER + 4,5,6,7 = LBA absolute disk sector
-    or a
-    scf 
-    ret z ; return when no data read
-    ; number of allowed sectors > 0
-    ld a, (ix)
-    cp b
-    scf 
-    ret nz ; return if the nr. allowed is not 1
-    ; clear Cy
-    or a
-    ret 
+;    push hl,bc
+;    ld hl,ix
+;    call CH_READ_DATA ; read absolute sector number
+;    ld a, c
+;    pop bc,hl
+;    ; we should have 8 bytes
+;    ; READ_BUFFER + 0,1,2,3 = nr. of sectors that we are allowed to read/write, zero is EOF
+;    ; READ_BUFFER + 4,5,6,7 = LBA absolute disk sector
+;    or a
+;    scf 
+;    ret z ; return when no data read
+;    ; number of allowed sectors > 0
+;    ld a, (ix)
+;    cp b
+;    scf 
+;    ret nz ; return if the nr. allowed is not 1
+;    ; clear Cy
+;    or a
+;    ret 
 
 ; --------------------------------------
 ; CH_SEC_LOCATE
 ;
 ; Input: DE = points to address of 32 bit file sector pointer
 ; Output: Cy = 1 on error
-CH_SEC_LOCATE:
-    push de
-    ld a, CH_CMD_SEC_LOCATE
-    out (CH_COMMAND_PORT), a
-    ld a,(de)
-    out (CH_DATA_PORT), a
-    inc de
-    ld a,(de)
-    out (CH_DATA_PORT), a
-    inc de
-    ld a,(de)
-    out (CH_DATA_PORT), a
-    inc de
-    ld a,(de)
-    out (CH_DATA_PORT), a
-    pop de
-
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_SUCCESS ; file sector found
-    scf ; error flag
-    ret nz
-
-    or a ; clear error flag
-    ret
+;CH_SEC_LOCATE:
+;    push de
+;    ld a, CH_CMD_SEC_LOCATE
+;    out (CH_COMMAND_PORT), a
+;    ld a,(de)
+;    out (CH_DATA_PORT), a
+;    inc de
+;    ld a,(de)
+;    out (CH_DATA_PORT), a
+;    inc de
+;    ld a,(de)
+;    out (CH_DATA_PORT), a
+;    inc de
+;    ld a,(de)
+;    out (CH_DATA_PORT), a
+;    pop de
+;
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_SUCCESS ; file sector found
+;    scf ; error flag
+;    ret nz
+;
+;    or a ; clear error flag
+;    ret
 
 ; --------------------------------------
 ; CH_SET_FILE_NAME
 ;
 ; Input: HL = pointer to filename or search path, buffer should be filled out to 13 chars
 ; Output: none
-CH_SET_FILE_NAME:
-    ld a, CH_CMD_SET_FILE_NAME
-    out (CH_COMMAND_PORT), a
-    ; write filename or search path, zero terminated
-    ld c,CH_DATA_PORT
-_SET_FILE_NAME_REPEAT:
-    ld a,(hl) ; read from buffer
-    out (c),a 
-    inc hl
-    or a ; stop if we read and output a 0?
-    jp nz, _SET_FILE_NAME_REPEAT
-    ret
+;CH_SET_FILE_NAME:
+;    ld a, CH_CMD_SET_FILE_NAME
+;    out (CH_COMMAND_PORT), a
+;    ; write filename or search path, zero terminated
+;    ld c,CH_DATA_PORT
+;_SET_FILE_NAME_REPEAT:
+;    ld a,(hl) ; read from buffer
+;    out (c),a 
+;    inc hl
+;    or a ; stop if we read and output a 0?
+;    jp nz, _SET_FILE_NAME_REPEAT
+;    ret
+
+; --------------------------------------
+; CH_FILE_OPEN
+;
+; Input: none, opens the file previously set
+; Output: Cy = 1 on error
+;CH_FILE_OPEN:
+;    ld a, CH_CMD_OPEN_FILE
+;    out (CH_COMMAND_PORT), a
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_SUCCESS ; file opened
+;    scf ; error flag
+;    ret nz
+;_FILE_OPEN_SUCCESS:
+;    or a ; clear error flag
+;    ret 
+; --------------------------------------
+; CH_DIR_OPEN
+;
+; Input: none, opens the directory previously set
+; Output: Cy = 1 on error
+;CH_DIR_OPEN:
+;    ld a, CH_CMD_OPEN_FILE
+;    out (CH_COMMAND_PORT), a
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_ERR_OPEN_DIR ; dir opened
+;    scf ; error flag
+;    ret nz
+;    or a ; clear error flag
+;    ret 
+
+; --------------------------------------
+; CH_DIRTY_BUFFER
+;
+; Clear internal disk and file buffers
+;
+; Input: none
+; Output: none
+;CH_DIRTY_BUFFER:
+;    ld a, CH_CMD_DIRTY_BUFFER
+;    out (CH_COMMAND_PORT), a
+;    ret 
+
+; --------------------------------------
+; CH_SEARCH_OPEN
+;
+; Input: none, opens the wildcard-search previously set
+; Output: Cy = 1 on error
+;CH_SEARCH_OPEN:
+;    ld a, CH_CMD_OPEN_FILE
+;    out (CH_COMMAND_PORT), a
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_DISK_READ ; search succesfull, at least 1 result
+;    scf ; error flag
+;    ret nz
+;    or a ; clear error flag
+;    ret 
+; --------------------------------------
+; CH_SEARCH_NEXT
+;
+; Input: none, iterates the search previously set
+; Output: Cy = 1 on error
+;CH_SEARCH_NEXT:
+;    ld a, CH_CMD_FILE_ENUM_GO
+;    out (CH_COMMAND_PORT), a
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_DISK_READ ; search succesfull, at least 1 result
+;    scf ; error flag
+;    ret nz
+;    or a ; clear error flag
+;    ret 
+
+; --------------------------------------
+; CH_CONNECT_DISK
+;
+; Input: A = (none)
+; Output: Cy = 1 on error
+;CH_CONNECT_DISK:
+;    ld a, CH_CMD_DISK_CONNECT
+;    out (CH_COMMAND_PORT), a
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_SUCCESS
+;    scf ; error flag
+;    ret nz
+;    or a ; clear error flag
+;    ret 
+
+; --------------------------------------
+; CH_MOUNT_DISK
+;
+; Input: A = (none)
+; Output: Cy = 1 on error
+;CH_MOUNT_DISK:
+;    ld a, CH_CMD_DISK_MOUNT
+;    out (CH_COMMAND_PORT), a
+;    call CH_WAIT_INT_AND_GET_RESULT
+;    cp CH_USB_INT_SUCCESS
+;    scf ; error flag
+;    ret nz
+;    or a ; clear error flag
+;    ret 
 
 ; --------------------------------------
 ; CH_RESET
@@ -369,77 +469,7 @@ _CH_WAIT_TEST_CONNECT:
     or a
     jr z,_CH_WAIT_TEST_CONNECT
     ret 
-
-; --------------------------------------
-; CH_FILE_OPEN
-;
-; Input: none, opens the file previously set
-; Output: Cy = 1 on error
-CH_FILE_OPEN:
-    ld a, CH_CMD_OPEN_FILE
-    out (CH_COMMAND_PORT), a
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_SUCCESS ; file opened
-    scf ; error flag
-    ret nz
-_FILE_OPEN_SUCCESS:
-    or a ; clear error flag
-    ret 
-; --------------------------------------
-; CH_DIR_OPEN
-;
-; Input: none, opens the directory previously set
-; Output: Cy = 1 on error
-CH_DIR_OPEN:
-    ld a, CH_CMD_OPEN_FILE
-    out (CH_COMMAND_PORT), a
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_ERR_OPEN_DIR ; dir opened
-    scf ; error flag
-    ret nz
-    or a ; clear error flag
-    ret 
-
-; --------------------------------------
-; CH_DIRTY_BUFFER
-;
-; Clear internal disk and file buffers
-;
-; Input: none
-; Output: none
-CH_DIRTY_BUFFER:
-    ld a, CH_CMD_DIRTY_BUFFER
-    out (CH_COMMAND_PORT), a
-    ret 
-
-; --------------------------------------
-; CH_SEARCH_OPEN
-;
-; Input: none, opens the wildcard-search previously set
-; Output: Cy = 1 on error
-CH_SEARCH_OPEN:
-    ld a, CH_CMD_OPEN_FILE
-    out (CH_COMMAND_PORT), a
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_DISK_READ ; search succesfull, at least 1 result
-    scf ; error flag
-    ret nz
-    or a ; clear error flag
-    ret 
-; --------------------------------------
-; CH_SEARCH_NEXT
-;
-; Input: none, iterates the search previously set
-; Output: Cy = 1 on error
-CH_SEARCH_NEXT:
-    ld a, CH_CMD_FILE_ENUM_GO
-    out (CH_COMMAND_PORT), a
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_DISK_READ ; search succesfull, at least 1 result
-    scf ; error flag
-    ret nz
-    or a ; clear error flag
-    ret 
+    
 ; --------------------------------------
 ; CH_CHECK_INT_IS_ACTIVE
 ;
@@ -480,35 +510,6 @@ _HW_TEST_DO:
     cp b
     ret
 
-; --------------------------------------
-; CH_CONNECT_DISK
-;
-; Input: A = (none)
-; Output: Cy = 1 on error
-CH_CONNECT_DISK:
-    ld a, CH_CMD_DISK_CONNECT
-    out (CH_COMMAND_PORT), a
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_SUCCESS
-    scf ; error flag
-    ret nz
-    or a ; clear error flag
-    ret 
-
-; --------------------------------------
-; CH_MOUNT_DISK
-;
-; Input: A = (none)
-; Output: Cy = 1 on error
-CH_MOUNT_DISK:
-    ld a, CH_CMD_DISK_MOUNT
-    out (CH_COMMAND_PORT), a
-    call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_SUCCESS
-    scf ; error flag
-    ret nz
-    or a ; clear error flag
-    ret 
 
 ; --------------------------------------
 ; CH_SET_USB_MODE
@@ -625,11 +626,11 @@ CH_READ_DATA:
 ;
 ; Output: A = Result of GET_STATUS (an USB error code)
 CH_WAIT_INT_AND_GET_RESULT:
-    push bc
-    call PANIC_KEYS_PRESSED
-    pop bc
-    ld a,USB_ERR_PANIC_BUTTON_PRESSED
-    ret z
+    ;push bc
+    ;call PANIC_KEYS_PRESSED
+    ;pop bc
+    ;ld a,USB_ERR_PANIC_BUTTON_PRESSED
+    ;ret z
 
     call CH_CHECK_INT_IS_ACTIVE
     jr nz,CH_WAIT_INT_AND_GET_RESULT    ;TODO: Perhaps add a timeout check here?

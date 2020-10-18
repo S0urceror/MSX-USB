@@ -17,8 +17,8 @@
             "name": "(lldb) Launch MSXUSB",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
-            "args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            "program": "../Emulators/openMSX/derived/x86_64-darwin-opt/bin/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_MSXUSB", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/OpenMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
@@ -26,17 +26,8 @@
             "name": "(lldb) Launch MSXUSB RD",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
-            "args": ["-machine", "Philips_NMS_8250_MSM2", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "cwd": "../Emulators/OpenMSX/share",
-            "preLaunchTask": "Driver - Nextor+UsbHost"
-        },
-        {
-            "name": "(lldb) Launch MSXUSB LOW",
-            "type": "lldb",
-            "request": "launch",
-            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
-            "args": ["-machine", "Philips_NMS_8250_MSM3", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml"],
+            "program": "../Emulators/openMSX/derived/x86_64-darwin-opt/bin/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_ROOKIE", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/OpenMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
@@ -44,11 +35,51 @@
             "name": "(lldb) Launch Rookiedrive",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/OpenMSX/derived/x86_64-darwin-devel/bin/openmsx",
+            "program": "../Emulators/openMSX/derived/x86_64-darwin-opt/bin/openmsx",
             "args": ["-machine", "Philips_NMS_8250_NXT", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             //"args": ["-machine", "Panasonic_FS-A1GT", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
             "cwd": "../Emulators/OpenMSX/share"
+        },
+        {
+            "type": "dezog",
+            "request": "launch",
+            "name": "Debug OpenMSX",
+            "remoteType": "openmsx",
+            "listFiles": [
+                {
+                    "path": "drivers/NextorUsbHost/dist/driverrd.lst",
+                    "useFiles": true,
+                    "asm": "sjasmplus",
+                    "mainFile": "drivers/NextorUsbHost/src/driver_low.asm"
+                }
+            ],
+            //"listFiles": [
+            //    {
+            //        "path": "drivers/UsbEthernet/dist/usbether.lst",
+            //        "useFiles": true,
+            //        "asm": "sjasmplus",
+            //        "mainFile": "drivers/UsbEthernet/src/main.asm"
+            //    }
+            //],
+            //"listFiles": [
+            //    {
+            //        "path": "drivers/UsbKeyboard/dist/usbkeybd.lst",
+            //        "useFiles": true,
+            //        "asm": "sjasmplus",
+            //        "mainFile": "drivers/UsbKeyboard/src/main.asm"
+            //    }
+            //],
+            "openmsx": {
+                "pcInSlot": "1 X 7" // nextor driver (rookie mapper)
+                //"pcInSlot": "3 2 28" // usbether in 512kb mapper
+            },
+            "commandsAfterLaunch": [
+                "-e openmsx_info version"
+            ],
+            "resetOnLaunch": false,
+            "rootFolder": "${workspaceFolder}",
+            "tmpDir": ".tmp"
         }
     ]
 }

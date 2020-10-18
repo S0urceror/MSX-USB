@@ -1,5 +1,5 @@
 ;
-; usb_descriptors.ASM - USB HID keyboard driver that uses the MSX USB Unapi driver.
+; usb_descriptors.ASM - USB descriptor structures for the MSX USB Unapi driver.
 ; Copyright (c) 2020 Mario Smit (S0urceror)
 ; 
 ; This program is free software: you can redistribute it and/or modify  

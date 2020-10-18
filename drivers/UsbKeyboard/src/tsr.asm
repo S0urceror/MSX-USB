@@ -94,17 +94,6 @@ UNHOOK_US:
     ei
     ret
 
-   MODULE tsr
-JP_MSXUSB:
-    push af,bc
-    ld c,a
-    ld b,0
-    ld ix, (TSR_JUMP_TABLE)
-    add ix,bc
-    pop bc,af
-    jp (ix)
-   ENDMODULE
-
 ; Input:    A: device address
 ;           E: endpoint id
 ; Output:   Everything preserved including Cy
@@ -125,11 +114,19 @@ _PACK_E:
 TSR_END:
 
 TSR_SHARED_VARS_START:
+;
 TSR_DEVICE_ADDRESS              DB 0
 TSR_KEYBOARD_INTERFACENR:       DB 0
 TSR_KEYBOARD_ENDPOINTNR:        DB 0
 TSR_KEYBOARD_MAX_PACKET_SIZE:   DB 0
 TSR_SCRATCH_AREA:               DW 0
-; MSX USB
-TSR_JUMP_TABLE:                 DW 0 ; pointer to MSXUSB jumptable
+TSR_JUMP_TABLE_START:
+TSR_FN_CHECK: DS 8
+TSR_FN_CONNECT: DS 8
+TSR_FN_GETDESCRIPTORS: DS 8
+TSR_FN_CONTROL_TRANSFER: DS 8
+TSR_FN_DATA_IN_TRANSFER: DS 8
+TSR_FN_DATA_OUT_TRANSFER: DS 8
+TSR_FN_SYNC_MODE: DS 8
+TSR_FN_CONTROL_PACKET: DS 8
 TSR_SHARED_VARS_END:

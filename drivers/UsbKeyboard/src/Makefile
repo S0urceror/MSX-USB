@@ -1,5 +1,5 @@
 ASM = sjasmplus
-ASMFLAGS = --raw=$@ --sym=$(basename $@).sym
+ASMFLAGS = --raw=$@ --sym=$(basename $@).sym --lst=$(basename $@).lst
 OUTPUT_DIR = ../dist
 
 all: $(OUTPUT_DIR)/usbkeybd.com

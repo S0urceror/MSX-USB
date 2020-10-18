@@ -24,19 +24,9 @@ H.CHGE:     EQU 0FDC2h
 
 ; major and minor version number of MSXUSB UNAPI that we need
 UNAPI_P:    equ  0
-UNAPI_S:    equ  2
+UNAPI_S:    equ  3
 
-FN_INFO:                EQU  0
-FN_JUMPTABLE:           EQU  1
-
-JP_CHECK                EQU 0*8
-JP_CONNECT              EQU 1*8
-JP_GET_DESCRIPTORS      EQU 2*8
-JP_CONTROL_TRANSFER     EQU 3*8
-JP_DATA_IN_TRANSFER     EQU 4*8
-JP_DATA_OUT_TRANSFER    EQU 5*8
-JP_SYNC_MODE            EQU 6*8
-JP_CONTROL_PACKET       EQU 7*8
+    include "msxusbunapi.asm"
 
     org 0100h
 BEGIN:
@@ -104,17 +94,6 @@ _FOUND_:
     
     ret 
 
-   MODULE main
-JP_MSXUSB:
-    push af,bc
-    ld c,a
-    ld b,0
-    ld ix, (JUMP_TABLE)
-    add ix,bc
-    pop bc,af
-    jp (ix)
-   ENDMODULE
-
 GET_UNAPI_MSXUSB:
     ; copy our ID to ARG
     ld	hl,UNAPI_ID
@@ -144,7 +123,7 @@ GET_UNAPI_MSXUSB:
     and  10000000b
     jp  nz,ERROR
     ; okay MSXUSB in ROM, check if it supports our version
-    ld a, 0
+    ld a, USB_INFO
     call UNAPI_ENTRY
     ld a, d
     cp UNAPI_P
@@ -152,25 +131,15 @@ GET_UNAPI_MSXUSB:
     ld a, e
     cp UNAPI_S
     jp nz, ERROR
-    ; get JUMPTABLE
-    ld a, FN_JUMPTABLE
-    call UNAPI_ENTRY
-    ld (JUMP_TABLE), hl
     ; all fine
     ld hl, TXT_MSXUSB_FOUND
     call PRINT_DOS
     or a
     ret
 
-UNAPI_ENTRY:
-    rst 30h
-IMP_SLOT: db 0 ; to be replaced with current slot id
-IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
-    ret
-
 USB_CHECK_ADAPTER:
-    ld a, JP_CHECK
-    call main.JP_MSXUSB
+    ld a, USB_CHECK
+    call UNAPI_ENTRY
     jp c, ERROR
 
     ld hl, TXT_ADAPTER_OKAY
@@ -179,8 +148,8 @@ USB_CHECK_ADAPTER:
     ret 
     
 USB_CONNECT_DEVICE:
-    ld a, JP_CONNECT
-    call main.JP_MSXUSB
+    ld a, USB_CONNECT
+    call UNAPI_ENTRY
     and a
     jp z, ERROR
 
@@ -192,15 +161,15 @@ USB_CONNECT_DEVICE:
     
 USB_GET_DESCRIPTORS:
     ld hl, DESCRIPTORS
-    ld a,JP_GET_DESCRIPTORS
-    call main.JP_MSXUSB
+    ld a, USB_GETDESCRIPTORS
+    call UNAPI_ENTRY
     jp c, ERROR
     ret
 
 USB_GET_SCRATCH:
     ld bc, 0
-    ld a,JP_CONTROL_PACKET
-    call main.JP_MSXUSB
+    ld a, USB_CONTROL_PACKET
+    call UNAPI_ENTRY
     ld (SCRATCH_AREA),hl
     ret
 
@@ -375,6 +344,10 @@ COPY_TSR_SEG:
     ld bc, TSR_SHARED_VARS_END - TSR_SHARED_VARS_START
     ld de, TSR_SHARED_VARS_START ; start page 2
     ldir
+    ; populate jumptable
+    ld hl, TSR_JUMP_TABLE_START
+    ld a, USB_JUMPTABLE
+    call UNAPI_ENTRY
     ; map old segment into page 2
     pop af
     call _PUT_P2
@@ -491,18 +464,31 @@ MAPPER_SEGMENT: DB 0
 MAPPER_SLOT: DB 0
 MAPPER_JUMP_TABLE: DW 0 
 
+UNAPI_ENTRY:
+    rst 30h
+IMP_SLOT: db 0 ; to be replaced with current slot id
+IMP_ENTRY: dw 0 ; to be replaced with UNAPI_ENTRY
+    ret
+
 SHARED_VARS_START:
-DEVICE_ADDRESS:                 DB 0
-KEYBOARD_INTERFACENR:           DB 0
-KEYBOARD_ENDPOINTNR:            DB 0
-KEYBOARD_MAX_PACKET_SIZE:       DB 0
-SCRATCH_AREA:                   DW 0
-; MSX USB
-JUMP_TABLE:                 DW 0 ; pointer to MSXUSB jumptable
+;
+DEVICE_ADDRESS:             DB 0
+KEYBOARD_INTERFACENR:       DB 0
+KEYBOARD_ENDPOINTNR:        DB 0
+KEYBOARD_MAX_PACKET_SIZE:   DB 0
+SCRATCH_AREA:               DW 0
+JUMP_TABLE_START:
+FN_CHECK: DS 8
+FN_CONNECT: DS 8
+FN_GETDESCRIPTORS: DS 8
+FN_CONTROL_TRANSFER: DS 8
+FN_DATA_IN_TRANSFER: DS 8
+FN_DATA_OUT_TRANSFER: DS 8
+FN_SYNC_MODE: DS 8
+FN_CONTROL_PACKET: DS 8
 SHARED_VARS_END:
 
 TSR: 
- 
     include "tsr.asm"
 
 

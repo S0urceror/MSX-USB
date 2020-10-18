@@ -1,6 +1,10 @@
 
 	STRUCT _SCSI_DEVINFO
 BASE:				; Offset to the base of the data structure
+TAG					db
+MAX_LUNS			db
+BUFFER:    			ds 0x24 ; longest response (inquiry) we want to absorb during init
+CSW:				ds _SCSI_COMMAND_STATUS_WRAPPER
 VENDORID:			ds 8 ;UINT8	VendorIdStr[8];				/* 08H */
 					db 0
 PRODUCTID:			ds 16 ;UINT8 ProductIdStr[16];			/* 10H */
@@ -44,16 +48,13 @@ STORAGE_DEVICE_INFO:	_USB_DEVICE_INFO
 SEARCH_DEVICE_INFO		_SEARCH_DEVICE_INFO
 HUB_DEVICE_INFO			_HUB_DEVICE_INFO
 SCSI_DEVICE_INFO:		_SCSI_DEVINFO
-SCSI_TAG				DB
-SCSI_MAX_LUNS			DB
-SCSI_BUFFER:    		ds 0x24 ; longest response (inquiry) we want to absorb during init
-SCSI_CSW:				ds _SCSI_COMMAND_STATUS_WRAPPER
-USB_DESCRIPTOR			ds 140 ; memory area to hold the usb device+config descriptor of the current interrogated device
-USB_DESCRIPTORS			ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
+USB_DESCRIPTOR			ds 140 ; ** memory area to hold the usb device+config descriptor of the current interrogated device
+USB_DESCRIPTORS			ds USB_DESCRIPTORS_END - USB_DESCRIPTORS_START ; **
+FLASH_READ				ds FLASH_READ_END - FLASH_READ_START ; routine that swaps in the right segment, reads, and swaps back
 NXT_DIRECT				ds NXT_DIRECT_END - NXT_DIRECT_START
-JUMP_TABLE				ds JUMP_TABLE_END - JUMP_TABLE_START
-FLASH_READ				ds FLASH_READ_END - FLASH_READ_START
 	ENDS
+
+	DISPLAY "WRKAREA bytes: ",/D,WRKAREA
 
 	IFDEF __ROOKIEDRIVE
 TXT_START:              db "MSXUSB-RD v0.6 (c) Sourceror\r\n"
