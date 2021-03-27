@@ -276,8 +276,10 @@ DRV_INIT:
 	ld bc, WAIT_ONE_SECOND/4
 	call WAIT
 	
+	IFDEF __MISTERSPI	
 	; make MISO the INT line
 	call CH_SET_SD0_INT
+	ENDIF
 
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
