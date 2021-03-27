@@ -252,6 +252,11 @@ DRV_INIT:
 	call	MY_GWORK
 	call	INIWORK		; Initialize the work-area
 
+	; DEBUG
+	ld a, 1
+	out 2fh, a
+	; DEBUG
+
 	; initialize CH376s
 	; ============================================
 	; print welcome message
@@ -270,6 +275,9 @@ DRV_INIT:
 	; wait ~250ms
 	ld bc, WAIT_ONE_SECOND/4
 	call WAIT
+	
+	; make MISO the INT line
+	call CH_SET_SD0_INT
 
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST

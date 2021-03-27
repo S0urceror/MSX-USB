@@ -7,3 +7,4 @@
 !/**/dist/*.rom
 !/**/dist/*.bin
 !/**/dist/*.zip
+/**/*.vhd

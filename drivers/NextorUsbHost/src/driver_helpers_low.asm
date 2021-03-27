@@ -57,9 +57,13 @@ NXT_DIRECT				ds NXT_DIRECT_END - NXT_DIRECT_START
 	DISPLAY "WRKAREA bytes: ",/D,WRKAREA
 
 	IFDEF __ROOKIEDRIVE
-TXT_START:              db "MSXUSB-RD v0.6 (c) Sourceror\r\n"
-	ELSE
-TXT_START:              db "MSXUSB v0.6  (c) Sourceror\r\n"
+TXT_START:              db "MSXUSB-RD v0.7 (c) Sourceror\r\n"
+	ENDIF
+	IFDEF __MISTERSPI
+TXT_START:              db "MSXUSB-MST v0.3 (c)Sourceror\r\n"	
+	ENDIF
+	IFDEF __MSXUSBCARTv1
+TXT_START:              db "MSXUSB v0.7  (c) Sourceror\r\n"
 	ENDIF
 						db "GNU General Public License\r\n"
 						db "=============================\r\n\r\n",0

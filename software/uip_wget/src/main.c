@@ -27,6 +27,9 @@
 #include "stdio.h"
 #include "stdlib.h"
 
+#include <msx_fusion.h>
+#include <io.h>
+
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 #ifndef NULL
@@ -36,6 +39,8 @@
 char hostname[100];
 uint16_t port=80;
 char path[100];
+int filehandle=0;
+bool benchmark = false;
 
 struct timer periodic_timer, arp_timer;
 
@@ -121,7 +126,6 @@ void uip_arp_loop () {
 int main(char *argv[], int argc)
 {
   char url[255];
-  bool benchmark = false;
   uip_ipaddr_t ipaddr;
 
   // Check arguments
@@ -129,7 +133,7 @@ int main(char *argv[], int argc)
   if (argc==0) {
     printf ("WGET [b] <url>\r\n\r\n");
     printf ("Downloads the file specified by <url> from the Web\r\n");
-    exit (0);
+    Exit (0);
   }
   if (argc==1) 
     strcpy (url,argv[0]);
@@ -142,13 +146,13 @@ int main(char *argv[], int argc)
   // check url
   if (strstr (url,"http://")==NULL) {
     printf ("WGET\r\nIncorrect URL specified\r\n");
-    exit (0);
+    Exit (0);
   }
   // tell what we are going to do
   if (benchmark) {
-    printf ("WGET - HTTP downloader for MSX\r\nBenchmarking download from %s\r\n--------------------------------\r\n",url);
+    printf ("WGET - HTTP downloader for MSX\r\nBenchmarking download from %s\r\n",url);
   } else {
-    printf ("WGET - HTTP downloader for MSX\r\nDownloading %s\r\n--------------------------------\r\n",url);
+    printf ("WGET - HTTP downloader for MSX\r\nDownloading %s\r\n",url);
   }
   // extract hostname, port, url
   strcpy (hostname,strstr (url,"http://")+7);
@@ -171,6 +175,7 @@ int main(char *argv[], int argc)
   timer_set(&periodic_timer, CLOCK_SECOND / 2);
   timer_set(&arp_timer, CLOCK_SECOND * 10);
   // Init MSXUSB CDC ECM driver
+  printf ("-MSXUSB-------------------------\r\n");
   struct uip_eth_addr mac;
   if (!msxusbecm_init(&mac))
     return 0;
@@ -193,24 +198,23 @@ int main(char *argv[], int argc)
   uip_sethostaddr(ipaddr);
   dhcpc_init((void*) &mac, 6);
 #else
+  // static IP
   uip_ipaddr(ipaddr, 192,168,1,25);
   uip_sethostaddr(ipaddr);
   uip_ipaddr(ipaddr, 192,168,1,1);
   uip_setdraddr(ipaddr);
   uip_ipaddr(ipaddr, 255,255,255,0);
   uip_setnetmask(ipaddr);
-    // set DNS
+  // set DNS to router
   uip_getdraddr (ipaddr);
-  //uip_ipaddr(ipaddr, 192,168,1,201);
   resolv_conf(ipaddr);
+  // query DNS for hostname
+  resolv_query(hostname);
 #endif
-
+/*
   printf ("--------------------------------\r\n");
-  //printf ("Hostname: %s, port: %d, path: %s\r\n",hostname,port,path);
-
-  // query for hostname
-  //resolv_query(hostname);
-
+  printf ("Hostname: %s, port: %d, path: %s\r\n",hostname,port,path);
+*/
   // MAIN LOOP - TCPIP + ARP
   while(1) {
     uip_arp_loop();
@@ -231,9 +235,10 @@ resolv_found(char *name, u16_t *ipaddr)
 {
   u16_t *ipaddr2;
   
+  printf ("-ARP----------------------------\r\n");
   if(ipaddr == NULL) {
     printf("Host '%s' not found.\r\n", name);
-    exit (0);
+    Exit (0);
   } 
   else 
   {
@@ -242,6 +247,7 @@ resolv_found(char *name, u16_t *ipaddr)
     htons(ipaddr[0]) & 0xff,
     htons(ipaddr[1]) >> 8,
     htons(ipaddr[1]) & 0xff);
+    printf ("-HTTP---------------------------\r\n");
     webclient_get(hostname, port, path);
   }
 }
@@ -250,6 +256,7 @@ resolv_found(char *name, u16_t *ipaddr)
 void
 dhcpc_configured(const struct dhcpc_state *s)
 {
+  printf ("-DHCP---------------------------\r\n");
   printf("Got IP address %d.%d.%d.%d\r\n",
 	 uip_ipaddr1(s->ipaddr), uip_ipaddr2(s->ipaddr),
 	 uip_ipaddr3(s->ipaddr), uip_ipaddr4(s->ipaddr));
@@ -265,12 +272,13 @@ dhcpc_configured(const struct dhcpc_state *s)
   printf("Lease expires in %d seconds\r\n",
 	 ntohs(s->lease_time[0])*65536ul + ntohs(s->lease_time[1]));
 
+  // set host,netmask,router and dns according to DHCP result
   uip_sethostaddr(s->ipaddr);
   uip_setnetmask(s->netmask);
   uip_setdraddr(s->default_router);
   resolv_conf(s->dnsaddr);
 
-  // query for hostname
+  // query DNS for hostname
   resolv_query(hostname);
 }
 #endif /* __DHCPC_H__ */
@@ -278,37 +286,60 @@ dhcpc_configured(const struct dhcpc_state *s)
 void
 webclient_closed(void)
 {
-  printf("Webclient: connection closed\r\n");
-  exit (0);
+  if (!benchmark && filehandle)
+    Close (filehandle);
+
+  printf("Done, connection closed\r\n");
+  Exit (0);
 }
 void
 webclient_aborted(void)
 {
-  printf("Webclient: connection aborted\r\n");
-  exit (0);
+  printf("Error, connection aborted\r\n");
+  Exit (0);
 }
 void
 webclient_timedout(void)
 {
-  printf("Webclient: connection timed out\r\n");
-  exit (0);
+  printf("Error, timed out\r\n");
+  Exit (0);
 }
 void
 webclient_connected(void)
 {
-  printf("Webclient: connected, receiving data...\r\n");
+  char name[255];
+  strcpy (name,"index.htm");
+
+  if (path[strlen (path)-1]!='/')
+  {
+    char* tmp = strrchr (path,'/');
+    if (tmp)
+      strcpy (name,tmp+1);
+  }
+  printf("Connected, saving to: %s\r\n",name);
+  if (benchmark==false)
+    filehandle = Create (name);
 }
 
 clock_time_t start=0;
 void
 webclient_datahandler(char *data, u16_t len)
 {
-  if (start==0)
+  if (benchmark && start==0)
     start = clock_time();
-  if (data==NULL) 
+  if (data != NULL)
   {
-    printf ("Total frames: %d\r\n",(clock_time()-start));
-    start=0;
+    if (!benchmark && filehandle)
+      Write (filehandle,data,len);
+  }
+  else
+  {
+    if (benchmark)
+    {
+      int time_passed = clock_time()-start;
+      printf ("Total frames: %d\r\n",time_passed);
+      start=0;
+    }
     webclient_close();
   }
 }

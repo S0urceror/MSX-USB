@@ -97,7 +97,13 @@
 			"FILE_SYS.C": "cpp",
 			"DEVICE.C": "cpp",
 			"DEBUG.C": "cpp",
-			"CH376FAT.C": "cpp"
+			"CH376FAT.C": "cpp",
+			"DEMO.C": "cpp",
+			"TEST.C": "cpp",
+			"SPI_HW.C": "cpp",
+			"HAL_BASE.C": "cpp",
+			"CH375DLL.C": "cpp",
+			"USBEX.C": "cpp"
 		}
 	}
 }

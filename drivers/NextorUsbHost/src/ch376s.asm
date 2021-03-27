@@ -16,10 +16,12 @@
 ;
 
 ; CH376 commands
+CH_CMD_GET_IC_VER equ 01h
 CH_CMD_SET_SPEED: equ 04h
 CH_CMD_RESET_ALL: equ 05h
 CH_CMD_CHECK_EXIST: equ 06h
 CH_CMD_SET_RETRY: equ 0Bh
+CH_CMD_SET_SD0_INT: equ 0Bh
 CH_CMD_DELAY_100US: equ 0Fh
 CH_CMD_SET_USB_ADDR: equ 13h
 CH_CMD_SET_USB_MODE: equ 15h
@@ -37,6 +39,7 @@ CH_CMD_FILE_ENUM_GO: equ 33h
 CH_CMD_FILE_CLOSE: equ 36h
 CH_CMD_BYTE_READ: equ 3ah
 CH_CMD_BYTE_RD_GO: equ 3bh
+CH_CMD_CLR_STALL equ 41h
 CH_CMD_SET_ADDRESS: equ 45h
 CH_CMD_GET_DESCR: equ 46h
 CH_CMD_SET_CONFIG: equ 49h
@@ -56,7 +59,13 @@ CH_ST_RET_ABORT: equ 5Fh
     IFDEF __ROOKIEDRIVE
 CH_DATA_PORT       equ 0020h
 CH_COMMAND_PORT    equ 0021h
-    ELSE
+    ENDIF
+    IFDEF __MISTERSPI
+CH_DATA_PORT       equ 0020h
+CH_STATUS_PORT     equ 0021h    
+CH_COMMAND_PORT    equ 0021h
+    ENDIF
+    IFDEF __MSXUSBCARTv1
 CH_DATA_PORT           equ 0010h
 CH_COMMAND_PORT        equ 0011h
     ENDIF
@@ -446,6 +455,90 @@ CH_MODE_HOST: equ 6
 ;    or a ; clear error flag
 ;    ret 
 
+    MACRO SPIWAIT
+    IFNDEF __NOWAIT
+        push af
+.notready:
+        in a, (CH_STATUS_PORT)
+        and 01h
+        jr z,.notready    
+        pop af
+    ENDIF
+    ENDM
+
+    MACRO CH_SEND_COMMAND
+    IFNDEF __MISTERSPI
+        out (CH_COMMAND_PORT), a
+    ELSE
+        SPIWAIT
+        out (CH_COMMAND_PORT), a
+    ENDIF
+    ENDM
+
+    MACRO CH_RECEIVE_STATUS
+    IFNDEF __MISTERSPI
+        in a,(CH_COMMAND_PORT)
+    ELSE
+        in a,(CH_COMMAND_PORT)
+    ENDIF
+    ENDM
+
+    MACRO CH_END_COMMAND
+    IFDEF __MISTERSPI
+        SPIWAIT
+        push af
+        xor a
+        out (CH_COMMAND_PORT),a
+        pop af
+    ENDIF
+    ENDM
+
+    MACRO CH_SEND_DATA
+    IFNDEF __MISTERSPI
+        out (CH_DATA_PORT), a
+    ELSE
+        SPIWAIT
+        out (CH_DATA_PORT), a
+    ENDIF
+    ENDM
+
+    MACRO CH_SEND_DATA_MULTIPLE
+    IFNDEF __MISTERSPI
+        otir
+    ELSE
+.again:
+        SPIWAIT
+        ld a,(hl)
+        out (CH_DATA_PORT), a
+        inc hl
+        djnz .again
+    ENDIF
+    ENDM
+
+    MACRO CH_RECEIVE_DATA
+    IFNDEF __MISTERSPI
+        in a,(CH_DATA_PORT)
+    ELSE
+        SPIWAIT
+        xor a
+        out (CH_DATA_PORT), a
+        SPIWAIT
+        in a,(CH_DATA_PORT)
+    ENDIF
+    ENDM
+
+    MACRO CH_RECEIVE_DATA_MULTIPLE
+    IFNDEF __MISTERSPI
+        inir
+    ELSE
+.again:
+        CH_RECEIVE_DATA
+        ld (hl),a
+        inc hl
+        djnz .again        
+    ENDIF
+    ENDM
+
 ; --------------------------------------
 ; CH_RESET
 ;
@@ -453,7 +546,23 @@ CH_MODE_HOST: equ 6
 ; Output: none
 CH_RESET:
     ld a, CH_CMD_RESET_ALL
-    out (CH_COMMAND_PORT), a
+    CH_SEND_COMMAND   
+    CH_END_COMMAND 
+    ret
+
+; --------------------------------------
+; CH_SET_SD0_INT
+;
+; Input: none
+; Output: none
+CH_SET_SD0_INT:
+    ld a, CH_CMD_SET_SD0_INT
+    CH_SEND_COMMAND  
+    ld a, 0x16
+    CH_SEND_DATA
+    ld a, 0x90
+    CH_SEND_DATA
+    CH_END_COMMAND 
     ret
 
 ; --------------------------------------
@@ -463,11 +572,12 @@ CH_RESET:
 ; Output: A contains USB_INT_CONNECT, USB_INT_DISCONNECT, USB_INT_USB_READY
 CH_TEST_CONNECT:
     ld a,CH_CMD_TEST_CONNECT
-    out (CH_COMMAND_PORT),a
+    CH_SEND_COMMAND
 _CH_WAIT_TEST_CONNECT:
-    in a,(CH_DATA_PORT)
+    CH_RECEIVE_DATA
     or a
     jr z,_CH_WAIT_TEST_CONNECT
+    CH_END_COMMAND
     ret 
     
 ; --------------------------------------
@@ -478,7 +588,7 @@ _CH_WAIT_TEST_CONNECT:
 ; Output: Z if active, NZ if not active
 
 CH_CHECK_INT_IS_ACTIVE:
-    in a,(CH_COMMAND_PORT)
+    CH_RECEIVE_STATUS
     and 80h
     ret
 
@@ -502,12 +612,13 @@ CH_HW_TEST:
 _HW_TEST_DO:
     ld b,a
     ld a,CH_CMD_CHECK_EXIST
-    out (CH_COMMAND_PORT),a
+    CH_SEND_COMMAND
     ld a,b
     xor 0FFh
-    out (CH_DATA_PORT),a
-    in a,(CH_DATA_PORT)
+    CH_SEND_DATA
+    CH_RECEIVE_DATA
     cp b
+    CH_END_COMMAND
     ret
 
 
@@ -523,19 +634,21 @@ _HW_TEST_DO:
 CH_SET_USB_MODE:
     ld b,a
     ld a,CH_CMD_SET_USB_MODE
-    out (CH_COMMAND_PORT),a
+    CH_SEND_COMMAND
     ld a,b
-    out (CH_DATA_PORT),a
+    CH_SEND_DATA
 
     ld b,255
 _CH_WAIT_USB_MODE:
-    in a,(CH_DATA_PORT)
+    CH_RECEIVE_DATA
     cp CH_ST_RET_SUCCESS
     jp z,_CH_CONFIGURE_RETRIES
     djnz _CH_WAIT_USB_MODE ; TODO: indefinately?
+    CH_END_COMMAND
     scf
     ret
 _CH_CONFIGURE_RETRIES:
+    CH_END_COMMAND
     or a
     call HW_CONFIGURE_NAK_RETRY
     or a
@@ -556,9 +669,9 @@ HW_CONFIGURE_NAK_RETRY:
 HW_CONFIGURE_NAK_RETRY_2:
     push af
     ld a,CH_CMD_SET_RETRY
-    out (CH_COMMAND_PORT),a
+    CH_SEND_COMMAND
     ld a,25h    ;Fixed value, required by CH376
-    out (CH_DATA_PORT),a
+    CH_SEND_DATA
     ;Bits 7 and 6:
     ;  0x: Don't retry NAKs
     ;  10: Retry NAKs indefinitely (default)
@@ -566,7 +679,8 @@ HW_CONFIGURE_NAK_RETRY_2:
     ;Bits 5-0: Number of retries after device timeout
     ;Default after reset and SET_USB_MODE is 8Fh
     pop af
-    out (CH_DATA_PORT),a
+    CH_SEND_DATA
+    CH_END_COMMAND
     ret
 
 ; --------------------------------------
@@ -579,14 +693,14 @@ HW_CONFIGURE_NAK_RETRY_2:
 ; Output: HL = HL + B
 CH_WRITE_DATA:
     ld a,CH_CMD_WR_HOST_DATA
-    out (CH_COMMAND_PORT),a
-    ld c,CH_DATA_PORT
+    CH_SEND_COMMAND
     ld a,b  
-    out (c),a
+    CH_SEND_DATA
     or a
     ret z
-
-    otir
+    ld c,CH_DATA_PORT
+    CH_SEND_DATA_MULTIPLE
+    CH_END_COMMAND
     ret
 
 ; --------------------------------------
@@ -597,25 +711,25 @@ CH_WRITE_DATA:
 ; Input:  HL = Destination address for the data
 ; Output: C  = Amount of data received (0-64)
 ;         HL = HL + C
-
 CH_READ_DATA:
     ld a,CH_CMD_RD_USB_DATA0
-    out (CH_COMMAND_PORT),a
-    in a,(CH_DATA_PORT)
-    or a ; not zero?
+    CH_SEND_COMMAND
+    CH_RECEIVE_DATA
+    and a ; not zero?
+    jr nz, .CH_READ_DATA_MORE
+    CH_END_COMMAND
     ld c, 0
-    ret z   ;No data to transfer at all
-
+    ret ;No data to transfer at all
+.CH_READ_DATA_MORE:
     ; read data to (HL)
     push af
     ld b,a ; set counter nr bytes to read, first byte
     ld c,CH_DATA_PORT
-    inir
+    CH_RECEIVE_DATA_MULTIPLE
     ; prepare to return
     pop af
     ld c,a
-    ;ld (hl),0 ; zero at end of buffer - just in case
-    ;and a
+    CH_END_COMMAND
     ret
 
 ; --------------------------------------
@@ -631,9 +745,14 @@ CH_WAIT_INT_AND_GET_RESULT:
     ;pop bc
     ;ld a,USB_ERR_PANIC_BUTTON_PRESSED
     ;ret z
-
+    push bc
+    ld b,255
+.CHECK_AGAIN:
     call CH_CHECK_INT_IS_ACTIVE
-    jr nz,CH_WAIT_INT_AND_GET_RESULT    ;TODO: Perhaps add a timeout check here?
+    jr z, .CHECK_DONE
+    djnz .CHECK_AGAIN    ;TODO: Perhaps add a timeout check here?
+.CHECK_DONE:
+    pop bc
     call CH_GET_STATUS
     ret
 
@@ -660,8 +779,9 @@ CH_DO_SET_NOSOF_MODE:
 ; Output: A = Status code
 CH_GET_STATUS:
     ld a,CH_CMD_GET_STATUS
-    out (CH_COMMAND_PORT),a
-    in a,(CH_DATA_PORT)
+    CH_SEND_COMMAND
+    CH_RECEIVE_DATA
+    CH_END_COMMAND
     ret
 
 ; -----------------------------------------------------------------------------
@@ -756,9 +876,10 @@ USB_DESCRIPTORS_END:
 CH_SET_TARGET_DEVICE_ADDRESS:
     push af
     ld a,CH_CMD_SET_USB_ADDR
-    out (CH_COMMAND_PORT),a
+    CH_SEND_COMMAND
     pop af
-    out (CH_DATA_PORT),a
+    CH_SEND_DATA
+    CH_END_COMMAND
     ret
 
 ; --------------------------------------
@@ -774,9 +895,9 @@ CH_SET_TARGET_DEVICE_ADDRESS:
 CH_ISSUE_TOKEN:
     ld d,a
     ld a,CH_CMD_ISSUE_TKN_X
-    out (CH_COMMAND_PORT),a
+    CH_SEND_COMMAND
     ld a,d
-    out (CH_DATA_PORT),a    ;Toggles
+    CH_SEND_DATA    ;Toggles
     ld a,e
     rla
     rla
@@ -784,7 +905,8 @@ CH_ISSUE_TOKEN:
     rla
     and 0F0h
     or b
-    out (CH_DATA_PORT),a    ;Endpoint | PID
+    CH_SEND_DATA    ;Endpoint | PID
+    CH_END_COMMAND
     ret
 
 ; -----------------------------------------------------------------------------
@@ -809,17 +931,30 @@ CH_DATA_IN_TRANSFER:
     rra     ;Toggle to bit 7 of A
     ld ix,0 ;IX = Received so far count
     push de
-    pop iy  ;IY = EP size + EP number
+    pop iy  ;IY = EP max size + EP number
 
 _CH_DATA_IN_LOOP:
     push af ;Toggle in bit 7
     push bc ;Remaining length
+
+    ; DEBUG
+    push af
+	ld a, 0
+	out 2fh, a
+    pop af
+	; DEBUG
 
     ld e,iyl
     ld b,CH_PID_IN
     call CH_ISSUE_TOKEN
 
     call CH_WAIT_INT_AND_GET_RESULT
+    ; DEBUG
+    push af
+	ld a, 1
+	out 2fh, a
+    pop af
+	; DEBUG
     cp CH_USB_INT_SUCCESS
     jr nz,_CH_DATA_IN_ERR   ;DONE if error
 
@@ -996,6 +1131,7 @@ HW_CONTROL_TRANSFER:
     ld a,b
     or c
     jr z,_CH_CONTROL_STATUS_IN_TRANSFER
+
     ld e,0      ;E  = Endpoint number
     scf         ;Use toggle = 1
     bit 7,(ix)
@@ -1053,9 +1189,10 @@ CH_SET_SPEED:
     push bc
     ld b,a
     ld a,CH_CMD_SET_SPEED
-    out (CH_COMMAND_PORT),a
+    CH_SEND_COMMAND
     ld a,b
-    out (CH_DATA_PORT),a
+    CH_SEND_DATA
+    CH_END_COMMAND
     or a; clear Cy
     pop bc
     ret

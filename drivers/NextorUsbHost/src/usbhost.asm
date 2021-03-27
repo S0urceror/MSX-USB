@@ -130,7 +130,7 @@ FN_CONNECT2: ; skip bus reset (for hubs)
     ; Hub connected?
 	pop hl ; +-
     ld d, 0 ; from reset device
-	call FN_GETDESCRIPTORS
+	call HW_GET_DESCRIPTORS
 	jr nc, _CONTINUE_DESCRIPTORS
     ; descriptors not read, return zero to indicate error
     pop ix ; --
@@ -195,7 +195,27 @@ SET_USB_DEVICE_ADDRESS:
     pop ix
     ret
 
+wait_for_insert:
+    ld a, '.'
+	call CHPUT
+    ld bc, WAIT_ONE_SECOND/2
+    call WAIT
+
+    call CH_GET_STATUS
+    cp CH_USB_INT_CONNECT
+    jr nz,wait_for_insert
+
+    ld a, "\r"
+	call CHPUT
+    ld a, "\n"
+	call CHPUT
+
+    ret
+
 USB_HOST_BUS_RESET:
+    ld a, CH_MODE_HOST
+    call CH_SET_USB_MODE
+    call wait_for_insert
 	; reset BUS
    	ld a, CH_MODE_HOST_RESET ; HOST, reset bus
     call CH_SET_USB_MODE
@@ -209,6 +229,24 @@ USB_HOST_BUS_RESET:
 	; wait ~250ms
 	ld bc, WAIT_ONE_SECOND/4
 	call WAIT
+
+    ; check IC version
+    ld a, CH_CMD_GET_IC_VER
+    CH_SEND_COMMAND
+    CH_RECEIVE_DATA
+    CH_END_COMMAND
+    and 1fh
+    ; ONLY WHEN VERSION 3?
+    cp 3
+    jr nz, .not_three
+
+    ld a, CH_CMD_CLR_STALL
+    CH_SEND_COMMAND
+    ld a, 80h
+    CH_SEND_DATA
+    CH_END_COMMAND
+.not_three
+
     or a ; clear Cy
 	ret
 
@@ -254,9 +292,11 @@ _UNPACK_E:
 ; Output: Cy = 0, everything okay, Cy = 1, not connected
 HW_GET_DESCRIPTORS:
     ld ix, hl
+
     ; get device descriptor
     call CH_GET_DEVICE_DESCRIPTOR
     jr nc, _INIT_USBHID_NEXT
+
     call GET_USB_DEVICE_ADDRESS
     cp 1
     ret nz

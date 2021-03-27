@@ -21,22 +21,26 @@
 ;
 CHGBNK:
 	IFDEF __ROOKIEDRIVE
-
-	db	0FFh	;Header for MKNEXROM
-	dw	6000h
-
-	ld	(6000h),a
-
-	ELSE
-
-	db	0FFh	;Header for MKNEXROM
-	dw	5000h
-
-	rlca ; bank number multiplied times 2 to select right 8k segment
-	ld	(5000h),a
-	inc	a ; plus 1
-	ld	(7000h),a
-	
+		db	0FFh	;Header for MKNEXROM
+		dw	6000h
+		ld	(6000h),a
+	ENDIF
+	IFDEF __MISTERSPI
+		db	0FFh	;Header for MKNEXROM
+		dw	6000h
+		rlca
+		ld	(6000h),a
+		inc	a
+		ld	(6800h),a
+		ret
+	ENDIF
+	IFDEF __MSXUSBCARTv1
+		db	0FFh	;Header for MKNEXROM
+		dw	5000h
+		rlca ; bank number multiplied times 2 to select right 8k segment
+		ld	(5000h),a
+		inc	a ; plus 1
+		ld	(7000h),a
 	ENDIF
 	ret
 ;

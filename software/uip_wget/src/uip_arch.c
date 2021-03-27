@@ -44,6 +44,7 @@ static const uint16_t sizeof_uip_ipaddr_t = sizeof(uip_ipaddr_t);
 static const uint16_t offset_tcpip_hdr_len = offsetof(struct uip_tcpip_hdr, len);
 static const uint16_t offset_tcpip_hdr_srcipaddr = offsetof(struct uip_tcpip_hdr, srcipaddr);
 
+/*
 void exit (uint8_t exitcode) {
 __asm
 	pop af
@@ -57,6 +58,7 @@ __asm
 	ret ; never reached
 __endasm;
 }
+*/
 
 void _uip_ipaddr_copy(void* dest, void* src) {
 __asm

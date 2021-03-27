@@ -1,6 +1,6 @@
 /*
 The "Noobtocol": A very simple protocol for communication with a CH376
-connected to the Arduino using parallel interface.
+connected to the Arduino using serial interface.
 
 The protocol is as follows:
 

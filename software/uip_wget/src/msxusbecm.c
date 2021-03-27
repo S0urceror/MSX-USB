@@ -333,25 +333,25 @@ bool msxusbecm_init (struct uip_eth_addr* mac)
 {
     int i = UnapiGetCount("MSXUSB");
     if(i==0) {
-        printf("- No MSX USB UNAPI implementations found\r\n");
+        printf("No MSX USB UNAPI implementations found\r\n");
         return false;
     }
-    printf ("+MSXUSB UNAPI found\r\n");
+    printf ("MSXUSB UNAPI found\r\n");
 
     UnapiBuildCodeBlock(NULL, i, &unapi);
     regs.Words.HL = (uint16_t) &msxusb_jumptable;
     UnapiCall(&unapi,USB_JUMP_TABLE, &regs, REGS_MAIN, REGS_NONE);
-    printf ("+Using fast jump-table\r\n");
+    printf ("Using fast jump-table\r\n");
 
     AsmCall(((uint16_t)&msxusb_jumptable)+FN_CONNECT,&regs, REGS_NONE, REGS_AF);
     int highest_address = regs.Bytes.A;
     if (highest_address==0)
     {
-        printf ("-USB device not connected\r\n");
+        printf ("USB device not connected\r\n");
         return false;
     }
     else
-        printf ("+%d USB device(s) connected\r\n",highest_address);
+        printf ("%d USB device(s) connected\r\n",highest_address);
 
     for (int d=1;d<=highest_address;d++) {
         regs.UWords.HL = (uint16_t) &descriptor;
@@ -360,7 +360,7 @@ bool msxusbecm_init (struct uip_eth_addr* mac)
         if (regs.Flags.C!=0)
             return false; // error
         if (isCDCECM(&descriptor)) {
-            printf ("+USB CDC ECM adapter found [%d]\r\n",d);
+            printf ("USB CDC ECM adapter found [%d]\r\n",d);
             ethernet_info.device_address = d;
         
             char buffer[255];
@@ -372,7 +372,7 @@ bool msxusbecm_init (struct uip_eth_addr* mac)
                 mac->addr[3] = two_hexascii_to_byte (*(buf+12),*(buf+14));
                 mac->addr[4] = two_hexascii_to_byte (*(buf+16),*(buf+18));
                 mac->addr[5] = two_hexascii_to_byte (*(buf+20),*(buf+22));
-                printf ("+MAC address: %x:%x:%x:%x:%x:%x\r\n",mac->addr[0],mac->addr[1],mac->addr[2],mac->addr[3],mac->addr[4],mac->addr[5]);
+                printf ("MAC address: %x:%x:%x:%x:%x:%x\r\n",mac->addr[0],mac->addr[1],mac->addr[2],mac->addr[3],mac->addr[4],mac->addr[5]);
             }
             // set ethernet config
             if (!set_ethernet_config ())
@@ -399,7 +399,7 @@ bool msxusbecm_init (struct uip_eth_addr* mac)
             return true;
         }
     }
-    printf ("-USB CDC ECM adapter NOT found\r\n");
+    printf ("USB CDC ECM adapter NOT found\r\n");
     return false;
 }
 

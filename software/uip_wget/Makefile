@@ -9,12 +9,12 @@ ADDR_CODE = 0x0180
 ADDR_DATA = 0
 VERBOSE = --verbose
 PLATFORM = -mz80
-CCFLAGS = $(VERBOSE) $(PLATFORM) --code-loc $(ADDR_CODE) --data-loc $(ADDR_DATA) --no-std-crt0 --out-fmt-ihx #--opt-code-size
+CCFLAGS = $(VERBOSE) $(PLATFORM) --code-loc $(ADDR_CODE) --data-loc $(ADDR_DATA) --no-std-crt0 --out-fmt-ihx --opt-code-size #--max-allocs-per-node 200000
 
 # Directories
 INCLUDES = -I../../../Libraries/fusion-c/header -I../../../Libraries/fusion-c/include -I../../../Libraries/asmlib -I./src -I./uip
 FUSIONLIB = ../../../Libraries/fusion-c/include
-LIBS = ../../../Libraries/asmlib/asm.lib
+LIBS = ../../../Libraries/asmlib/asm.lib ../../../Libraries/fusion-c/lib/fusion.lib
 OBJECTS = $(FUSIONLIB)/putchar_msxdos.rel $(FUSIONLIB)/printf.rel
 SRCDIR = src
 UIPDIR = uip

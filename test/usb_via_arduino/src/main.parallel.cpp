@@ -37,9 +37,23 @@
 #define HID_KEYBOARD 0x01
 #define HID_MOUSE 0x02
 
+//#define   B115200 0010002
+//#define   B230400 0010003
+#define   B460800 0010004
+#define   B500000 0010005
+#define   B576000 0010006
+#define   B921600 0010007
+#define  B1000000 0010010
+#define  B1152000 0010011
+#define  B1500000 0010012
+#define  B2000000 0010013
+#define  B2500000 0010014
+#define  B3000000 0010015
+#define  B3500000 0010016
+#define  B4000000 0010017
+#define BAUDRATE B115200
 int serial=-1;
 
-#define CH376_CMD_GET_IC_VER 0x01
 #define CH375_CMD_SET_USB_SPEED 0x04
 #define CH375_CMD_RESET_ALL 0x05
 #define CH375_CMD_CHECK_EXIST 0x06
@@ -48,7 +62,6 @@ int serial=-1;
 #define CH375_CMD_SET_USB_ADDR 0x13
 #define CH375_CMD_SET_ENDP6 0x1C
 #define CH375_CMD_SET_ENDP7 0x1D
-#define CH376_CMD_DIRTY_BUFFER 0x25
 #define CH375_CMD_RD_USB_DATA 0x27
 //#define CH375_CMD_RD_USB_DATA 0x28
 //#define CH375_CMD_WR_USB_DATA7 0x2B
@@ -58,8 +71,7 @@ int serial=-1;
 #define CH376_CMD_DISK_MOUNT 0x31
 #define CH376_CMD_OPEN_FILE 0x32
 #define CH376_CMD_FILE_CLOSE 0x36
-
-#define CH376_CMD_CLR_STALL 0x41
+#define CH375_USB_ERR_OPEN_DIR 0x41
 #define CH375_CMD_SET_ADDRESS 0x45
 #define CH375_CMD_GET_DESCR 0x46
 #define CH375_CMD_SET_CONFIG 0x49
@@ -67,8 +79,6 @@ int serial=-1;
 #define CH375_CMD_ISSUE_TKN_X 0x4E
 #define CH375_CMD_ABORT_NAK 0x17
 #define CH376_CMD_SET_RETRY 0x0B
-#define CH376_CMD_SET_SD0_INT 0x0B
-#define CH375_CMD_DIRTY_BUFFER 0x25
 
 #define CH375_USB_MODE_HOST 0x06
 #define CH375_USB_MODE_HOST_RESET 0x07
@@ -86,8 +96,6 @@ int serial=-1;
 #define CH375_USB_CONFIGURATION_DESCRIPTOR 0x02
 #define CH375_USB_INTERFACE_DESCRIPTOR 0x04
 #define CH375_USB_ENDPOINT_DESCRIPTOR 0x05
-
-#define CH375_USB_ERR_OPEN_DIR 0x41
 
 //--- PIDs
 #define CH_PID_SETUP 0x0D
@@ -345,17 +353,25 @@ void init_serial ()
     fcntl(serial, F_SETFL, 0);
     
     struct termios  config;
+    if(tcgetattr(serial, &config) < 0)
+      error("cannot get serial attributes");
+    
     bzero(&config, sizeof(config));
-    config.c_cflag |= CS8 | CLOCAL | CREAD;
-    config.c_iflag |= IGNPAR;
-    cfsetispeed (&config, B230400);
-    cfsetospeed (&config, B230400);
+    config.c_cflag = BAUDRATE | CRTSCTS | CS8 | CLOCAL | CREAD;
+    config.c_iflag = IGNPAR;
+    config.c_oflag = 0;
+    
+    /* set input mode (non-canonical, no echo,...) */
+    config.c_lflag = 0;
      
-    config.c_cc[VTIME]    = 5;   /* inter-character timer unused */
-    config.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */
+    config.c_cc[VTIME]    = 5;
+    config.c_cc[VMIN]     = 0;
     
     tcflush(serial, TCIFLUSH);
     tcsetattr(serial, TCSANOW, &config);
+
+
+    
 }
 
 // LOW_LEVEL serial communication to CH376
@@ -364,37 +380,13 @@ const uint8_t WR_COMMAND = 1;
 const uint8_t RD_STATUS = 2;
 const uint8_t WR_DATA = 3;
 const uint8_t RD_DATA = 4;
+const uint8_t RD_INT = 5;
 const uint8_t RD_DATA_MULTIPLE = 6;
 const uint8_t WR_DATA_MULTIPLE = 7;
-const uint8_t END_COMMAND = 8;
-const uint8_t DATA_DUMP = 10;
-
-void testspeed ()
-{
-    uint8_t new_value[512];
-    uint8_t cmd = DATA_DUMP;
-    int i;
-    write (serial, &cmd, 1);
-
-    auto t1 = std::chrono::high_resolution_clock::now();
-    for (i=0;i<10*512;i++) {
-        int bytes = read (serial,new_value,1);
-        if (bytes!=1)
-            error ("Serial max speed test did not receive all expected bytes");
-    }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-    std::cout << "Serial max read speed: " << i / (duration/1000000.0) << " bytes/second" << std::endl;
-}
 
 void writeCommand (uint8_t command)
 {
     uint8_t cmd[] = {WR_COMMAND,command};
-    write (serial,cmd,sizeof(cmd));
-}
-void endCommand ()
-{
-    uint8_t cmd[] = {END_COMMAND};
     write (serial,cmd,sizeof(cmd));
 }
 void writeData (uint8_t data)
@@ -407,14 +399,15 @@ void writeDataMultiple (uint8_t* buffer,uint8_t len)
     uint8_t cmd[] = {WR_DATA_MULTIPLE,len};
     write (serial,cmd,sizeof(cmd));
     write (serial,buffer,len);
-    //for (int i=0;i<len;i++)
-    //    writeData (buffer[i]);
+    /*
+    for (int i=0;i<len;i++)
+    {
+        writeData (buffer[i]);
+    }*/
     //writeData (0);
 }
 ssize_t readData (uint8_t* new_value)
 {
-    writeData (0);
-
     uint8_t cmd[] = {RD_DATA};
     write (serial,cmd,sizeof(cmd));
     return read (serial,new_value,1);
@@ -426,16 +419,18 @@ ssize_t readDataMultiple (uint8_t* buffer,uint8_t len)
     write (serial,cmd,sizeof(cmd));
     uint8_t bytes = read (serial,buffer,len);
     assert (bytes==len);
-    return bytes;
-    //for (i=0;i<len;i++)
-    //{
-    //    uint8_t value;
-    //    uint8_t bytes = readData (&value);
-    //    if (bytes==0)
-    //        break;
-    //    *(buffer+i)=value;
-    //}
-    //return i;
+    /*
+    for (i=0;i<len;i++)
+    {
+        uint8_t value;
+        uint8_t bytes = read (serial,&value,1);
+        if (bytes==0)
+            break;
+        *(buffer+i)=value;
+    }
+    return i;
+    */
+   return bytes;
 }
 ssize_t readStatus (uint8_t* new_value)
 {
@@ -443,9 +438,36 @@ ssize_t readStatus (uint8_t* new_value)
     write (serial,cmd,sizeof(cmd));
     return read (serial,new_value,1);
 }
+ssize_t readInterrupt (uint8_t* new_value)
+{
+    uint8_t cmd[] = {RD_INT};
+    write (serial,cmd,sizeof(cmd));
+    return read (serial,new_value,1);
+}
 
 // CHECK STATUS
 ///////////////////////////////////////////////////////////////////////////
+uint8_t waitInterrupt ()
+{
+    uint8_t status,interrupt;
+    int i=0;
+    ssize_t bytes;
+    int counter = 1000;
+    while ((bytes=readInterrupt(&interrupt)) && counter>0)
+    {
+        if (interrupt&0x80)
+            break;
+        usleep (1000);
+        counter --;
+    }
+    if (counter<=0)
+        error ("timeout waitInterrupt");
+    writeCommand(CH375_CMD_GET_STATUS);
+    bytes = readData (&status);
+    if (bytes)
+        return status;
+    return 0;
+}
 uint8_t waitStatus ()
 {
     uint8_t status,interrupt;
@@ -461,11 +483,8 @@ uint8_t waitStatus ()
     }
     if (counter<=0)
         error ("timeout waitStatus");
-    //if (counter<=0)
-    //    printf ("timeout waitStatus\n");
     writeCommand(CH375_CMD_GET_STATUS);
     bytes = readData (&status);
-    endCommand();
     if (bytes)
         return status;
     return 0;
@@ -478,7 +497,6 @@ void check_exists ()
     writeCommand (CH375_CMD_CHECK_EXIST);
     writeData(value);
     ssize_t bytes = readData (&new_value);
-    endCommand();
     value = value ^ 255;
     if (bytes!=1 || (new_value != value))
         error ("Device does not exist\n");
@@ -486,29 +504,15 @@ void check_exists ()
 
 // CH376 built-in commands
 ///////////////////////////////////////////////////////////////////////////
-void abort_nak ()
-{
-    writeCommand (CH375_CMD_ABORT_NAK);
-    endCommand();
-}
-
 void reset_all ()
 {
     writeCommand (CH375_CMD_RESET_ALL);
-    endCommand();
     usleep (100000);
-    
-    // interrupt via MISO
-    writeCommand (CH376_CMD_SET_SD0_INT);
-    writeData (0x16);
-    writeData (0x90);
-    endCommand ();
 }
 void set_target_device_address (uint8_t address)
 {
     writeCommand (CH375_CMD_SET_USB_ADDR);
     writeData(address);
-    endCommand();
     usleep (2000);
 }
 
@@ -516,17 +520,15 @@ bool set_usb_host_mode (uint8_t mode)
 {
     writeCommand(CH375_CMD_SET_USB_MODE);
     writeData(mode);
+    
     uint8_t value;
     for(int i=0; i!=200; i++ )
     {
-        usleep(20);
         readData(&value);
-        if ( value == CH375_CMD_RET_SUCCESS ) {
-            endCommand();
+        if ( value == CH375_CMD_RET_SUCCESS )
             return true;
-        }
+        usleep(1000);
     }
-    endCommand();
     return false;
 }
 
@@ -541,19 +543,16 @@ void set_retry (uint8_t mode)
     writeCommand (CH376_CMD_SET_RETRY);
     writeData (0x25); // fixed value, required
     writeData (mode);
-    endCommand();
 }
 void set_speed (uint8_t speed)
 {
     writeCommand (CH375_CMD_SET_USB_SPEED);
     writeData(speed);
-    endCommand();
 }
 void set_address (uint8_t address)
 {
      writeCommand (CH375_CMD_SET_ADDRESS);
      writeData(address);
-     endCommand();
      if (waitStatus ()!=CH375_USB_INT_SUCCESS)
          error ("ERROR: address not set\n");
 }
@@ -561,7 +560,6 @@ void set_configuration (uint8_t configuration)
 {
      writeCommand(CH375_CMD_SET_CONFIG);
      writeData(configuration);
-     endCommand();
      if (waitStatus ()!=CH375_USB_INT_SUCCESS)
          error ("ERROR: configuration not set\n");
 }
@@ -572,7 +570,6 @@ bool get_device_descriptor ()
     
     writeCommand(CH375_CMD_GET_DESCR);
     writeData(CH375_USB_DEVICE_DESCRIPTOR);
-    endCommand();
     if (waitStatus ()!=CH375_USB_INT_SUCCESS)
         error ("ERROR: USB device descriptor not read 1\n");
     writeCommand(CH375_CMD_RD_USB_DATA);
@@ -587,7 +584,6 @@ bool get_device_descriptor ()
     }
     else
         error ("ERROR: USB device descriptor not read 3\n");
-    endCommand();
     return true;
 }
 
@@ -599,14 +595,12 @@ void write_usb_data (uint8_t* message,uint8_t length)
     writeData(length);
     for (int i=0;i<length;i++)
         writeData(message[i]);
-    endCommand();
 }
 void issue_token (uint8_t endpoint_number, uint8_t pid, uint8_t in_toggle, uint8_t out_toggle)
 {
     writeCommand(CH375_CMD_ISSUE_TKN_X);
     writeData(in_toggle<<7 | out_toggle<<6);
-    writeData(((endpoint_number&0x0f) << 4) | pid);
-    endCommand();
+    writeData(endpoint_number << 4 | pid);
 }
 ssize_t read_usb_data (uint8_t* pBuffer)
 {
@@ -618,7 +612,6 @@ ssize_t read_usb_data (uint8_t* pBuffer)
     if (value==0)
         return 0;
     bytes = readDataMultiple(pBuffer, value);
-    endCommand();
     if (bytes<value)
         error("did not receive enough bytes");
     return bytes;
@@ -626,8 +619,6 @@ ssize_t read_usb_data (uint8_t* pBuffer)
 
 // USB data packet input
 ///////////////////////////////////////////////////////////////////////////
-uint16_t get_endpoint_status (uint8_t target_device_address,uint8_t endpoint_id);
-
 int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle,uint8_t* &result)
 {
     uint16_t remaining_data_length = length;
@@ -647,7 +638,7 @@ int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t en
         {
             if ((status&0x2f)==0b00101010) // 2A
             {
-                printf (">> NAK <<\n");
+                //printf (">> NAK <<\n");
                 free (result);
                 result = NULL;
                 return 0;
@@ -764,24 +755,6 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
 // DESCRIPTOR commands
 ///////////////////////////////////////////////////////////////////////////
 uint8_t max_packet_size;
-bool get_device_status (uint8_t target_device_address,uint16_t* buffer)
-{
-    uint8_t cmd[] = {0x80,0,0,0,0,0,2,0};
-    uint8_t* data=NULL;
-    max_packet_size = 8;
-
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
-    if (result)
-    {
-        if (data[0]&0x1)
-            printf ("Device is self-powered\n");
-        if (data[0]&0x2)
-            printf ("Device supports remote wake-up\n");
-        memcpy (buffer,data,2);
-    }
-    free(data);
-    return result;
-}
 bool get_device_descriptor2 (uint8_t target_device_address,uint8_t* buffer, int& buffer_length)
 {
     uint8_t cmd[] = {0x80,6,0,1,0,0,18,0};
@@ -1511,7 +1484,6 @@ void do_storage (_storage_info&);
 void connect_disk ()
 {
     writeCommand (CH376_CMD_DISK_CONNECT);
-    endCommand();
     if (waitStatus ()!=CH375_USB_INT_SUCCESS)
         error ("disk not connected");
     
@@ -1520,19 +1492,20 @@ void mount_disk ()
 {
     int status;
     writeCommand (CH376_CMD_DISK_MOUNT);
-    endCommand();
     status = waitStatus ();
     if ((status!=CH375_USB_INT_SUCCESS))
         error ("disk not mounted");
+}
+void abort_nak ()
+{
+    writeCommand (CH375_CMD_ABORT_NAK);
 }
 void open_file (char* name)
 {
     int status;
     writeCommand (CH376_CMD_SET_FILE_NAME);
     writeDataMultiple ((uint8_t*) name,strlen(name));
-    endCommand();
     writeCommand (CH376_CMD_OPEN_FILE);
-    endCommand();
     if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
         error ("file not opened");
     
@@ -1548,7 +1521,6 @@ void read_file ()
         writeCommand (CH376_CMD_BYTE_READ);
         writeData (64);
         writeData (0);
-        endCommand();
         status=waitStatus ();
         if (status==CH375_USB_INT_SUCCESS)
             return; // done
@@ -1561,7 +1533,6 @@ void read_file ()
             strncpy (line,(char*) buffer,len);
             printf ("%s\n",line);
             writeCommand (CH376_CMD_BYTE_RD_GO);
-            endCommand();
             if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
                 error ("read file error");
         }
@@ -1572,7 +1543,6 @@ void close_file ()
     int status;
     writeCommand (CH376_CMD_FILE_CLOSE);
     writeData (0);
-    endCommand();
     if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
         error ("file not closed");
 }
@@ -1581,63 +1551,18 @@ void open_dir (char* name)
     int status;
     writeCommand (CH376_CMD_SET_FILE_NAME);
     writeDataMultiple ((uint8_t*) name,strlen(name));
-    endCommand();
     writeCommand (CH376_CMD_OPEN_FILE);
-    endCommand();
     if ((status=waitStatus ())!=CH375_USB_ERR_OPEN_DIR)
         error ("directory not opened");
 }
-void wait_for_insert ()
-{
-    uint8_t status,bytes;
-    while (1)
-    {
-        writeCommand(CH375_CMD_GET_STATUS);
-        bytes = readData (&status);
-        endCommand();
-        if (bytes)
-        {
-            if(status==CH375_USB_INT_CONNECT)
-            {
-                printf ("USB device inserted\n");
-                break;
-            }
-            else
-            {
-                printf ("Please insert an USB device\n");
-                sleep (1);
-            }
-        }
-    }
-}
 void usb_host_bus_reset ()
 {
-    uint8_t version;
-    writeCommand (CH376_CMD_GET_IC_VER);
-    readData (&version);
-    endCommand();
-    if (version&0b00100000 == 0)
-        error ("Not a right version\n");
-    version = version&0b00011111;
-    printf ("CH376 IC version: %d\n",version);
-
     bool result;
-    result=set_usb_host_mode(CH375_USB_MODE_HOST);
-    // wait for insert
-    wait_for_insert ();
     result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
     sleep (1);
     if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
         error ("host mode not succeeded\n");
     usleep (500000);
-
-    if (version == 3) 
-    {
-        // un-stall endpoint 0
-        writeCommand (CH376_CMD_CLR_STALL);
-        writeData (0x80);
-        endCommand();
-    }
 }
 
 std::vector <_hid_info> hids;
@@ -1931,9 +1856,8 @@ void do_storage (_storage_info& storage_info)
         while (scsi_read_block (storage_info,i++,len,buffer)) {
 
             free (buffer);
-            if (i==10)
+            if (i==50)
                 break;
-            std::cout << "block " << i << " read" << std::endl;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
@@ -2091,23 +2015,28 @@ void do_hub (_hub_info& hub_info)
         //init_device (device_address+1);
     }
 }
-
 int main(int argc, const char * argv[]) 
 {
     init_serial();
-    testspeed();
-
-    check_exists();
+/*
+    int bufsize = 64;
+    uint8_t buf[bufsize];
+    uint8_t cmd[] = {10};
+    write (serial,cmd,sizeof(cmd));
+    auto t1 = std::chrono::high_resolution_clock::now();
+    size_t bytes_read=0,bread;
+    while ((bread = read (serial,buf,bufsize))) {
+        bytes_read += bread;
+    }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+    std::cout << "Bytes read: " << bytes_read << " speed: " << bytes_read / (duration/1000000.0) << " bytes/second" << std::endl;
+*/
     reset_all();
-
+    check_exists();
+    
     // set reset bus and set host mode
     usb_host_bus_reset ();
-
-    uint16_t status;
-    if (!get_device_status (0,&status))
-    {
-        error ("No status\n");
-    }
 
     // do the low-level things
     init_device (device_counter++);

@@ -7,7 +7,10 @@
             "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": "$problem-matcher-sjasmplus"
         },
         {
@@ -63,10 +66,7 @@
             "label": "Software - uIP wget",
             "type": "shell",
             "command": "make -C ./software/uip_wget/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {
