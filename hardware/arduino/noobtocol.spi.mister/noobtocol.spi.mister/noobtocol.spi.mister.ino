@@ -30,7 +30,6 @@ void endTransfer ()
 
 void writeCommand (byte cmd)
 {
-  endTransfer();
   beginTransfer();
   SPI.transfer (cmd);
 }

@@ -5,10 +5,16 @@ LNK = c++
 LNK_OUTPUT_DIR = ../dist
 LNK_FLAGS = -g
 
-all: $(LNK_OUTPUT_DIR)/main
+spi: $(LNK_OUTPUT_DIR)/main
+parallel: $(LNK_OUTPUT_DIR)/main_parallel
+
 .PHONY: all clean copy
 
 $(LNK_OUTPUT_DIR)/main: main.cpp
+	$(CPP) $(CPP_FLAGS) -o $@.o $< 
+	$(LNK) $(LNK_FLAGS) -o $@ $@.o
+	
+$(LNK_OUTPUT_DIR)/main_parallel: main.parallel.cpp
 	$(CPP) $(CPP_FLAGS) -o $@.o $< 
 	$(LNK) $(LNK_FLAGS) -o $@ $@.o
 	

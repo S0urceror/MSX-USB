@@ -7,10 +7,7 @@
             "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": "$problem-matcher-sjasmplus"
         },
         {
@@ -28,10 +25,20 @@
             "problemMatcher": "$problem-matcher-sjasmplus"
         },
         {
-            "label": "Test - USB via Arduino C++",
+            "label": "Test - SPI USB via Arduino C++",
             "type": "shell",
-            "command": "make -C ./test/usb_via_arduino/src/",
+            "command": "make spi -C ./test/usb_via_arduino/src/",
             "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Test - Parallel USB via Arduino C++",
+            "type": "shell",
+            "command": "make parallel -C ./test/usb_via_arduino/src/",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {

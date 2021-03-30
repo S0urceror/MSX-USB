@@ -497,7 +497,7 @@ void reset_all ()
     writeCommand (CH375_CMD_RESET_ALL);
     endCommand();
     usleep (100000);
-    
+
     // interrupt via MISO
     writeCommand (CH376_CMD_SET_SD0_INT);
     writeData (0x16);
@@ -615,8 +615,10 @@ ssize_t read_usb_data (uint8_t* pBuffer)
     ssize_t bytes = readData(&value);
     if (bytes==0)
         error ("no data available");
-    if (value==0)
+    if (value==0) {
+        endCommand();
         return 0;
+    }
     bytes = readDataMultiple(pBuffer, value);
     endCommand();
     if (bytes<value)
@@ -1612,15 +1614,6 @@ void wait_for_insert ()
 }
 void usb_host_bus_reset ()
 {
-    uint8_t version;
-    writeCommand (CH376_CMD_GET_IC_VER);
-    readData (&version);
-    endCommand();
-    if (version&0b00100000 == 0)
-        error ("Not a right version\n");
-    version = version&0b00011111;
-    printf ("CH376 IC version: %d\n",version);
-
     bool result;
     result=set_usb_host_mode(CH375_USB_MODE_HOST);
     // wait for insert
@@ -1631,6 +1624,14 @@ void usb_host_bus_reset ()
         error ("host mode not succeeded\n");
     usleep (500000);
 
+    uint8_t version;
+    writeCommand (CH376_CMD_GET_IC_VER);
+    readData (&version);
+    endCommand();
+    if (version&0b00100000 == 0)
+        error ("Not a right version\n");
+    version = version&0b00011111;
+    printf ("CH376 IC version: %d\n",version);
     if (version == 3) 
     {
         // un-stall endpoint 0
@@ -2102,12 +2103,6 @@ int main(int argc, const char * argv[])
 
     // set reset bus and set host mode
     usb_host_bus_reset ();
-
-    uint16_t status;
-    if (!get_device_status (0,&status))
-    {
-        error ("No status\n");
-    }
 
     // do the low-level things
     init_device (device_counter++);

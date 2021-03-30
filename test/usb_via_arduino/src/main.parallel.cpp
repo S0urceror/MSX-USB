@@ -54,6 +54,7 @@
 #define BAUDRATE B115200
 int serial=-1;
 
+#define CH376_CMD_GET_IC_VER 0x01
 #define CH375_CMD_SET_USB_SPEED 0x04
 #define CH375_CMD_RESET_ALL 0x05
 #define CH375_CMD_CHECK_EXIST 0x06
@@ -71,7 +72,13 @@ int serial=-1;
 #define CH376_CMD_DISK_MOUNT 0x31
 #define CH376_CMD_OPEN_FILE 0x32
 #define CH376_CMD_FILE_CLOSE 0x36
-#define CH375_USB_ERR_OPEN_DIR 0x41
+#define CH376_CMD_DIR_INFO_READ 0x37
+
+#define CH376_CMD_BYTE_READ 0x3a
+#define CH376_CMD_BYTE_RD_GO 0x3b
+#define CH375_USB_INT_DISK_READ 0x1d
+
+#define CH376_CMD_CLR_STALL 0x41
 #define CH375_CMD_SET_ADDRESS 0x45
 #define CH375_CMD_GET_DESCR 0x46
 #define CH375_CMD_SET_CONFIG 0x49
@@ -82,6 +89,8 @@ int serial=-1;
 
 #define CH375_USB_MODE_HOST 0x06
 #define CH375_USB_MODE_HOST_RESET 0x07
+
+#define CH375_USB_ERR_OPEN_DIR 0x41
 
 #define CH375_USB_INT_SUCCESS 0x14
 #define CH375_USB_INT_CONNECT 0x15
@@ -353,25 +362,17 @@ void init_serial ()
     fcntl(serial, F_SETFL, 0);
     
     struct termios  config;
-    if(tcgetattr(serial, &config) < 0)
-      error("cannot get serial attributes");
-    
     bzero(&config, sizeof(config));
-    config.c_cflag = BAUDRATE | CRTSCTS | CS8 | CLOCAL | CREAD;
-    config.c_iflag = IGNPAR;
-    config.c_oflag = 0;
-    
-    /* set input mode (non-canonical, no echo,...) */
-    config.c_lflag = 0;
+    config.c_cflag |= CS8 | CLOCAL | CREAD;
+    config.c_iflag |= IGNPAR;
+    cfsetispeed (&config, B230400);
+    cfsetospeed (&config, B230400);
      
-    config.c_cc[VTIME]    = 5;
-    config.c_cc[VMIN]     = 0;
+    config.c_cc[VTIME]    = 5;   /* inter-character timer unused */
+    config.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */
     
     tcflush(serial, TCIFLUSH);
     tcsetattr(serial, TCSANOW, &config);
-
-
-    
 }
 
 // LOW_LEVEL serial communication to CH376
@@ -383,7 +384,25 @@ const uint8_t RD_DATA = 4;
 const uint8_t RD_INT = 5;
 const uint8_t RD_DATA_MULTIPLE = 6;
 const uint8_t WR_DATA_MULTIPLE = 7;
+const uint8_t DATA_DUMP = 10;
 
+void testspeed ()
+{
+    uint8_t new_value[512];
+    uint8_t cmd = DATA_DUMP;
+    int i;
+    write (serial, &cmd, 1);
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    for (i=0;i<10*512;i++) {
+        int bytes = read (serial,new_value,1);
+        if (bytes!=1)
+            error ("Serial max speed test did not receive all expected bytes");
+    }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+    std::cout << "Serial max read speed: " << i / (duration/1000000.0) << " bytes/second" << std::endl;
+}
 void writeCommand (uint8_t command)
 {
     uint8_t cmd[] = {WR_COMMAND,command};
@@ -399,12 +418,6 @@ void writeDataMultiple (uint8_t* buffer,uint8_t len)
     uint8_t cmd[] = {WR_DATA_MULTIPLE,len};
     write (serial,cmd,sizeof(cmd));
     write (serial,buffer,len);
-    /*
-    for (int i=0;i<len;i++)
-    {
-        writeData (buffer[i]);
-    }*/
-    //writeData (0);
 }
 ssize_t readData (uint8_t* new_value)
 {
@@ -417,20 +430,17 @@ ssize_t readDataMultiple (uint8_t* buffer,uint8_t len)
     int i;
     uint8_t cmd[] = {RD_DATA_MULTIPLE,len};
     write (serial,cmd,sizeof(cmd));
-    uint8_t bytes = read (serial,buffer,len);
-    assert (bytes==len);
-    /*
-    for (i=0;i<len;i++)
+    uint8_t bytes_read = 0;
+    while (bytes_read<len)
     {
-        uint8_t value;
-        uint8_t bytes = read (serial,&value,1);
-        if (bytes==0)
-            break;
-        *(buffer+i)=value;
+        uint8_t bytes = read (serial,buffer,len);
+        if (bytes==0) 
+            error ("did not receive data");
+        bytes_read += bytes;
+        buffer += bytes;
     }
-    return i;
-    */
-   return bytes;
+    assert (bytes_read==len);
+    return bytes_read;
 }
 ssize_t readStatus (uint8_t* new_value)
 {
@@ -1493,8 +1503,9 @@ void mount_disk ()
     int status;
     writeCommand (CH376_CMD_DISK_MOUNT);
     status = waitStatus ();
-    if ((status!=CH375_USB_INT_SUCCESS))
-        error ("disk not mounted");
+    if ((status==CH375_USB_INT_SUCCESS))
+        return;
+    error ("disk not mounted");
 }
 void abort_nak ()
 {
@@ -1505,28 +1516,37 @@ void open_file (char* name)
     int status;
     writeCommand (CH376_CMD_SET_FILE_NAME);
     writeDataMultiple ((uint8_t*) name,strlen(name));
+    writeData (0);
     writeCommand (CH376_CMD_OPEN_FILE);
     if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
         error ("file not opened");
-    
 }
-#define CH376_CMD_BYTE_READ 0x3a
-#define CH376_CMD_BYTE_RD_GO 0x3b
-#define CH375_USB_INT_DISK_READ 0x1d
-void read_file ()
+void open_dir (char* name)
 {
     int status;
-    while (true)
+    writeCommand (CH376_CMD_SET_FILE_NAME);
+    writeDataMultiple ((uint8_t*) name,strlen(name));
+    writeData (0);
+    writeCommand (CH376_CMD_OPEN_FILE);
+    if ((status=waitStatus ())!=CH375_USB_ERR_OPEN_DIR)
+        error ("directory not opened");
+}
+
+
+void read_file ()
+{
+    int status,count=2;
+    while (count-- > 0)
     {
         writeCommand (CH376_CMD_BYTE_READ);
-        writeData (64);
+        writeData (128);
         writeData (0);
         status=waitStatus ();
         if (status==CH375_USB_INT_SUCCESS)
             return; // done
         if (status==CH375_USB_INT_DISK_READ)
         {
-            uint8_t buffer[64];
+            uint8_t buffer[128];
             ssize_t len = read_usb_data(buffer);
             print_buffer (buffer,len);
             char line[65];
@@ -1546,15 +1566,7 @@ void close_file ()
     if ((status=waitStatus ())!=CH375_USB_INT_SUCCESS)
         error ("file not closed");
 }
-void open_dir (char* name)
-{
-    int status;
-    writeCommand (CH376_CMD_SET_FILE_NAME);
-    writeDataMultiple ((uint8_t*) name,strlen(name));
-    writeCommand (CH376_CMD_OPEN_FILE);
-    if ((status=waitStatus ())!=CH375_USB_ERR_OPEN_DIR)
-        error ("directory not opened");
-}
+
 void usb_host_bus_reset ()
 {
     bool result;
@@ -1563,6 +1575,20 @@ void usb_host_bus_reset ()
     if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
         error ("host mode not succeeded\n");
     usleep (500000);
+
+    uint8_t version;
+    writeCommand (CH376_CMD_GET_IC_VER);
+    readData (&version);
+    if (version&0b00100000 == 0)
+        error ("Not a right version\n");
+    version = version&0b00011111;
+    printf ("CH376 IC version: %d\n",version);
+    if (version == 3) 
+    {
+        // un-stall endpoint 0
+        writeCommand (CH376_CMD_CLR_STALL);
+        writeData (0x80);
+    }
 }
 
 std::vector <_hid_info> hids;
@@ -1856,29 +1882,14 @@ void do_storage (_storage_info& storage_info)
         while (scsi_read_block (storage_info,i++,len,buffer)) {
 
             free (buffer);
-            if (i==50)
+            if (i==10)
                 break;
+            std::cout << "block " << i << " read" << std::endl;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
         std::cout << "Read speed: " << i*len / (duration/1000000.0) << " bytes/second" << std::endl;
         VERBOSE=1;
-
-        /*
-        // try some high-level stuff
-        // set reset bus and set host mode
-        usb_host_bus_reset ();
-        connect_disk ();
-        mount_disk ();
-        open_dir ("\\\0");
-        open_file ("AUTOEXEC.DSK\0");
-        read_file ();
-        close_file ();
-        open_dir ("\\\0");
-        open_file ("128MB.DSK\0");
-        //read_file();
-        close_file ();
-        */
     }
 }
 void do_hid (_hid_info& hid_info)
@@ -2015,26 +2026,52 @@ void do_hub (_hub_info& hub_info)
         //init_device (device_address+1);
     }
 }
+void wait_for_insert ()
+{
+    uint8_t status,bytes;
+    while (1)
+    {
+        writeCommand(CH375_CMD_GET_STATUS);
+        bytes = readData (&status);
+        if (bytes)
+        {
+            if(status==CH375_USB_INT_CONNECT)
+            {
+                printf ("USB device inserted\n");
+                break;
+            }
+            else
+            {
+                printf ("Please insert an USB device\n");
+                sleep (1);
+            }
+        }
+    }
+}
+void do_high_level ()
+{
+    bool result;
+    result=set_usb_host_mode(CH375_USB_MODE_HOST);
+    //connect_disk ();
+    wait_for_insert();
+    mount_disk ();
+    open_dir ("/");
+    //open_dir ("_USB");
+    open_file ("DEFAULT.DSK");
+    read_file ();
+    close_file ();
+    error ("done");
+}
 int main(int argc, const char * argv[]) 
 {
     init_serial();
-/*
-    int bufsize = 64;
-    uint8_t buf[bufsize];
-    uint8_t cmd[] = {10};
-    write (serial,cmd,sizeof(cmd));
-    auto t1 = std::chrono::high_resolution_clock::now();
-    size_t bytes_read=0,bread;
-    while ((bread = read (serial,buf,bufsize))) {
-        bytes_read += bread;
-    }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-    std::cout << "Bytes read: " << bytes_read << " speed: " << bytes_read / (duration/1000000.0) << " bytes/second" << std::endl;
-*/
-    reset_all();
-    check_exists();
+    testspeed();
     
+    check_exists();
+    reset_all();
+
+    do_high_level ();
+
     // set reset bus and set host mode
     usb_host_bus_reset ();
 

@@ -5,13 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch Test",
+            "name": "(lldb) Launch Test SPI",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/test/usb_via_arduino/dist/main",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Test - USB via Arduino C++"
+            "preLaunchTask": "Test - SPI USB via Arduino C++"
+        },
+        {
+            "name": "(lldb) Launch Test Parallel",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/usb_via_arduino/dist/main_parallel",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Test - Parallel USB via Arduino C++"
         },
         {
             "name": "(lldb) Launch MSXUSB",
