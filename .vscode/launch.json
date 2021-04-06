@@ -41,6 +41,14 @@
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
         {
+            "name": "(lldb) Launch Rookie FD",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/openMSX-16.0/derived/x86_64-darwin-devel/bin/openmsx",
+            "args": ["-machine", "Goldstar_FC-200 MSM", "-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            "cwd": "../Emulators/OpenMSX-16.0/share"
+        },
+        {
             "name": "(lldb) Launch MSXUSB MiSTer",
             "type": "cppdbg",
             "request": "launch",

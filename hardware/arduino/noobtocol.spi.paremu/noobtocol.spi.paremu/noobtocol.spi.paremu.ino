@@ -33,6 +33,7 @@
 #define CH_CMD_WR_REQ_DATA        0x2d
 #define CH_CMD_DIR_INFO_READ      0x37
 #define CH_CMD_BYTE_LOCATE        0x39
+#define CH_CMD_FILE_ERASE         0x35
 
 // return codes
 #define CH_ST_RET_SUCCESS         0x51
@@ -102,7 +103,9 @@ void beginCmd (byte cmd)
     case CH_CMD_FILE_CLOSE:         bytes_following = 2;  
                                     break;          
     case CH_CMD_FILE_ENUM_GO:       bytes_following = 1;  
-                                    break;                                                                    
+                                    break;    
+    case CH_CMD_FILE_ERASE:         bytes_following = 1;  
+                                    break;                                                                   
     case CH_CMD_SET_FILE_NAME:      bytes_following = 15;
                                     zero_ended_command = true;
                                     break;         
