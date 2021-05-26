@@ -85,7 +85,8 @@ int serial=-1;
 #define CH375_CMD_ISSUE_TOKEN 0x4F
 #define CH375_CMD_ISSUE_TKN_X 0x4E
 #define CH375_CMD_ABORT_NAK 0x17
-#define CH376_CMD_SET_RETRY 0x0B
+#define CH376_CMD_GET_REGISTER 0x0A
+#define CH376_CMD_SET_REGISTER 0x0B
 
 #define CH375_USB_MODE_HOST 0x06
 #define CH375_USB_MODE_HOST_RESET 0x07
@@ -542,6 +543,44 @@ bool set_usb_host_mode (uint8_t mode)
     return false;
 }
 
+#define VAR_SYS_BASE_INFO 0x20
+#define VAR_RETRY_TIMES 0x25
+#define VAR_FILE_BIT_FLAG 0x26
+#define VAR_DISK_STATUS 0x2b
+#define VAR_SD_BIT_FLAG 0x30
+#define VAR_UDISK_TOGGLE 0x31
+#define VAR_UDISK_LUN 0x34
+#define VAR_SEC_PER_CLUS 0x38
+#define VAR_FILE_DIR_INDEX 0x3b
+#define VAR_CLUS_SEC_OFS 0x3c
+#define VAR_DISK_ROOT 0x44
+#define VAR_DSK_TOTAL_CLUS 0x48
+#define VAR_DSK_START_LBA 0x4c
+#define VAR_DSK_DAT_START 0x50
+#define VAR_LBA_BUFFER 0x54
+#define VAR_LBA_CURRENT 0x58
+#define VAR_FAT_DIR_LBA 0x5c
+#define VAR_START_CLUSTER 0x60
+#define VAR_CURRENT_CLUST 0x64
+#define VAR_FILE_SIZE 0x68
+#define VAR_CURRENT_OFFSET 0x6c
+
+void set_register (uint8_t reg, uint8_t value)
+{
+    writeCommand (CH376_CMD_SET_REGISTER);
+    writeData (reg); 
+    writeData (value);
+}
+uint8_t get_register (uint8_t reg)
+{
+    writeCommand (CH376_CMD_GET_REGISTER);
+    writeData (reg); 
+    uint8_t value=0;
+    readData (&value);
+    return value;
+}
+
+
 //Bits 7 and 6:
 //  0x: Don't retry NAKs
 //  10: Retry NAKs indefinitely (default)
@@ -550,10 +589,9 @@ bool set_usb_host_mode (uint8_t mode)
 //Default after reset and SET_USB_MODE is 8Fh
 void set_retry (uint8_t mode)
 {
-    writeCommand (CH376_CMD_SET_RETRY);
-    writeData (0x25); // fixed value, required
-    writeData (mode);
+    set_register (VAR_RETRY_TIMES,mode);
 }
+
 void set_speed (uint8_t speed)
 {
     writeCommand (CH375_CMD_SET_USB_SPEED);
@@ -2053,11 +2091,32 @@ void do_high_level ()
     bool result;
     result=set_usb_host_mode(CH375_USB_MODE_HOST);
     //connect_disk ();
-    wait_for_insert();
+    //wait_for_insert();
+/*
+    uint8_t value = get_register (VAR_SYS_BASE_INFO);
+    printf ("VAR_SYS_BASE_INFO : %x\n",value);
+    value = get_register (VAR_FILE_BIT_FLAG);
+    printf ("VAR_FILE_BIT_FLAG : %x\n",value);
+    value = get_register (VAR_UDISK_LUN);
+    printf ("VAR_UDISK_LUN : %x\n",value);
+    value = get_register (VAR_UDISK_TOGGLE);
+    printf ("VAR_UDISK_TOGGLE : %x\n",value);
+    value = get_register (VAR_SEC_PER_CLUS);
+    printf ("VAR_SEC_PER_CLUS : %x\n",value);
+    value = get_register (VAR_SEC_PER_CLUS+1);
+    printf ("VAR_SEC_PER_CLUS+1 : %x\n",value);
+*/
+    for (int i=0;i<0x80;i++)
+    {
+        uint8_t value = get_register (i);
+        printf ("%02x : %02x\n",i,value);
+    }
+
+
     mount_disk ();
     open_dir ("/");
     //open_dir ("_USB");
-    open_file ("DEFAULT.DSK");
+    open_file ("COMMAND.COM");
     read_file ();
     close_file ();
     error ("done");
@@ -2070,7 +2129,7 @@ int main(int argc, const char * argv[])
     check_exists();
     reset_all();
 
-    do_high_level ();
+    //do_high_level ();
 
     // set reset bus and set host mode
     usb_host_bus_reset ();

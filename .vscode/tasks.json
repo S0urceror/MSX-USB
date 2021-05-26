@@ -35,10 +35,7 @@
             "label": "Test - Parallel USB via Arduino C++",
             "type": "shell",
             "command": "make parallel -C ./test/usb_via_arduino/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {
@@ -102,6 +99,16 @@
             "type": "shell",
             "command": "make -C ./hardware/quartus",
             "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Test - Mapper",
+            "type": "shell",
+            "command": "make -C ./test/mappertest/src",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         }
     ]

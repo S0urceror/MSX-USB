@@ -14,6 +14,7 @@
 #define CH376_CMD_CLR_STALL       0x41
 #define CH375_CMD_ISSUE_TKN_X     0x4E
 #define CH_CMD_SET_REGISTER       0x0b
+#define CH_CMD_GET_REGISTER       0x0a
 #define CH_CMD_DELAY_100US        0x0f
 #define CH375_CMD_GET_DESCR       0x46
 #define CH_CMD_TEST_CONNECT       0x16
@@ -87,7 +88,9 @@ void beginCmd (byte cmd)
                                     extended_command = true;
                                     break;
     case CH_CMD_SET_REGISTER:       bytes_following = 3;
-                                    break;     
+                                    break;
+    case CH_CMD_GET_REGISTER:       bytes_following = 3;
+                                    break;        
     case CH_CMD_DELAY_100US:        bytes_following = 2;
                                     break;
     case CH375_CMD_GET_DESCR:       bytes_following = 2;
