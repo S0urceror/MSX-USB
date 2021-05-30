@@ -212,9 +212,9 @@ BOOL flash_ident ()
     uint8_t device = flash_segment[1];
     printf ("M: %x, D: %x\r\n",manufacturer,device);
     // Am29F040B = A4
-    // M29F800AB = 58
     // SST39SF040 = B7
-    if (device==0xa4 || device==0x58 || device==0xB7)  // device ID is correct
+    // AMIC_A29040B = 86
+    if (device==0xa4 || device==0xB7 || device==0xB6)  // device ID is correct
     {
         // reset
         flash_segment[0] = 0xf0;
