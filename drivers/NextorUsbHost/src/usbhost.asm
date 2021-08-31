@@ -196,20 +196,24 @@ SET_USB_DEVICE_ADDRESS:
     ret
 
 wait_for_insert:
-    ld a, '.'
-	call CHPUT
-    ld bc, WAIT_ONE_SECOND/2
+    ; CAPS ON
+	in a, 0xaa
+	res 6,a
+	out 0xaa,a
+	;
+    ld bc, WAIT_ONE_SECOND/4
+    call WAIT
+	; CAPS OFF
+	in a, 0xaa
+	set 6,a
+	out 0xaa,a
+	;
+    ld bc, WAIT_ONE_SECOND/4
     call WAIT
 
     call CH_GET_STATUS
     cp CH_USB_INT_CONNECT
     jr nz,wait_for_insert
-
-    ld a, "\r"
-	call CHPUT
-    ld a, "\n"
-	call CHPUT
-
     ret
 
 USB_HOST_BUS_RESET:
@@ -231,11 +235,7 @@ USB_HOST_BUS_RESET:
 	call WAIT
 
     ; check IC version
-    ld a, CH_CMD_GET_IC_VER
-    CH_SEND_COMMAND
-    CH_RECEIVE_DATA
-    CH_END_COMMAND
-    and 1fh
+    call CH_IC_VERSION
     ; ONLY WHEN VERSION 3?
     cp 3
     jr nz, .not_three
@@ -431,9 +431,6 @@ USBHOST_INIT:
     ld de, ix
     ld bc, USB_DESCRIPTORS_END - USB_DESCRIPTORS_START
     ldir
-    ; init spinlock
-    ld a, 0xfe
-    ld (0xfafe),a
     ; INIT finished
     ld hl, TXT_UNAPI_INIT
     call PRINT

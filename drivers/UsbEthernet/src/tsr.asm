@@ -93,7 +93,7 @@ ETH_RESET:
    ;   11: Retry NAKs for 3s
    ; Bits 5-0: Number of retries after device timeout
    ; Default after reset and SET_USB_MODE is 8Fh
-   ld b, 00001111b ; return within immediately
+   ld b, 00001111b ; return immediately
    call TSR_FN_SYNC_MODE
    ret
 

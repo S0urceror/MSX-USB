@@ -1,1 +1,0 @@
-## This directory contains all generated output and executables

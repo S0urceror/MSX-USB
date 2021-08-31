@@ -103,7 +103,9 @@
 			"SPI_HW.C": "cpp",
 			"HAL_BASE.C": "cpp",
 			"CH375DLL.C": "cpp",
-			"USBEX.C": "cpp"
+			"USBEX.C": "cpp",
+			"descriptor_com.h": "c",
+			"ch375_inc.h": "c"
 		}
 	}
 }

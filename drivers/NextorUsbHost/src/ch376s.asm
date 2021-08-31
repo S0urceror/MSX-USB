@@ -551,6 +551,20 @@ CH_RESET:
     ret
 
 ; --------------------------------------
+; CH_IC_VERSION
+;
+; Input: none
+; Output: A - version of CH376s IC/firmware
+CH_IC_VERSION
+    ; check IC version
+    ld a, CH_CMD_GET_IC_VER
+    CH_SEND_COMMAND
+    CH_RECEIVE_DATA
+    CH_END_COMMAND
+    and 1fh
+    ret
+
+; --------------------------------------
 ; CH_SET_SD0_INT
 ;
 ; Input: none
@@ -937,24 +951,28 @@ _CH_DATA_IN_LOOP:
     push af ;Toggle in bit 7
     push bc ;Remaining length
 
+    IFDEF __MISTERSPI
     ; DEBUG
     push af
 	ld a, 0
 	out 2fh, a
     pop af
 	; DEBUG
+    ENDIF
 
     ld e,iyl
     ld b,CH_PID_IN
     call CH_ISSUE_TOKEN
 
     call CH_WAIT_INT_AND_GET_RESULT
+    IFDEF __MISTERSPI
     ; DEBUG
     push af
 	ld a, 1
 	out 2fh, a
     pop af
 	; DEBUG
+    ENDIF
     cp CH_USB_INT_SUCCESS
     jr nz,_CH_DATA_IN_ERR   ;DONE if error
 
@@ -992,7 +1010,10 @@ _CH_DATA_IN_NO_MORE_DATA:
 ;Input: A=Error code (if ERR), in stack: remaining length, new toggle
 _CH_DATA_IN_DONE:
     ld a, CH_USB_INT_SUCCESS
+    jr _CH_DATA_IN_NEXT
 _CH_DATA_IN_ERR:
+    call PRINT_ERROR_CODE_VDP
+_CH_DATA_IN_NEXT:
     ld d,a
     pop bc
     pop af
@@ -1062,7 +1083,7 @@ _CH_DATA_OUT_DO:
 
     call CH_WAIT_INT_AND_GET_RESULT
     cp CH_USB_INT_SUCCESS
-    jr nz,_CH_DATA_OUT_DONE   ;DONE if error
+    jr nz,_CH_DATA_OUT_ERROR   ;DONE if error
 
     pop bc
     pop af
@@ -1071,16 +1092,17 @@ _CH_DATA_OUT_DO:
 
     ld a,b
     or c
-    jr z,_CH_DATA_OUT_DONE_2  ;DONE if no more data to transfer
+    jr z,_CH_DATA_OUT_DONE  ;DONE if no more data to transfer
 
     pop af  ;We need this to pass the next toggle to CH_ISSUE_TOKEN
 
     jr _CH_DATA_OUT_LOOP
 
 ;Input: A=Error code, in stack: remaining length, new toggle
-_CH_DATA_OUT_DONE:
+_CH_DATA_OUT_ERROR:
+    call PRINT_ERROR_CODE_VDP
     pop bc
-_CH_DATA_OUT_DONE_2:
+_CH_DATA_OUT_DONE:
     ld d,a
     pop af
     rla ;Toggle back to Cy
@@ -1176,7 +1198,6 @@ _CH_CONTROL_STATUS_IN_TRANSFER:
     ld hl,0
     call CH_READ_DATA
     call CH_WAIT_INT_AND_GET_RESULT
-
     pop bc
     ret
 

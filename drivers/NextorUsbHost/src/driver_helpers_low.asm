@@ -57,17 +57,18 @@ NXT_DIRECT				ds NXT_DIRECT_END - NXT_DIRECT_START
 	DISPLAY "WRKAREA bytes: ",/D,WRKAREA
 
 	IFDEF __ROOKIEDRIVE
-TXT_START:              db "MSXUSB-RD v0.7 (c) Sourceror\r\n"
+TXT_START:              db "MSXUSB-RD v0.8 (c) Sourceror\r\n"
 	ENDIF
 	IFDEF __MISTERSPI
-TXT_START:              db "MSXUSB-MST v0.3 (c)Sourceror\r\n"	
+TXT_START:              db "MSXUSB-MST v0.8 (c)Sourceror\r\n"	
 	ENDIF
 	IFDEF __MSXUSBCARTv1
-TXT_START:              db "MSXUSB v0.7  (c) Sourceror\r\n"
+TXT_START:              db "MSXUSB v0.8  (c) Sourceror\r\n"
 	ENDIF
 						db "GNU General Public License\r\n"
 						db "=============================\r\n\r\n",0
 TXT_FOUND:              db "+MSXUSB cartridge found\r\n",0
+TXT_IC_VERSION:			db "+CH376s version: ",0
 TXT_NOT_FOUND:          db "-Insert MSXUSB cartridge\r\n",0
 TXT_NEWLINE				db "\r\n",0
 TXT_DEVICE_CHECK_OK:	db " device(s) connected\r\n",0

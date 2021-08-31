@@ -40,7 +40,7 @@ link:
 package: 
 		@echo "Building $(OUTFILE)..."
 		@$(HEXBIN) -e com $(BINDIR)/$(basename $(OUTFILE)).ihx
-		./symbol_gen.py $(BINDIR) flash
+		# ./symbol_gen.py $(BINDIR) flash
 		@echo "Done."
 
 clean:

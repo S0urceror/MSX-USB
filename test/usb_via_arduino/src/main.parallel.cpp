@@ -369,11 +369,11 @@ void init_serial ()
     cfsetispeed (&config, B230400);
     cfsetospeed (&config, B230400);
      
-    config.c_cc[VTIME]    = 5;   /* inter-character timer unused */
+    config.c_cc[VTIME]    = 1;   /* wait 0.1 * VTIME on new characters to arrive when blocking */
     config.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */
     
     tcflush(serial, TCIFLUSH);
-    tcsetattr(serial, TCSANOW, &config);
+    tcsetattr(serial, TCSANOW, &config); 
 }
 
 // LOW_LEVEL serial communication to CH376

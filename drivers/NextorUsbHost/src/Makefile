@@ -19,6 +19,9 @@ all: $(OUTPUT_DIR)/chgbnk.bin $(OUTPUT_DIR)/chgbnkrd.bin $(OUTPUT_DIR)/nextor.ro
 
 .PHONY: all
 
+$(OUTPUT_DIR)/extra1k.dat: extra1k.asm
+	$(ASM) $(ASMFLAGS) $<
+
 # bank switching variants
 $(OUTPUT_DIR)/chgbnk.bin: chgbnk.asm
 	$(ASM) $(ASMFLAGS) $< 
@@ -29,9 +32,7 @@ $(OUTPUT_DIR)/chgbnkrd.bin: chgbnk.asm
 $(OUTPUT_DIR)/chgbnkmstr.bin: chgbnk.asm
 	$(ASM) $(MSTRASMFLAGS) $< 
 
-$(OUTPUT_DIR)/extra1k.dat: extra1k.asm
-	$(ASM) $(ASMFLAGS) $<
-
+# nextor driver variants
 $(OUTPUT_DIR)/drivermstr.rom: driver_low.asm driver_helpers_low.asm flashdisk.asm print_bios.asm ch376s.asm ch376s_helpers.asm usbhost.asm nextordirect.asm scsi.asm scsi_helpers.asm
 	$(ASM) $(MSTRASMFLAGS) $<
 
@@ -44,28 +45,33 @@ $(OUTPUT_DIR)/driverrd.rom: driver_low.asm driver_helpers_low.asm flashdisk.asm 
 $(OUTPUT_DIR)/driver.rom: driver_low.asm driver_helpers_low.asm flashdisk.asm print_bios.asm ch376s.asm ch376s_helpers.asm usbhost.asm nextordirect.asm scsi.asm scsi_helpers.asm
 	$(ASM) $(ASMFLAGS) $<
 
+# Nextor variants
+# MSXUSB HW on port 0x10 and 0x11 and SCC bank switching
 $(OUTPUT_DIR)/nextor.rom: $(OUTPUT_DIR)/driver.rom $(OUTPUT_DIR)/chgbnk.bin $(OUTPUT_DIR)/extra1k.dat
 	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.0.base.dat $(OUTPUT_DIR)/nextor.rom \
 							/d:$(OUTPUT_DIR)/driver.rom /m:$(OUTPUT_DIR)/chgbnk.bin \
 							/e:$(OUTPUT_DIR)/extra1k.dat
 	cat $(OUTPUT_DIR)/nextor.rom $(RDDISK_DIR)/RDDISK.DSK > $(OUTPUT_DIR)/nextor_complete.rom
 	
+# ROOKIEDRV HW on port 0x20 and 0x21 and ASCII16 bank switching
 $(OUTPUT_DIR)/nextorrd.rom: $(OUTPUT_DIR)/driverrd.rom $(OUTPUT_DIR)/chgbnkrd.bin $(OUTPUT_DIR)/extra1k.dat
 	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.0.base.dat $(OUTPUT_DIR)/nextorrd.rom \
 							/d:$(OUTPUT_DIR)/driverrd.rom /m:$(OUTPUT_DIR)/chgbnkrd.bin \
 							/e:$(OUTPUT_DIR)/extra1k.dat
 	cat $(OUTPUT_DIR)/nextorrd.rom $(RDDISK_DIR)/RDDISK.DSK > $(OUTPUT_DIR)/nextorrd_complete.rom
 
+# MiSTer HW (OCM) on port 0x20 and 0x21 and ASCII8 bank switching with SPI interface and wait on async IO
 $(OUTPUT_DIR)/nextormstr.rom: $(OUTPUT_DIR)/drivermstr.rom $(OUTPUT_DIR)/chgbnkmstr.bin $(OUTPUT_DIR)/extra1k.dat
 	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.0.base.dat $(OUTPUT_DIR)/nextormstr.rom \
 							/d:$(OUTPUT_DIR)/drivermstr.rom /m:$(OUTPUT_DIR)/chgbnkmstr.bin \
 							/e:$(OUTPUT_DIR)/extra1k.dat
-
+# OpenMSX emulated MiSTer HW (OCM) on port 0x20 and 0x21 and ASCII8 bank switching with SPI and no wait on async IO
 $(OUTPUT_DIR)/nextoromstr.rom: $(OUTPUT_DIR)/driveromstr.rom $(OUTPUT_DIR)/chgbnkmstr.bin $(OUTPUT_DIR)/extra1k.dat
 	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.0.base.dat $(OUTPUT_DIR)/nextoromstr.rom \
 							/d:$(OUTPUT_DIR)/driveromstr.rom /m:$(OUTPUT_DIR)/chgbnkmstr.bin \
 							/e:$(OUTPUT_DIR)/extra1k.dat
 
+# create OCM VHD
 OCM_DISK = $(OUTPUT_DIR)/nextormstr.rom
 OCM_MAIN = $(OCM_ROM_DIR)/a1wsxbsl.rom
 OCM_SPECIAL = $(OCM_ROM_DIR)/xbasic21.rom

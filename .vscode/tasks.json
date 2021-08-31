@@ -39,6 +39,16 @@
             "problemMatcher": []
         },
         {
+            "label": "Test - Device USB via Arduino C++",
+            "type": "shell",
+            "command": "make device_mode -C ./test/usb_via_arduino/src/",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "clear": true
+            }
+        },
+        {
             "label": "Software - nc",
             "type": "shell",
             "command": "make -C ./software/nc/",
@@ -95,6 +105,13 @@
             "problemMatcher": []
         },
         {
+            "label": "Test - Flash",
+            "type": "shell",
+            "command": "make -C ./test/flash/src",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
             "label": "HW - Verilog",
             "type": "shell",
             "command": "make -C ./hardware/quartus",
@@ -105,6 +122,16 @@
             "label": "Test - Mapper",
             "type": "shell",
             "command": "make -C ./test/mappertest/src",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Driver - Serial Monitor",
+            "type": "shell",
+            "options": {
+                "cwd": "drivers/UsbSerialDevice"
+            },
+            "command": "Make/make.sh Release",
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -61,14 +61,12 @@ DO_SCSI_CMD:
     ld (iy+WRKAREA.SCSI_DEVICE_INFO.TAG),a
     pop af ; usb_storage_device_id +
     push af ; usb_storage_device_id ++
-    jr c, _DO_SCSI_CMD_WRITE
-    ; set transfer length
-    set 7,(ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWFLAGS)
-    jr _DO_SCSI_CMD_NEXT
-_DO_SCSI_CMD_WRITE:
     ; CBWFLAGS is zero by default, indicates write
-_DO_SCSI_CMD_NEXT
-    ; data_out_transfer
+    jr c, _DO_SCSI_CMD_WRITE
+_DO_SCSI_CMD_READ:    
+    ; CBWFLAGS indicates read
+    set 7,(ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWFLAGS)
+_DO_SCSI_CMD_WRITE:
     ld hl, ix
     ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
     ld d, a
@@ -89,7 +87,7 @@ _DO_SCSI_CMD_NEXT
     ld (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
     pop af ; 0 or error_code ++
     and a
-    jr z, _DO_SCSI_CMD_NEXT2
+    jr z, _DO_SCSI_CMD_PAYLOAD
     pop af ; usb_storage_device_id +
     pop ix ; 
     scf
@@ -97,17 +95,17 @@ _DO_SCSI_CMD_NEXT
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; SEND or RECEIVE PAYLOAD
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_DO_SCSI_CMD_NEXT2:
+_DO_SCSI_CMD_PAYLOAD:
     ld e,(ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWDATATRANSFERLENGTH)
     ld d,(ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWDATATRANSFERLENGTH+1)
     ld a, e
     or d
-    jr z, _DO_SCSI_CMD_NEXT3 ; no use to read or write zero bytes, skip
+    jr z, _DO_SCSI_CMD_RCV_COMMAND_STATUS_WRAPPER ; no use to read or write zero bytes, skip
     ; do read or write?
     ld a,(ix+_SCSI_COMMAND_BLOCK_WRAPPER.CBWFLAGS)
     bit 7,a
     jr z, _DO_SCSI_CMD_WRITE3
-    ; read response from USB SCSI device to IX
+    ; READ response from USB SCSI device to IX
     ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
     ld d, a
     ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_ID)
@@ -127,9 +125,9 @@ _DO_SCSI_CMD_NEXT2:
     ld a, 0
     rra ; move Cy to bit 7
     ld (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
-    jr _DO_SCSI_CMD_NEXT3
+    jr _DO_SCSI_CMD_RCV_COMMAND_STATUS_WRAPPER
 _DO_SCSI_CMD_WRITE3:
-    ; write contents IX to USB SCSI device
+    ; WRITE contents IX to USB SCSI device
     ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.MAX_PACKET_SIZE)
     ld d, a
     ld a, (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_ID)
@@ -149,7 +147,7 @@ _DO_SCSI_CMD_WRITE3:
     ld a, 0
     rra ; move Cy to bit 7
     ld (iy+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
-_DO_SCSI_CMD_NEXT3:
+_DO_SCSI_CMD_RCV_COMMAND_STATUS_WRAPPER:
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; RECEIVE CSW
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -179,17 +177,15 @@ _DO_SCSI_CMD_NEXT3:
 
     ld a, (ix+_SCSI_COMMAND_STATUS_WRAPPER.CBWSTATUS)
     and a
-    scf
-    ret nz ; set Cy when CBWSTATUS!=0
-
+    jr nz, DO_SCSCI_CMD_CBW_ERROR ; set Cy when CBWSTATUS!=0
     or a ; clear Cy
 	ret
 
-    MACRO SAFE_SCSI_CMD
-        DI
-        call DO_SCSI_CMD
-        EI
-    ENDM
+DO_SCSCI_CMD_CBW_ERROR:
+    call PRINT_ERROR_CODE_VDP
+    scf
+    ret
+
 ; --------------------------------------
 ; SCSI_INQUIRY
 ;
@@ -208,7 +204,7 @@ SCSI_INQUIRY:
     ld de, 0x24
     ld hl, SCSI_PACKET_INQUIRY
     push iy
-    SAFE_SCSI_CMD
+    call DO_SCSI_CMD
     pop iy
     pop ix
     ret c
@@ -260,7 +256,7 @@ SCSI_TEST:
     ld de, 0 ; no result data, only status in CBWSTATUS
     ld hl, SCSI_PACKET_TEST
 
-    SAFE_SCSI_CMD
+    call DO_SCSI_CMD
     pop ix
     ret c
 
@@ -282,7 +278,7 @@ SCSI_REQUEST_SENSE:
     ld de, 18
     ld hl, SCSI_PACKET_REQUEST_SENSE
 
-    SAFE_SCSI_CMD
+    call DO_SCSI_CMD
     pop ix
     ret c
 
@@ -333,7 +329,7 @@ _TOTAL_BYTES_RD
     pop hl
     ld ix, hl ; receive buffer is also holding modified scsi read command
     or a ; clear Cy = read bytes from scsi
-    SAFE_SCSI_CMD
+    call DO_SCSI_CMD
     ret 
 
 ; --------------------------------------
@@ -345,7 +341,7 @@ _TOTAL_BYTES_RD
 ; Output: Cy=0 no error, Cy=1 error
 SCSI_WRITE:
     push hl, de, bc ; +++
-    ; copy SCSI_PACKET_READ to receive buffer
+    ; copy SCSI_PACKET_WRITE to receive buffer
     ld bc, WRKAREA.SCSI_DEVICE_INFO.BUFFER+_SCSI_COMMAND_BLOCK_WRAPPER
     call WRKAREAPTR
     ld de, ix
@@ -383,7 +379,7 @@ _TOTAL_BYTES_WR
     pop ix ; sector buffer +
     pop hl ; CMD buffer
     scf ; set Cy = write bytes to scsi
-    SAFE_SCSI_CMD
+    call DO_SCSI_CMD
     ret
 
 ; --------------------------------------
@@ -431,6 +427,96 @@ SCSI_INIT:
 	xor a
 	ld (ix+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_OUT_ENDPOINT_TOGGLE),a
 	ld (ix+WRKAREA.STORAGE_DEVICE_INFO.DATA_BULK_IN_ENDPOINT_TOGGLE),a
+    ret
+
+PRINT_ERROR_CODE_VDP:
+    push af
+    call PRINT_INIT_SCREEN0
+    ld a, 'E'
+    call PRINT_CHAR_VDP
+    pop af
+    call PRINT_HEX_VDP
+    ret
+
+PRINT_CHAR_VDP:
+    ; print to VDP (auto increments)
+    out (#98),a
+    ret
+
+PRINT_INIT_SCREEN0:
+    ; set pointer to 77,0 for screen 0
+    xor a
+    ld hl,77
+    call SetVdp_Write
+    ret
+PRINT_INIT_SCREEN1:
+    ; set pointer to 0,0 for screen 1
+    xor a
+    ld hl,#1800
+    call SetVdp_Write
+    ret
+;
+; Set VDP address counter to write from address AHL (17-bit)
+; Enables the interrupts
+;
+SetVdp_Write:
+    rlc h
+    rla
+    rlc h
+    rla
+    srl h
+    srl h
+    di
+    out (#99),a
+    ld a,14 + 128
+    out (#99),a
+    ld a,l
+    nop
+    out (#99),a
+    ld a,h
+    or 64
+    ei
+    out (#99),a
+    ret
+
+
+;       Subroutine      Print 8-bit hexidecimal number
+;       Inputs          A - number to be printed - 0ABh
+;       Outputs         ________________________
+PRINT_HEX_VDP:
+    push af
+    push bc
+    push de
+    call .NUMTOHEX
+    ld a, d
+    call PRINT_CHAR_VDP
+    ld a, e
+    call PRINT_CHAR_VDP
+    pop de
+    pop bc
+    pop af
+    ret
+;       Subroutine      Convert 8-bit hexidecimal number to ASCII reprentation
+;       Inputs          A - number to be printed - 0ABh
+;       Outputs         DE - two byte ASCII values - D=65 / 'A' and E=66 / 'B'
+.NUMTOHEX:
+    ld c, a   ; a = number to convert
+    call .NTH1
+    ld d, a
+    ld a, c
+    call .NTH2
+    ld e, a
+    ret  ; return with hex number in de
+.NTH1:
+    rra
+    rra
+    rra
+    rra
+.NTH2:
+    or 0F0h
+    daa
+    add a, 0A0h
+    adc a, 040h ; Ascii hex at this point (0 to F)   
     ret
 
 

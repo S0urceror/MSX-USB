@@ -252,10 +252,12 @@ DRV_INIT:
 	call	MY_GWORK
 	call	INIWORK		; Initialize the work-area
 
+	IFDEF __MISTERSPI
 	; DEBUG
 	ld a, 1
 	out 2fh, a
 	; DEBUG
+	ENDIF
 
 	; initialize CH376s
 	; ============================================
@@ -294,6 +296,15 @@ _HW_TEST_OKAY:
     ld (ix+WRKAREA.STATUS),a
    	ld hl, TXT_FOUND
     call PRINT
+
+	; check and display CH376s IC/firmware version
+	ld hl, TXT_IC_VERSION
+	call PRINT
+	call CH_IC_VERSION
+	add a, '0'
+	call CHPUT
+	ld hl, TXT_NEWLINE
+	call PRINT
 
 	; reset USB bus and device
     call USB_HOST_BUS_RESET

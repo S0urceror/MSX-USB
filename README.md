@@ -34,14 +34,9 @@ The CH376s board will be visible on port 10h and 11h on the MSX. Port 11h is the
 
 Most information is available on how to use the higher-order API for flash drives. 
 
-If you want to use other USB devices you have to go low-level. As it turns out Konamiman already did some work there and after some researching I finally got USB HID keyboards working as well. Check out my source-code or these great pages for more information:
+If you want to use other USB devices you have to go low-level. As it turns out Konamiman already did some work there and after some researching I got USB HID Keyboards, Ethernet, Serial working as well. Check out my source-code or these great pages for more information:
 * http://www.usbmadesimple.co.uk/index.html
 * https://www.beyondlogic.org/usbnutshell/usb1.shtml
-
-## Flash Drive
-For the flash drive I created a NEXTOR driver that looks for a file called NEXTOR.DSK on the root of the flash drive at startup. I initially used 720Kb images but I discovered that I can use bigger FAT16 images as well. Now I'm using a 128Mb image and it works good. 
-
-I created some routines in MSX-Basic to show the flash directory itself and to eject and insert images. Since the CH376s is capable of using FAT32 you can have multiple FAT16 images on one flash drive. I settled for 128Mb FAT16 because of cluster size and optimum storage use.
 
 ## UNAPI USB
 I wrote a UNAPI USB specification and implemented the Usb Host driver according to this. The next version of this Host driver will also implement the Usb Hub specification and enumerate and initialise all devices connected.
@@ -49,13 +44,22 @@ I wrote a UNAPI USB specification and implemented the Usb Host driver according 
 ## USB HID Keyboard
 The Usb Keyboard driver connects to Unapi Usb driver and hooks itself to H.CHGE. From that moment on it replaces your trusted MSX keyboard by a shiny new USB Keyboard. Or a wireless one if you have inserted the appropriate Logitech receiver.
 
-## USB Ethernet
-The USB Ethernet driver is finished. It uses the Unapi USB and conforms to the Unapi Ethernet standard. Internestor Lite can now connect and use your USB Ethernet device. Please note that currently we only support USB CDC ECM. Make sure your Ethernet device supports this.
+## USB CDC ECM Ethernet
+The USB CDC ECM Ethernet driver is finished. It uses the Unapi USB and conforms to the Unapi Ethernet standard. Internestor Lite can now connect and use your USB Ethernet device. Please note that currently we only support USB CDC ECM. Make sure your Ethernet device supports this.
 
 All USB Ethernet devices built around the **RTL8153** chipset support USB CDC ECM. They usually cost around 20 euro.
 
-# Installation instructions / downloads
+## USB Storage
+A low level USB driver is created to connect to storage devices like thumb drives, portable hard disks, etc. 
+
+## USB Hub
+The USB Hub driver will interrogate an USB Hub and all devices connected to it.
+
+# Installation instructions
 Check [this page](INSTALL.md) for installation instructions and links to the various binaries that have been developed.
+
+# Build your own (DIY)
+Check [this page](DIY.md) for information on how to make the PCB, program the CPLD device, flash the ROM, etc.
 
 # Collaboration
 Do you want to help with the development of MSX USB? Write drivers for other devices? Or contribute in other ways?

@@ -1,0 +1,8 @@
+Reference, Quantity, Value, Footprint, Datasheet
+C1 ,1,"100 uF","Capacitor_SMD:CP_Elec_6.3x5.4","~"
+C2 C3 C4 ,3,"0.1 uF","Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder","~"
+EDG1 ,1,"MSX_CON","msx-usb-kicad-cpld:msx-con-MSXCART",""
+J1 ,1,"AVR-JTAG-10","msx-usb-kicad-cpld:PinHeader_2x05_P2.54mm_Vertical"," ~"
+J2 ,1,"Conn_02x08_Odd_Even","msx-usb-kicad-cpld:PinHeader_2x08_P2.54mm_Vertical","~"
+U1 ,1,"EPM7032_7064","msx-usb-kicad-cpld:PLCC44",""
+U5 ,1,"AM29f040","msx-usb-kicad-cpld:DIP-32_W15.24mm_Socket","http://ww1.microchip.com/downloads/en/DeviceDoc/25022B.pdf"

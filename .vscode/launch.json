@@ -23,6 +23,15 @@
             "preLaunchTask": "Test - Parallel USB via Arduino C++"
         },
         {
+            "name": "(lldb) Launch Test Device Mode",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/usb_via_arduino/dist/main_device_mode",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Test - Device USB via Arduino C++"
+        },
+        {
             "name": "(lldb) Launch MSXUSB",
             "type": "lldb",
             "request": "launch",
@@ -75,9 +84,11 @@
             "remoteType": "openmsx",
             "listFiles": [
                 {
-                    "path": "drivers/NextorUsbHost/dist/drivermstr.lst",
+                    "path": "drivers/NextorUsbHost/dist/driver.lst",
+                    //"path": "test/flash/dist/flashtst.lst",
                     "useFiles": true,
                     "asm": "sjasmplus",
+                    //"mainFile": "test/flash/src/main.asm"
                     "mainFile": "drivers/NextorUsbHost/src/driver_low.asm"
                 }
             ],
@@ -98,7 +109,7 @@
             //    }
             //],
             "openmsx": {
-                //"pcInSlot": "1 X 7" // nextor driver (rookie mapper)
+                "pcInSlot": "1 X 14" // nextor driver (rookie mapper)
                 //"pcInSlot": "3 2 28" // usbether in 512kb mapper
             },
             "commandsAfterLaunch": [

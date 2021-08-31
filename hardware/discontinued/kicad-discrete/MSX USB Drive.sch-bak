@@ -789,10 +789,4 @@ Wire Wire Line
 Wire Wire Line
 	6900 4500 6900 3000
 Connection ~ 6900 3000
-Text Notes 2850 5000 0    50   ~ 0
-now pulls CS down when address 0x10 is selected
-Text Notes 2850 5100 0    50   ~ 0
-exchange A5 and A4 to select 0x20 instead
-Text Notes 2850 5200 0    50   ~ 0
-to make it compatible with the RookieDrive
 $EndSCHEMATC

@@ -201,21 +201,40 @@ void select_ramslot_40 ()
 }
 BOOL flash_ident ()
 {
+    uint8_t dummy;
     // reset
     flash_segment[0] = 0xf0;
     // write autoselect code
+    dummy = flash_segment [0x555];
     flash_segment[0x555] = 0xaa;
+    dummy = flash_segment [0x2aa];
     flash_segment[0x2aa] = 0x55;
+    dummy = flash_segment [0x555];
     flash_segment[0x555] = 0x90;
     // read response
     uint8_t manufacturer = flash_segment[0];
     uint8_t device = flash_segment[1];
     printf ("M: %x, D: %x\r\n",manufacturer,device);
-    // Am29F040B = A4
-    // SST39SF040 = B7
+    // AMD_AM29F040 = A4
+    // SST_SST39SF040 = B7
     // AMIC_A29040B = 86
-    if (device==0xa4 || device==0xB7 || device==0xB6)  // device ID is correct
+    if (device==0xA4)  // device ID is correct
     {
+        printf ("Found device: AMD_AM29F040\r\n");
+        // reset
+        flash_segment[0] = 0xf0;
+        return TRUE;
+    }
+    if (device==0xB7)  // device ID is correct
+    {
+        printf ("Found device: SST_SST39SF040\r\n");
+        // reset
+        flash_segment[0] = 0xf0;
+        return TRUE;
+    }
+    if (device==0x86)  // device ID is correct
+    {
+        printf ("Found device: AMIC_A29040B\r\n");
         // reset
         flash_segment[0] = 0xf0;
         return TRUE;
