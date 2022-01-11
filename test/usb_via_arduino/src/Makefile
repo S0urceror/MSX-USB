@@ -1,5 +1,5 @@
 CPP = c++
-CPP_FLAGS = -stdlib=libc++ -g -c
+CPP_FLAGS = -stdlib=libc++ -g -c -D_VERBOSE_DEBUG
 CPP_OUTPUT_DIR = 
 LNK = c++
 LNK_OUTPUT_DIR = ../dist
@@ -25,5 +25,5 @@ $(LNK_OUTPUT_DIR)/main_device_mode: main.device.cpp
 	
 
 clean:
-	-rm $(OUTPUT_DIR)/*.*
+	-rm $(LNK_OUTPUT_DIR)/*
 

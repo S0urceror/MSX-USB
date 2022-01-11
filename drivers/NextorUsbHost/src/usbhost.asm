@@ -217,35 +217,31 @@ wait_for_insert:
     ret
 
 USB_HOST_BUS_RESET:
+    ; reset DEVICE
     ld a, CH_MODE_HOST
     call CH_SET_USB_MODE
-    call wait_for_insert
-	; reset BUS
-   	ld a, CH_MODE_HOST_RESET ; HOST, reset bus
-    call CH_SET_USB_MODE
-	; wait a bit longer
-	ld bc, WAIT_ONE_SECOND
-	call WAIT
-	; reset DEVICE
-    ld a, CH_MODE_HOST
-    call CH_SET_USB_MODE
-    ret c
-	; wait ~250ms
+    ; wait ~20ms
 	ld bc, WAIT_ONE_SECOND/4
 	call WAIT
 
-    ; check IC version
-    call CH_IC_VERSION
-    ; ONLY WHEN VERSION 3?
-    cp 3
-    jr nz, .not_three
+    ; reset BUS
+   	ld a, CH_MODE_HOST_RESET
+    call CH_SET_USB_MODE
+	; wait a bit longer
+	ld bc, WAIT_ONE_SECOND/2
+	call WAIT
+	
+    ; reset DEVICE
+    ld a, CH_MODE_HOST
+    call CH_SET_USB_MODE
+    ret c
+	; wait ~20ms
+	ld bc, WAIT_ONE_SECOND/4
+	call WAIT
 
-    ld a, CH_CMD_CLR_STALL
-    CH_SEND_COMMAND
-    ld a, 80h
-    CH_SEND_DATA
-    CH_END_COMMAND
-.not_three
+    ; configure indefinite retries
+    or a
+    call HW_CONFIGURE_NAK_RETRY
 
     or a ; clear Cy
 	ret

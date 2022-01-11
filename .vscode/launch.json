@@ -14,11 +14,20 @@
             "preLaunchTask": "Test - SPI USB via Arduino C++"
         },
         {
-            "name": "(lldb) Launch Test Parallel",
+            "name": "(cppdbg) Launch Test Parallel - Teensy 3.5",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/test/usb_via_arduino/dist/main_parallel",
-            "args": [],
+            "args": ["/dev/tty.usbmodem39528001"],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Test - Parallel USB via Arduino C++"
+        },
+        {
+            "name": "(cppdbg) Launch Test Parallel - Teensy 2.0",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/usb_via_arduino/dist/main_parallel",
+            "args": ["/dev/tty.usbmodem123451"],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "Test - Parallel USB via Arduino C++"
         },
@@ -35,35 +44,44 @@
             "name": "(lldb) Launch MSXUSB",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX-16.0/derived/x86_64-darwin-devel/bin/openmsx",
+            "program": "../Emulators/openMSX/derived/openmsx",
             "args": ["-machine", "Philips_NMS_8250_MSXUSB", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "cwd": "../Emulators/OpenMSX-16.0/share",
+            "cwd": "../Emulators/openMSX/share",
+            "preLaunchTask": "Driver - Nextor+UsbHost"
+        },
+        {
+            "name": "(lldb) Launch MSXUSB Issalig",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/openMSX/derived/openmsx",
+            "args": ["-machine", "Philips_VG_8020_USB", "-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
         {
             "name": "(lldb) Launch MSXUSB RD",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX-16.0/derived/x86_64-darwin-devel/bin/openmsx",
+            "program": "../Emulators/openMSX/derived/openmsx",
             "args": ["-machine", "Philips_NMS_8250_ROOKIE", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "cwd": "../Emulators/OpenMSX-16.0/share",
+            "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
         {
             "name": "(lldb) Launch Rookie FD",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX-16.0/derived/x86_64-darwin-devel/bin/openmsx",
+            "program": "../Emulators/openMSX/derived/openmsx",
             "args": ["-machine", "Goldstar_FC-200 MSM", "-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "cwd": "../Emulators/OpenMSX-16.0/share"
+            "cwd": "../Emulators/openMSX/share"
         },
         {
             "name": "(lldb) Launch MSXUSB MiSTer",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/../Emulators/openMSX-16.0/derived/x86_64-darwin-devel/bin/openmsx",
+            "program": "${workspaceFolder}/../Emulators/openMSX/derived/openmsx",
             "args": ["-machine", "Philips_NMS_8250_MiSTer", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
-            "cwd": "${workspaceFolder}/../Emulators/OpenMSX-16.0/share",
+            "cwd": "${workspaceFolder}/../Emulators/openMSX/share",
             "MIMode": "lldb",
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
@@ -71,11 +89,11 @@
             "name": "(lldb) Launch Rookiedrive",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX-16.0/derived/x86_64-darwin-devel/bin/openmsx",
+            "program": "../Emulators/openMSX/derived/openmsx",
             "args": ["-machine", "Philips_NMS_8250_NXT", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             //"args": ["-machine", "Panasonic_FS-A1GT", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
-            "cwd": "../Emulators/OpenMSX-16.0/share"
+            "cwd": "../Emulators/openMSX/share"
         },
         {
             "type": "dezog",

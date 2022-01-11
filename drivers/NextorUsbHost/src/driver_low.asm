@@ -274,8 +274,8 @@ DRV_INIT:
 
 	; reset CH376s
     call CH_RESET
-	; wait ~250ms
-	ld bc, WAIT_ONE_SECOND/4
+	; wait ~100ms
+	ld bc, WAIT_ONE_SECOND/10
 	call WAIT
 	
 	IFDEF __MISTERSPI	
@@ -317,6 +317,8 @@ _HW_TEST_OKAY:
 	jp nz, _USB_MODE_OKAY
     ld hl, TXT_DEVICE_CHECK_NOK
     call PRINT
+	ld bc, WAIT_ONE_SECOND*2
+	call WAIT
     ret
 _USB_MODE_OKAY:
 	push af

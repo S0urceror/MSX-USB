@@ -656,16 +656,13 @@ CH_SET_USB_MODE:
 _CH_WAIT_USB_MODE:
     CH_RECEIVE_DATA
     cp CH_ST_RET_SUCCESS
-    jp z,_CH_CONFIGURE_RETRIES
+    jp z,CH_SET_USB_MODE_DONE
     djnz _CH_WAIT_USB_MODE ; TODO: indefinately?
     CH_END_COMMAND
     scf
     ret
-_CH_CONFIGURE_RETRIES:
+CH_SET_USB_MODE_DONE:
     CH_END_COMMAND
-    or a
-    call HW_CONFIGURE_NAK_RETRY
-    or a
     ret
 
 ; -----------------------------------------------------------------------------
@@ -932,7 +929,7 @@ CH_ISSUE_TOKEN:
 ;         D  = Maximum packet size for the endpoint
 ;         E  = Endpoint number
 ;         Cy = Current state of the toggle bit
-; Output: A  = USB error code
+; Output: A  = USB error code or success when all okay
 ;         BC = Amount of data actually received (only if no error)
 ;         Cy = New state of the toggle bit (even on error)
 
@@ -951,28 +948,11 @@ _CH_DATA_IN_LOOP:
     push af ;Toggle in bit 7
     push bc ;Remaining length
 
-    IFDEF __MISTERSPI
-    ; DEBUG
-    push af
-	ld a, 0
-	out 2fh, a
-    pop af
-	; DEBUG
-    ENDIF
-
     ld e,iyl
     ld b,CH_PID_IN
     call CH_ISSUE_TOKEN
 
     call CH_WAIT_INT_AND_GET_RESULT
-    IFDEF __MISTERSPI
-    ; DEBUG
-    push af
-	ld a, 1
-	out 2fh, a
-    pop af
-	; DEBUG
-    ENDIF
     cp CH_USB_INT_SUCCESS
     jr nz,_CH_DATA_IN_ERR   ;DONE if error
 
@@ -1012,7 +992,7 @@ _CH_DATA_IN_DONE:
     ld a, CH_USB_INT_SUCCESS
     jr _CH_DATA_IN_NEXT
 _CH_DATA_IN_ERR:
-    call PRINT_ERROR_CODE_VDP
+
 _CH_DATA_IN_NEXT:
     ld d,a
     pop bc
@@ -1040,6 +1020,16 @@ HW_DATA_OUT_TRANSFER:
 
 ; This entry point is used when target device address is already set
 CH_DATA_OUT_TRANSFER:
+    push af
+    ld a, b
+    or c
+    jr nz, CH_DATA_OUT_TRANSFER_CHECK_FINISHED
+    pop af
+    xor a
+    ret
+CH_DATA_OUT_TRANSFER_CHECK_FINISHED:   
+    pop af
+
     ld a,0  ;No XOR because that would damage flags
     rra     ;Toggle to bit 6 of A
     rra
@@ -1100,9 +1090,8 @@ _CH_DATA_OUT_DO:
 
 ;Input: A=Error code, in stack: remaining length, new toggle
 _CH_DATA_OUT_ERROR:
-    call PRINT_ERROR_CODE_VDP
     pop bc
-_CH_DATA_OUT_DONE:
+_CH_DATA_OUT_DONE: 
     ld d,a
     pop af
     rla ;Toggle back to Cy
@@ -1126,6 +1115,7 @@ _CH_DATA_OUT_DONE:
 HW_CONTROL_TRANSFER:
     call CH_SET_TARGET_DEVICE_ADDRESS
 
+    push af
     push hl
     push bc
     push de
@@ -1141,64 +1131,130 @@ HW_CONTROL_TRANSFER:
     call CH_ISSUE_TOKEN
 
     call CH_WAIT_INT_AND_GET_RESULT
+    cp CH_USB_INT_SUCCESS
+    jp nz, _HW_CONTROL_TRANSFER_ERROR
+ 
     pop hl  ;HL = Data address (was DE)
     pop de  ;D  = Endpoint size (was B)
-    pop ix  ;IX = Address of setup packet (was HL)
-    cp CH_USB_INT_SUCCESS
-    ld bc,0
-    ret nz  ;DONE if error
-
+    pop ix  ;IX = Address of setup packet (was HL)    
+    pop af  ;A  = Device address
     ld c,(ix+6)
     ld b,(ix+7) ;BC = Data length
-    ld a,b
-    or c
-    jr z,_CH_CONTROL_STATUS_IN_TRANSFER
-
     ld e,0      ;E  = Endpoint number
     scf         ;Use toggle = 1
+    push af ; device address
+    push de ; endpoint size in D
+    push hl ; data address
+    push ix ; packet address
+
+    ; check if IN or OUT transaction
     bit 7,(ix)
-    jr z,_CH_CONTROL_OUT_TRANSFER
+    jr nz,_CH_CONTROL_DATA_IN_TRANSFER
+    jr CH_CONTROL_DATA_OUT_TRANSFER
 
     ; DATA IN STAGE
     ; -------------
-_CH_CONTROL_IN_TRANSFER:
+_CH_CONTROL_DATA_IN_TRANSFER:
     call CH_DATA_IN_TRANSFER
-    or a
-    ret nz
-
-    ; STATUS STAGE
-    ; -----------
-    push bc
-    ld b,0
-    call CH_WRITE_DATA
-    ld e,0
-    ld b,CH_PID_OUT
-    ld a,40h    ;Toggle bit = 1
-    call CH_ISSUE_TOKEN
-    call CH_WAIT_INT_AND_GET_RESULT
-
-    pop bc
-    ret
-
+    cp CH_USB_INT_SUCCESS
+    jr z,_CH_CONTROL_STATUS_TRANSFER
+    jr _CH_CONTROL_HANDLE_ERROR
+    
     ; DATA OUT STAGE
     ; -------------
-_CH_CONTROL_OUT_TRANSFER:
+CH_CONTROL_DATA_OUT_TRANSFER:
     call CH_DATA_OUT_TRANSFER
-    or a
-    ret nz
+    ; check return code of OUT transfer
+    and a
+    jr z,_CH_CONTROL_STATUS_TRANSFER
 
-_CH_CONTROL_STATUS_IN_TRANSFER:
+_CH_CONTROL_HANDLE_ERROR:
+    and 0x2f
+    cp 0x2e ; STALL
+    ; for now not handling other problems NAK, TIMEOUT, UNEXPECTED
+    ; recover stack and quit with error code in A
+    jp nz,_HW_CONTROL_TRANSFER_ERROR ;
+
+    ; restore initial register
+    pop hl ; packet address
+    ; clear stall in or out endpoint 0
+    ld a,CH_CMD_CLR_STALL
+    CH_SEND_COMMAND
+    ld bc, WAIT_ONE_SECOND/4
+    call WAIT
+    ld a,(hl)
+    and 0x80
+    CH_SEND_DATA
+    CH_END_COMMAND
+    call CH_WAIT_INT_AND_GET_RESULT
+    cp CH_USB_INT_SUCCESS
+    jr z, _RETRY_AGAIN
+    ; not interested in preserving original values
+    pop ix
+    pop ix
+    pop ix
+    ld bc, 0
+    ret
+_RETRY_AGAIN:
+    ; restore rest of initial registers and try again
+    pop de ; data address
+    pop bc ; endpoint packet size in B
+    pop af ; device address in A
+    jp HW_CONTROL_TRANSFER
+_CH_CONTROL_STATUS_TRANSFER:
+    pop hl ; packet address
+    ; not interested in preserving other values
+    pop ix
+    pop ix
+    pop ix
     ; STATUS STAGE
     ; -----------
-    push bc
-    ld e,0
+    push bc ; preserve amount of bytes read/written
+    ld e,0 ; endpoint 0
+    ; check IN/OUT
+    ld a, (hl)
+    and 0x80
+    jr z, _STATUS_OUT
+    ld a, b
+    or c
+    jr z, _STATUS_OUT
+_STATUS_IN:
+    ld b,CH_PID_OUT
+    ld a,40h
+    jr _STATUS_NEXT
+_STATUS_OUT:
     ld b,CH_PID_IN
-    ld a,80h    ;Toggle bit = 1
+    ld a,80h
+_STATUS_NEXT:
     call CH_ISSUE_TOKEN
-    ld hl,0
-    call CH_READ_DATA
     call CH_WAIT_INT_AND_GET_RESULT
+    cp CH_USB_INT_SUCCESS
+    jr nz, _STATUS_NEXT_ERROR
+    ld a, (hl)
+    and 0x80
+    jr nz, _STATUS_NEXT_IN
+_STATUS_NEXT_OUT:
+    ; do an empty read
+    ld a,CH_CMD_RD_USB_DATA0
+    CH_SEND_COMMAND
+    CH_RECEIVE_DATA
+    CH_END_COMMAND
+    and a
+    ; not empty?
+    jr nz, _STATUS_NEXT_ERROR
+_STATUS_NEXT_IN:
     pop bc
+    ld a, CH_USB_INT_SUCCESS
+    ret
+_STATUS_NEXT_ERROR:
+    pop bc
+    ld a, CH_USB_INT_DISCONNECT
+    ret
+_HW_CONTROL_TRANSFER_ERROR:
+    pop ix
+    pop ix
+    pop ix
+    pop ix
     ret
 
 ; --------------------------------------

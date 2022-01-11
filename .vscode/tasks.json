@@ -8,7 +8,7 @@
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
             "group": "build",
-            "problemMatcher": "$problem-matcher-sjasmplus"
+            "problemMatcher": []
         },
         {
             "label": "Driver - UsbKeyboard",
@@ -35,7 +35,10 @@
             "label": "Test - Parallel USB via Arduino C++",
             "type": "shell",
             "command": "make parallel -C ./test/usb_via_arduino/src/",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {
@@ -132,10 +135,7 @@
                 "cwd": "drivers/UsbSerialDevice"
             },
             "command": "Make/make.sh Release",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         }
     ]

@@ -246,8 +246,8 @@ byte readData ()
 byte readStatus () 
 {
   byte data;
-  //data = digitalRead (intPin)<<7; // INT
-  data = digitalRead (misoPin)<<7; // MISO
+  data = digitalRead (intPin)<<7; // INT
+  //data = digitalRead (misoPin)<<7; // MISO
   data += 1; // simulated READY bit
 /*
   if ((data & 0x80) == 0) // interrupt pulls down to zero
@@ -317,7 +317,7 @@ void loop()
   case 10: // block benchmark
     for (i=0;i<512*10;i++) 
     {
-      Serial.write (0x41);
+      Serial.write (0xAA);
     }
     break;
   case 11: // roundtrip benchmark

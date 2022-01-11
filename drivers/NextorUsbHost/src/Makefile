@@ -88,9 +88,9 @@ $(OUTPUT_DIR)/OCM-BIOS.DAT: $(OUTPUT_DIR)/nextormstr.rom
 
 $(OUTPUT_DIR)/msxusb.vhd: $(OUTPUT_DIR)/OCM-BIOS.DAT
 	cp msx.vhd $(OUTPUT_DIR)/image.vhd
-	/usr/local/bin/mformat -i $(OUTPUT_DIR)/image.vhd@@512 -t 16 -h 255 -n 63 -H 1 -m 248
-	/usr/local/bin/mcopy -i $(OUTPUT_DIR)/image.vhd@@512 $(OUTPUT_DIR)/OCM-BIOS.DAT ::
-	/usr/local/bin/mattrib -i $(OUTPUT_DIR)/image.vhd@@512 +h ::OCM-BIOS.DAT
+	/opt/homebrew/bin/mformat -i $(OUTPUT_DIR)/image.vhd@@512 -t 16 -h 255 -n 63 -H 1 -m 248
+	/opt/homebrew/bin/mcopy -i $(OUTPUT_DIR)/image.vhd@@512 $(OUTPUT_DIR)/OCM-BIOS.DAT ::
+	/opt/homebrew/bin/mattrib -i $(OUTPUT_DIR)/image.vhd@@512 +h ::OCM-BIOS.DAT
 	mv $(OUTPUT_DIR)/image.vhd $(OUTPUT_DIR)/msxusb.vhd
 	
 clean:

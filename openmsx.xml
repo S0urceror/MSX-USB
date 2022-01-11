@@ -1,18 +1,18 @@
 <!DOCTYPE settings SYSTEM 'settings.dtd'>
 <settings>
   <settings>
-    <setting id="invalid_psg_directions_callback">psgdirectioncallback</setting>
-    <setting id="di_halt_callback">dihaltcallback</setting>
-    <setting id="default_machine">msx2_eu</setting>
-    <setting id="scanline">0</setting>
-    <setting id="blur">0</setting>
-    <setting id="maxframeskip">100</setting>
     <setting id="scale_factor">3</setting>
-    <setting id="deinterlace">false</setting>
     <setting id="auto_enable_reverse">off</setting>
-    <setting id="osd_rom_path">/Users/mario/Development/msx/USB/drivers/NextorUsbHost/dist</setting>
+    <setting id="osd_rom_path">/Users/mario/Development/MSX/USB/drivers/NextorUsbHost/dist</setting>
+    <setting id="default_machine">msx2_eu</setting>
+    <setting id="invalid_psg_directions_callback">psgdirectioncallback</setting>
+    <setting id="blur">0</setting>
+    <setting id="scanline">0</setting>
+    <setting id="deinterlace">false</setting>
     <setting id="invalid_ppi_mode_callback">ppimodecallback</setting>
-    <setting id="osd_disk_path">/Users/mario/Development/fpga/MiSTer/MSX_MiSTer/rtl/USB</setting>
+    <setting id="maxframeskip">100</setting>
+    <setting id="di_halt_callback">dihaltcallback</setting>
+    <setting id="osd_disk_path">/Users/mario/Development/MSX</setting>
   </settings>
   <bindings>
     <bind key="keyb R+META">reset</bind>

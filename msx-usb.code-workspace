@@ -105,7 +105,12 @@
 			"CH375DLL.C": "cpp",
 			"USBEX.C": "cpp",
 			"descriptor_com.h": "c",
-			"ch375_inc.h": "c"
+			"ch375_inc.h": "c",
+			"core_pins.h": "c",
+			"kinetis.h": "c",
+			"CH372FRM.C": "cpp",
+			"PARA_HW.C": "cpp",
+			"__bits": "cpp"
 		}
 	}
 }

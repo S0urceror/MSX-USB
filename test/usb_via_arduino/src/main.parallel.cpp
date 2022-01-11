@@ -30,6 +30,7 @@
 #include <ctime>
 #include <iostream>
 #include <stdio.h>
+#include <iomanip>
 
 #define BOOT_PROTOCOL 0
 #define HID_CLASS 0x03
@@ -59,12 +60,13 @@ int serial=-1;
 #define CH375_CMD_RESET_ALL 0x05
 #define CH375_CMD_CHECK_EXIST 0x06
 #define CH375_CMD_SET_USB_MODE 0x15
+#define CH375_CMD_TEST_CONNECT 0x16
 #define CH375_CMD_GET_STATUS 0x22
 #define CH375_CMD_SET_USB_ADDR 0x13
 #define CH375_CMD_SET_ENDP6 0x1C
 #define CH375_CMD_SET_ENDP7 0x1D
 #define CH375_CMD_RD_USB_DATA 0x27
-//#define CH375_CMD_RD_USB_DATA 0x28
+#define CH375_CMD_RD_USB_DATA_UNLOCK     0x28
 //#define CH375_CMD_WR_USB_DATA7 0x2B
 #define CH375_CMD_WR_HOST_DATA 0x2C
 #define CH376_CMD_SET_FILE_NAME 0x2F
@@ -88,6 +90,7 @@ int serial=-1;
 #define CH376_CMD_GET_REGISTER 0x0A
 #define CH376_CMD_SET_REGISTER 0x0B
 
+#define CH375_USB_MODE_HOST_NON_SOF 0x05
 #define CH375_USB_MODE_HOST 0x06
 #define CH375_USB_MODE_HOST_RESET 0x07
 
@@ -113,6 +116,10 @@ int serial=-1;
 #define CH_PID_OUT 0x01
 
 uint8_t device_counter=1;
+uint8_t max_packet_size;
+#ifdef _VERBOSE_DEBUG
+std::chrono::system_clock::time_point curtime;
+#endif
 
 typedef struct __attribute__((packed)) _USB_DEVICE_DESCRIPTOR {
      uint8_t bLength;
@@ -249,9 +256,12 @@ struct _storage_info
     uint8_t configuration_id=0;
     uint8_t bulk_in_endpoint_id=0;
     uint8_t bulk_in_packetsize;
+    uint8_t bulk_in_toggle=0;
     uint8_t bulk_out_endpoint_id=0;
     uint8_t bulk_out_packetsize;
+    uint8_t bulk_out_toggle=0;
     uint8_t device_address;
+    uint32_t tag = 1;
 }* storage_info=NULL;
 typedef struct __attribute__((packed)) _command_block_wrapper 
 {
@@ -278,7 +288,7 @@ typedef struct __attribute__((packed)) _scsi_inquiry
     uint8_t bReserved2=0;
     uint8_t bAllocationLength = 0x24;
     uint8_t bReserved3=0;
-    uint8_t pad [6] = {0,0,0,0,0,0};
+    //uint8_t pad [6] = {0,0,0,0,0,0};
 } scsi_inquiry;
 typedef struct __attribute__((packed)) _scsi_read10
 {
@@ -288,7 +298,7 @@ typedef struct __attribute__((packed)) _scsi_read10
     uint8_t bReserved1=0;
     uint16_t wTransferLength=0;
     uint8_t bReserved2=0;
-    uint8_t pad [2]={0,0};
+    //uint8_t pad [2]={0,0};
 } scsi_read10;
 typedef struct __attribute__((packed)) _scsi_request_sense
 {
@@ -298,7 +308,7 @@ typedef struct __attribute__((packed)) _scsi_request_sense
     uint8_t bReserved2=0;
     uint8_t bAllocationLength = 18;
     uint8_t bReserved3=0;
-    uint8_t pad [6] = {0,0,0,0,0,0};
+    //uint8_t pad [6] = {0,0,0,0,0,0};
 } scsi_request_sense;
 typedef struct __attribute__((packed)) _scsi_test_unit_ready
 {
@@ -308,25 +318,21 @@ typedef struct __attribute__((packed)) _scsi_test_unit_ready
     uint8_t bReserved2=0;
     uint8_t bReserved3=0;
     uint8_t bReserved4=0;
-    uint8_t pad[6] = {0,0,0,0,0,0};
+    //uint8_t pad [6] = {0,0,0,0,0,0};
 } scsi_test_unit_ready;
-typedef struct __attribute__((packed)) _scsi_mode_sense
+typedef struct __attribute__((packed)) _scsi_mode_sense6
 {
-    uint8_t bOperationCode = 0x5a;
+    uint8_t bOperationCode = 0x1a;
     uint8_t bLUN=0;
     uint8_t bPageCode=0;
     uint8_t bSubpageCode=0;
-    uint8_t bReserved1=0;
-    uint8_t bReserved2=0;
-    uint8_t bReserved3=0;
-    uint16_t wAllocationLength=0;
-    uint8_t pad[3] = {0,0,0};
-} scsi_mode_sense;
+    uint8_t bAllocationLength=0;
+} scsi_mode_sense6;
 typedef struct __attribute__((packed)) _scsi_capacity
 {
     uint8_t bOperationCode = 0x25;
     uint8_t bLUN=0;
-    uint8_t pad[10] = {0,0,0,0,0,0,0,0,0,0};
+    uint8_t pad[8] = {0,0,0,0,0,0,0,0};
 } scsi_capacity;
 
 bool VERBOSE=1;
@@ -352,9 +358,8 @@ void error (char const * msg)
     exit(0);
 }
 
-void init_serial ()
+void init_serial (const char* device)
 {
-    const char device[] = "/dev/tty.usbmodem123451";
     serial = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if(serial == -1)
       error( "failed to open port" );
@@ -386,31 +391,121 @@ const uint8_t RD_INT = 5;
 const uint8_t RD_DATA_MULTIPLE = 6;
 const uint8_t WR_DATA_MULTIPLE = 7;
 const uint8_t DATA_DUMP = 10;
+const uint8_t SPI_WRITE_MULTIPLE = 11;
 
 void testspeed ()
 {
-    uint8_t new_value[512];
+    uint8_t new_value;
     uint8_t cmd = DATA_DUMP;
     int i;
     write (serial, &cmd, 1);
 
     auto t1 = std::chrono::high_resolution_clock::now();
     for (i=0;i<10*512;i++) {
-        int bytes = read (serial,new_value,1);
+        int bytes = read (serial,&new_value,1);
         if (bytes!=1)
             error ("Serial max speed test did not receive all expected bytes");
+        if (new_value!=0xaa)
+            error ("Wrong data returned");
     }
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
     std::cout << "Serial max read speed: " << i / (duration/1000000.0) << " bytes/second" << std::endl;
 }
+#ifdef _VERBOSE_DEBUG
+std::string getCommandName(uint8_t command)
+{
+  std::string cmdstr;
+  switch (command)
+  {
+    case 0x01:  cmdstr = "CH_CMD_GET_IC_VER";
+                break;
+    case 0x04:  cmdstr = "CH_CMD_SET_SPEED";
+                break;
+    case 0x05:  cmdstr = "CH_CMD_RESET_ALL";
+                break;
+    case 0x06:  cmdstr = "CH_CMD_CHECK_EXIST";
+                break;
+    case 0x0b:  cmdstr = "CH_CMD_SET_REGISTER"; // SET_RETRY, SD0_INT
+                break;
+    case 0x0f:  cmdstr = "CH_CMD_DELAY_100US";
+                break;
+    case 0x13:  cmdstr = "CH_CMD_SET_USB_ADDR";
+                break;
+    case 0x15:  cmdstr = "CH_CMD_SET_USB_MODE";
+                break;
+    case 0x16:  cmdstr = "CH_CMD_TEST_CONNECT";
+                break;
+    //case 0x17:  cmdstr = "CH_CMD_ABORT_NAK";
+    //            break;
+    case 0x22:  cmdstr = "CH_CMD_GET_STATUS";
+                break;
+    case 0x27:  cmdstr = "CH_CMD_RD_USB_DATA0";
+                break;
+    case 0x2c:  cmdstr = "CH_CMD_WR_HOST_DATA";
+                break;
+    case 0x4e:  cmdstr = "CH_CMD_ISSUE_TKN_X";
+                break;
+    case 0x46:  cmdstr = "CH_CMD_GET_DESCR";
+                break;
+    case 0x41:  cmdstr = "CH_CMD_CLR_STALL";
+                break;
+    case 0x30:  cmdstr = "CH_CMD_DISK_CONNECT";
+                break;
+    case 0x31:  cmdstr = "CH_CMD_DISK_MOUNT";
+                break;
+    case 0x32:  cmdstr = "CH_CMD_FILE_OPEN";
+                break;
+    case 0x36:  cmdstr = "CH_CMD_FILE_CLOSE";
+                break;                
+    case 0x33:  cmdstr = "CH_CMD_FILE_ENUM_GO";
+                break;                                
+    case 0x2f:  cmdstr = "CH_CMD_SET_FILE_NAME";
+                break;
+    case 0x3a:  cmdstr = "CH_CMD_BYTE_READ";
+                break;
+    case 0x3b:  cmdstr = "CH_CMD_BYTE_RD_GO";
+                break;        
+    case 0x3c:  cmdstr = "CH_CMD_BYTE_WRITE";
+                break;
+    case 0x3d:  cmdstr = "CH_CMD_BYTE_WR_GO";
+                break;         
+    case 0x40:  cmdstr = "CH_CMD_DIR_CREATE";
+                break;   
+    case 0x34:  cmdstr = "CH_CMD_FILE_CREATE";
+                break;    
+    case 0x2d:  cmdstr = "CH_CMD_WR_REQ_DATA";
+                break;      
+    case 0x37:  cmdstr = "CH_CMD_DIR_INFO_READ";
+                break;       
+    case 0x39:  cmdstr = "CH_CMD_BYTE_LOCATE";
+                break;           
+    case 0x35:  cmdstr = "CH_CMD_FILE_ERASE";
+                break;        
+    default:cmdstr = "UNKNOWN";
+            break;
+  }
+  return cmdstr;
+}
+#endif
 void writeCommand (uint8_t command)
 {
+    #ifdef _VERBOSE_DEBUG
+    std::chrono::system_clock::time_point prevtime = curtime;
+    curtime = std::chrono::system_clock::now();
+    time_t time = std::chrono::system_clock::to_time_t(curtime);
+    std::clog << std::put_time (std::localtime(&time),"%T") << ":" << std::setw(4) << std::setfill('0') << (std::chrono::duration_cast<std::chrono::milliseconds>(curtime - prevtime).count()) << " ";
+    std::clog << "writeCommand (" << getCommandName (command) << ") 0x" << std::hex << std::setw(2) << std::setfill('0') << unsigned (command) << std::dec << std::endl;
+    #endif
+
     uint8_t cmd[] = {WR_COMMAND,command};
     write (serial,cmd,sizeof(cmd));
 }
 void writeData (uint8_t data)
 {
+    #ifdef _VERBOSE_DEBUG
+    std::clog << "writeData (0x" << std::hex << std::setw(2) << std::setfill('0') << unsigned (data) << ")" << std::dec << std::endl;
+    #endif
     uint8_t cmd[] = {WR_DATA,data};
     write (serial,cmd,sizeof(cmd));
 }
@@ -419,16 +514,29 @@ void writeDataMultiple (uint8_t* buffer,uint8_t len)
     uint8_t cmd[] = {WR_DATA_MULTIPLE,len};
     write (serial,cmd,sizeof(cmd));
     write (serial,buffer,len);
+    #ifdef _VERBOSE_DEBUG
+    std::clog << "writeDataMultiple: ";
+    for (int i=0;i<len;i++) {
+      std::clog << (i==0?"":",") << "0x" << std::hex << std::setw(2) << std::setfill('0') << unsigned (buffer[i]) << std::dec ;
+    }
+    std::clog << std::endl;
+    #endif
 }
 ssize_t readData (uint8_t* new_value)
 {
     uint8_t cmd[] = {RD_DATA};
     write (serial,cmd,sizeof(cmd));
-    return read (serial,new_value,1);
+    ssize_t bytes = read (serial,new_value,1);
+    #ifdef _VERBOSE_DEBUG
+    std::clog << "0x" << std::hex << std::setw(2) << std::setfill('0') << unsigned (*new_value) << std::dec << " = readData ()" << std::endl;
+    #endif
+    return bytes;
 }
 ssize_t readDataMultiple (uint8_t* buffer,uint8_t len)
 {
     int i;
+    uint8_t *pTemp = buffer;
+
     uint8_t cmd[] = {RD_DATA_MULTIPLE,len};
     write (serial,cmd,sizeof(cmd));
     uint8_t bytes_read = 0;
@@ -441,6 +549,13 @@ ssize_t readDataMultiple (uint8_t* buffer,uint8_t len)
         buffer += bytes;
     }
     assert (bytes_read==len);
+    #ifdef _VERBOSE_DEBUG
+    std::clog << "readDataMultiple: ";
+    for (int i=0;i<bytes_read;i++) {
+      std::clog << (i==0?"":",") << "0x" << std::hex << std::setw(2) << std::setfill('0') << unsigned (pTemp[i]) << std::dec ;
+    }
+    std::clog << std::endl;
+    #endif
     return bytes_read;
 }
 ssize_t readStatus (uint8_t* new_value)
@@ -484,7 +599,7 @@ uint8_t waitStatus ()
     uint8_t status,interrupt;
     int i=0;
     ssize_t bytes;
-    int counter = 1000;
+    int counter = 500;
     while ((bytes=readStatus(&interrupt)) && counter>0)
     {
         if ((interrupt&0x80)==0)
@@ -493,7 +608,10 @@ uint8_t waitStatus ()
         counter --;
     }
     if (counter<=0)
-        error ("timeout waitStatus");
+    {
+        printf ("timeout waitStatus\n");
+        return 0;
+    }
     writeCommand(CH375_CMD_GET_STATUS);
     bytes = readData (&status);
     if (bytes)
@@ -503,7 +621,7 @@ uint8_t waitStatus ()
 void check_exists ()
 {
     uint8_t value = 190;
-    uint8_t new_value;
+    uint8_t new_value=0;
     //char cmd[] = {0x57,0xAB,CH375_CMD_CHECK_EXIST,value};
     writeCommand (CH375_CMD_CHECK_EXIST);
     writeData(value);
@@ -641,8 +759,10 @@ void write_usb_data (uint8_t* message,uint8_t length)
 {
     writeCommand (CH375_CMD_WR_HOST_DATA);
     writeData(length);
-    for (int i=0;i<length;i++)
-        writeData(message[i]);
+    writeDataMultiple (message,length);
+    //writeData(length);
+    //for (int i=0;i<length;i++)
+    //    writeData(message[i]);
 }
 void issue_token (uint8_t endpoint_number, uint8_t pid, uint8_t in_toggle, uint8_t out_toggle)
 {
@@ -650,7 +770,8 @@ void issue_token (uint8_t endpoint_number, uint8_t pid, uint8_t in_toggle, uint8
     writeData(in_toggle<<7 | out_toggle<<6);
     writeData(endpoint_number << 4 | pid);
 }
-ssize_t read_usb_data (uint8_t* pBuffer)
+
+ssize_t read_usb_data (uint8_t* pBuffer,uint16_t maxlen)
 {
     uint8_t value = 0;
     writeCommand(CH375_CMD_RD_USB_DATA);
@@ -659,6 +780,8 @@ ssize_t read_usb_data (uint8_t* pBuffer)
         error ("no data available");
     if (value==0)
         return 0;
+    if (value>maxlen)
+        value=maxlen;
     bytes = readDataMultiple(pBuffer, value);
     if (bytes<value)
         error("did not receive enough bytes");
@@ -667,10 +790,9 @@ ssize_t read_usb_data (uint8_t* pBuffer)
 
 // USB data packet input
 ///////////////////////////////////////////////////////////////////////////
-int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle,uint8_t* &result)
+uint8_t data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle,uint8_t* result)
 {
     uint16_t remaining_data_length = length;
-    result = (uint8_t*) malloc (length);
     bzero(result, length);
     uint8_t* pTemp = result;
     uint8_t status;
@@ -681,71 +803,107 @@ int data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_t en
     while (remaining_data_length>0)
     {
         issue_token(endpoint_number, CH_PID_IN, endpoint_toggle, 0);
-        endpoint_toggle = endpoint_toggle ^ 1;
         if ((status=waitStatus())!=CH375_USB_INT_SUCCESS)
         {
+            return status;
+/*
             if ((status&0x2f)==0b00101010) // 2A
             {
-                //printf (">> NAK <<\n");
-                free (result);
+                printf (">> NAK <<\n");
                 result = NULL;
                 return 0;
             }
             if ((status&0x2f)==0b00101110) // 2E
             {
                 printf (">> STALL <<\n");
-                free (result);
-                result = NULL;
-                return 0;
+                // un-stall endpoint
+                writeCommand (CH376_CMD_CLR_STALL);
+                writeData (0x80+endpoint_number);
+                if (waitStatus ()!=CH375_USB_INT_SUCCESS)
+                {
+                    //unrecoverable
+                    result = NULL;
+                    return 0;
+                }
+                endpoint_toggle = 0;
+                continue;
             }
             if ((status&0x23)==0b00100000) // 20
             {
                 printf (">> OVER TIME <<\n");
-                free (result);
                 result = NULL;
                 return 0;
             }
             printf (">> UNEXPECTED 0x%x <<\n",status);
-            endpoint_toggle = endpoint_toggle ^ 1; // extra toggle, maybe out of sync?
+*/
         }; 
-        bytes_read = read_usb_data (pTemp);
+        endpoint_toggle = endpoint_toggle ^ 1;
+        bytes_read = read_usb_data (pTemp,length);
         remaining_data_length -= bytes_read;
         pTemp += bytes_read;
         
         if (bytes_read<endpoint_packetsize)
             break;
     }
-    return length-remaining_data_length;
+    return CH375_USB_INT_SUCCESS;// length-remaining_data_length;
 }
 
 // USB data packet output
 ///////////////////////////////////////////////////////////////////////////
-void data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle)
+uint8_t data_out_transfer (uint8_t* pBuffer,uint16_t length, uint8_t target_device_address, uint8_t endpoint_number, uint8_t endpoint_packetsize, uint8_t& endpoint_toggle)
 {
     uint8_t* pTemp = pBuffer;
     uint16_t remaining_data_length = length;
+    uint8_t status;
+
     set_target_device_address(target_device_address);
     
     while (remaining_data_length>0)
     {
         int amountwritten=endpoint_packetsize<remaining_data_length?endpoint_packetsize:remaining_data_length;
         write_usb_data(pTemp, amountwritten);
+        issue_token(endpoint_number, CH_PID_OUT, 0, endpoint_toggle);
+        if ((status=waitStatus())!=CH375_USB_INT_SUCCESS)
+        {
+            return status;
+            /*
+            //error ("unable to output data in time");
+            if ((status&0x2f)==0b00101010) // 2A
+            {
+                printf (">> NAK <<\n");
+                return;
+            }
+            if ((status&0x2f)==0b00101110) // 2E
+            {
+                printf (">> STALL <<\n");
+                // un-stall endpoint
+                writeCommand (CH376_CMD_CLR_STALL);
+                writeData (endpoint_number);
+                waitStatus ();
+                continue;
+            }
+            if ((status&0x23)==0b00100000) // 20
+            {
+                printf (">> OVER TIME <<\n");
+                return;
+            }
+            printf (">> UNEXPECTED 0x%x <<\n",status);
+            */
+        }
         pTemp+=amountwritten;
         remaining_data_length-=amountwritten;
-        
-        issue_token(endpoint_number, CH_PID_OUT, 0, endpoint_toggle);
         endpoint_toggle = endpoint_toggle ^ 1;
-
-        while ((waitStatus()&0x2f)==0x2a); // absorb NAK
     }
+    return CH375_USB_INT_SUCCESS;
 }
 
 #define IN 1
 #define OUT 0
 // USB command execution via SETUP, DATA, STATUS stages
 ///////////////////////////////////////////////////////////////////////////
-bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],uint8_t* senddata, uint8_t endpoint_packet_size,uint8_t endpoint,uint8_t* &result)
+bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],uint8_t* data,uint8_t data_len)
 {
+    uint8_t status;
     uint16_t requested_length = (*(message + 6))+((*(message +7))<<8);
     uint8_t data_direction = message[0]&0b10000000?IN:OUT;
 
@@ -754,32 +912,76 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
     
     //Setup stage
     write_usb_data (message,8);
-    //uint8_t endpoint = 0;
+    uint8_t endpoint = 0;
     issue_token (endpoint, CH_PID_SETUP,0,0);
     uint8_t interrupt = waitStatus();
     if (interrupt != CH375_USB_INT_SUCCESS)
-        return false;//error ("execute_control_transfer 0");
+        return false;
     
     //Data stage
     uint8_t endpoint_toggle = 1;
     if (data_direction==IN)
     {
-        int bytes_read = data_in_transfer(requested_length, target_device_address, 0, endpoint_packet_size, endpoint_toggle,result);
-        if (result==NULL)
+        status = data_in_transfer(requested_length, target_device_address, 0, max_packet_size, endpoint_toggle,data);
+        if (status != CH375_USB_INT_SUCCESS)
+        {
+            if ((status&0x2f)==0b00101110)
+            {
+                printf (">> STALL 1 <<\n");
+                // un-stall endpoint
+                writeCommand (CH376_CMD_CLR_STALL);
+                writeData (0x80+endpoint);
+
+                status=waitStatus();
+                //if (status!=CH375_USB_INT_SUCCESS)
+                //    return false;
+
+                usleep (250000);
+                return execute_control_transfer (target_device_address,message,data,data_len);
+            }
             return false;
+        }
     }
     else
-        data_out_transfer (senddata,requested_length, target_device_address, 0, endpoint_packet_size, endpoint_toggle);
+    {
+        status = data_out_transfer (data,requested_length, target_device_address, 0, max_packet_size, endpoint_toggle);
+        if (status!=CH375_USB_INT_SUCCESS)
+        {
+            if ((status&0x2f)==0b00101010) // 2A
+            {
+                printf (">> NAK <<\n");
+                return false;
+            }
+            if ((status&0x2f)==0b00101110) // 2E
+            {
+                printf (">> STALL 2 <<\n");
+                // un-stall endpoint
+                writeCommand (CH376_CMD_CLR_STALL);
+                writeData (endpoint);
+                status=waitStatus();
+                if (status!=CH375_USB_INT_SUCCESS)
+                    return false;
+
+                usleep (250000);
+                return execute_control_transfer (target_device_address,message,data,data_len);
+            }
+            if ((status&0x23)==0b00100000) // 20
+            {
+                printf (">> OVER TIME <<\n");
+                return false;
+            }
+            printf (">> UNEXPECTED 0x%x <<\n",status);
+            return false;
+        }
+    }
     
     // Status stage
     if (data_direction==OUT || requested_length==0)
     {
         issue_token(endpoint, CH_PID_IN, 1, 0);
         while ((waitStatus()&0x2f)==0x2a); // absorb NAK
-        uint8_t tmp[endpoint_packet_size];
-        bzero (tmp,endpoint_packet_size);
-        ssize_t bytes = read_usb_data((uint8_t*)&tmp);
-        //print_buffer (tmp,endpoint_packet_size);
+        uint8_t tmp[64]; 
+        read_usb_data ((uint8_t*)&tmp,64);
     }
     else
     {
@@ -789,27 +991,37 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
         {
             interrupt = waitStatus();
             if ((interrupt&0x2f)==0x2a) // absorb NAK
-                continue;
+                return false;
             if ((interrupt&0x2f)==0x2e) // absorb STALL
-                interrupt = CH375_USB_INT_SUCCESS;
+            {
+                printf (">> STALL 3 <<\n");
+                // un-stall endpoint
+                writeCommand (CH376_CMD_CLR_STALL);
+                writeData (0x80+endpoint);
+                if (waitStatus ()!=CH375_USB_INT_SUCCESS)
+                    return false;
+
+                usleep (250000);
+                return execute_control_transfer (target_device_address,message,data,data_len);
+            }
             break;
         };
         if (interrupt!=CH375_USB_INT_SUCCESS)
-            return false;//error ("ERROR: execute_control_transfer 2");
+            return false;
     }
     return true;
 }
 
 // DESCRIPTOR commands
 ///////////////////////////////////////////////////////////////////////////
-uint8_t max_packet_size;
 bool get_device_descriptor2 (uint8_t target_device_address,uint8_t* buffer, int& buffer_length)
 {
-    uint8_t cmd[] = {0x80,6,0,1,0,0,18,0};
-    uint8_t* data=NULL;
+    uint8_t cmd[] = {0x80,6,0,1,0,0,sizeof (USB_DEVICE_DESCRIPTOR),0};
     max_packet_size = 8;
-
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (sizeof (USB_DEVICE_DESCRIPTOR));
+    
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,sizeof (USB_DEVICE_DESCRIPTOR));
     if (result)
     {
         print_buffer (data,*(data));
@@ -824,15 +1036,17 @@ bool get_device_descriptor2 (uint8_t target_device_address,uint8_t* buffer, int&
 bool get_configuration_descriptor2 (uint8_t target_device_address,uint8_t config_id,uint8_t* buffer,int &buffer_length)
 {
     uint8_t cmd[] = {0x80,6,config_id,2,0,0,sizeof(USB_CONFIG_DESCRIPTOR),0};
-    uint8_t* data=NULL;
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
     bool result2 = false;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     if (result)
     {
         USB_CONFIG_DESCRIPTOR* config = (USB_CONFIG_DESCRIPTOR*) data;
         uint8_t cmd2[] = {0x80,6,config_id,2,0,0,(uint8_t)config->wTotalLength,0};
-        uint8_t* data2=NULL;
-        result2 = execute_control_transfer(target_device_address,cmd2,NULL,max_packet_size,0,data2);
+        uint8_t* data2=(uint8_t*) malloc (config->wTotalLength);
+        //result2 = execute_control_transfer(target_device_address,cmd2,NULL,max_packet_size,0,data2);
+        result2 = execute_control_transfer(target_device_address,cmd2,data2,config->wTotalLength);
         if (result2)
         {
             memcpy (buffer, data2,config->wTotalLength);
@@ -861,9 +1075,10 @@ std::string get_string2 (uint8_t target_device_address,uint8_t string_id)
         return no_data;
     
     uint8_t cmd[] = {0x80,6,string_id,3,0,0,255,0};
-    uint8_t* data=NULL;
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
     std::string str8;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     if (result)
     {
         uint8_t len = data[0];
@@ -880,16 +1095,18 @@ std::string get_string2 (uint8_t target_device_address,uint8_t string_id)
 bool set_protocol2 (uint8_t target_device_address,uint8_t protocol_id,uint8_t interface)
 {
     uint8_t cmd[] = {0x21,0x0B,protocol_id,0,interface,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
 bool set_idle2 (uint8_t target_device_address,uint8_t duration,uint8_t report_id, uint8_t interface)
 {
     uint8_t cmd[] = {0x21,0x0A,report_id,duration,interface,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
@@ -900,8 +1117,9 @@ uint8_t get_max_luns (uint8_t target_device_address,uint8_t interface)
 {
     uint8_t nr_luns = 0;
     uint8_t cmd[] = {0b10100001,0b11111110,0,0,interface,0,1,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     if (result)
         nr_luns = *data;
     free (data);
@@ -910,8 +1128,10 @@ uint8_t get_max_luns (uint8_t target_device_address,uint8_t interface)
 bool bulkonly_mass_storage_reset (uint8_t target_device_address,uint8_t interface)
 {
     uint8_t cmd[] = {0b00100001,0b11111111,0,0,interface,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
+    
     free (data);
     return result;
 }
@@ -921,40 +1141,45 @@ bool bulkonly_mass_storage_reset (uint8_t target_device_address,uint8_t interfac
 bool set_address2 (uint8_t target_device_address)
 {
     uint8_t cmd[] = {0x00,0x05,target_device_address,0,0,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(0,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(0,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(0,cmd,data,max_packet_size);
     free (data);
     return result;
 }
 bool set_configuration2 (uint8_t target_device_address,uint8_t configuration_id)
 {
     uint8_t cmd[] = {0x00,0x09,configuration_id,0,0,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
 bool set_interface2 (uint8_t target_device_address,uint8_t interface_id,uint8_t alternative_setting)
 {
     uint8_t cmd[] = {0x01,11,alternative_setting,0,interface_id,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
 bool clear_endpoint_feature2 (uint8_t target_device_address,uint8_t endpoint_id)
 {
     uint8_t cmd[] = {0b00000010,1,0,0,endpoint_id,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
 bool set_endpoint_feature2 (uint8_t target_device_address,uint8_t endpoint_id)
 {
     uint8_t cmd[] = {0b00000010,3,0,0,endpoint_id,0,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
@@ -962,8 +1187,9 @@ uint16_t get_endpoint_status (uint8_t target_device_address,uint8_t endpoint_id)
 {
     uint16_t status = 0;
     uint8_t cmd[] = {0b10000010,0,0,0,endpoint_id,0,2,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     if (result)
         status = *data;
     free (data);
@@ -972,8 +1198,9 @@ uint16_t get_endpoint_status (uint8_t target_device_address,uint8_t endpoint_id)
 bool set_packet_filter2 (uint8_t target_device_address,uint8_t interface_id,uint8_t packet_filter)
 {
     uint8_t cmd[] = {0b00100001,0x43,packet_filter,0,interface_id,0,0,0}; // set ethernet packet filter
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
@@ -984,8 +1211,9 @@ bool get_hub_descriptor2 (uint8_t target_device_address,uint8_t* buffer, int& bu
 {
     //bmRequestType, bRequest, wValue, wIndex, wLength
     uint8_t cmd[] = {0b10100000,6,0,0x29,0,0,sizeof(USB_HUB_DESCRIPTOR),0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     if (result)
     {
         print_buffer (data,*(data));
@@ -999,8 +1227,9 @@ uint32_t get_hub_portstatus (uint8_t target_device_address,uint8_t portnr)
 {
     //bmRequestType, bRequest, wValue, wIndex, wLength
     uint8_t cmd[] = {0b10100011,0,0,0,portnr,0,4,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     uint32_t retval = 0;
     if (result)
     {
@@ -1053,8 +1282,9 @@ bool set_hub_port_feature2 (uint8_t target_device_address,uint8_t feature_select
 {
     //bmRequestType, bRequest, wValue, wIndex, wLength
     uint8_t cmd[] = {0b00100011,0x03,feature_selector,0,port,value,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
@@ -1062,8 +1292,9 @@ bool clear_hub_port_feature2 (uint8_t target_device_address,uint8_t feature_sele
 {
     //bmRequestType, bRequest, wValue, wIndex, wLength
     uint8_t cmd[] = {0b00100011,0x01,feature_selector,0,port,value,0,0};
-    uint8_t* data=NULL;
-    bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    uint8_t* data=(uint8_t*) malloc (max_packet_size);
+    //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
+    bool result = execute_control_transfer(target_device_address,cmd,data,max_packet_size);
     free (data);
     return result;
 }
@@ -1076,9 +1307,9 @@ bool read_boot_mouse (uint8_t target_device_address,uint8_t mouse_endpoint_id,ui
     uint8_t endpoint_toggle = 0;
     while (true)
     {
-        uint8_t* buffer=NULL;
-        int bytes_read = data_in_transfer(mouse_in_packetsize, target_device_address,mouse_endpoint_id, max_packet_size, endpoint_toggle,buffer);
-        if (bytes_read==0 || buffer==NULL)
+        uint8_t* buffer= (uint8_t* )malloc (mouse_in_packetsize);;
+        uint8_t status = data_in_transfer(mouse_in_packetsize, target_device_address,mouse_endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        if (status != CH375_USB_INT_SUCCESS)
             return false;
         uint8_t buttonstate = buffer[0];
         uint8_t x = buffer[1];
@@ -1095,11 +1326,11 @@ bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8
 {
     uint8_t endpoint_toggle = 0;
     int count=5;
-    while (count--)
+    while (true)//count--)
     {
-        uint8_t* buffer = NULL;
-        int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
-        if (bytes_read==0 || buffer==NULL)
+        uint8_t* buffer = (uint8_t* )malloc (in_packetsize);
+        uint8_t status = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        if (status != CH375_USB_INT_SUCCESS)
             return false;
         uint8_t modifier_keys = buffer[0];
         uint8_t reserved = buffer[1];
@@ -1111,7 +1342,7 @@ bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8
         uint8_t keycode6 = buffer[7];
         printf ("modifier_keys: %02X, keycode1:%02X, keycode2:%02X, keycode3:%02X, keycode4:%02X, keycode5:%02X, keycode6:%02X\n",modifier_keys,keycode1,keycode2,keycode3,keycode4,keycode5,keycode6);
         free (buffer);
-        std::this_thread::sleep_for(std::chrono::milliseconds(millis));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(millis));
         if (keycode1==0x14) // Q for quit
             return false;
     }
@@ -1135,9 +1366,9 @@ bool check_network_connection (uint8_t target_device_address,uint8_t endpoint_id
     } ecm_notification_event;
     while (--count > 0 && !result)
     {
-        uint8_t* buffer = NULL; 
-        int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
-        if (bytes_read==0 || buffer==NULL)
+        uint8_t* buffer = (uint8_t* )malloc (in_packetsize); 
+        uint8_t status = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        if (status != CH375_USB_INT_SUCCESS)
             return false;
         memcpy (&ecm_notification_event,buffer,sizeof (_ecm_notification_event));
         //print_buffer (buffer,in_packetsize);
@@ -1177,11 +1408,11 @@ void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t
     set_retry (0x0f);    
     while (count)
     {
-        uint8_t* buffer = NULL;
+        uint8_t* buffer = (uint8_t* )malloc (in_packetsize);
         //const clock_t begin_time = clock();
-        int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        uint8_t status = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
         //std::cout << std::fixed << std::showpoint << float( clock () - begin_time ) /  CLOCKS_PER_SEC << std::endl;
-        if (buffer==NULL)
+        if (status != CH375_USB_INT_SUCCESS)
             continue;
         
         printf ("\n%d - dst: %02x:%02x:%02x:%02x:%02x:%02x - src: %02x:%02x:%02x:%02x:%02x:%02x - type: %04x",
@@ -1190,14 +1421,8 @@ void dump_in_packets (uint8_t target_device_address,uint8_t endpoint_id,uint16_t
             *(buffer+6),*(buffer+7),*(buffer+8),*(buffer+9),*(buffer+10),*(buffer+11), // src
             ((*(buffer+12))<<8)+((*(buffer+13))));// EtherType
 
-        if (!(bytes_read == 0 || buffer==NULL))
-        {
-            print_buffer (buffer,bytes_read);
-            free (buffer);   
-        }
-        else
-            printf ("\n");
-        printf ("length: %d\n",bytes_read);
+        print_buffer (buffer,in_packetsize);
+
         count --;
     }
     set_retry (0x8f);
@@ -1208,9 +1433,9 @@ uint8_t get_hub_change (uint8_t target_device_address,uint8_t endpoint_id,uint8_
 {
     uint8_t value = 0;
     uint8_t endpoint_toggle = 0;
-    uint8_t* buffer = NULL;
-    int bytes_read = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
-    if (bytes_read == 0 || buffer==NULL)
+    uint8_t* buffer = (uint8_t* ) malloc (in_packetsize);
+    uint8_t status = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+    if (status != CH375_USB_INT_SUCCESS)
         return 0;
     //print_buffer (buffer,in_packetsize);
     value = buffer[0];
@@ -1585,7 +1810,7 @@ void read_file ()
         if (status==CH375_USB_INT_DISK_READ)
         {
             uint8_t buffer[128];
-            ssize_t len = read_usb_data(buffer);
+            ssize_t len = read_usb_data(buffer,128);
             print_buffer (buffer,len);
             char line[65];
             strncpy (line,(char*) buffer,len);
@@ -1607,13 +1832,6 @@ void close_file ()
 
 void usb_host_bus_reset ()
 {
-    bool result;
-    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
-    sleep (1);
-    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
-        error ("host mode not succeeded\n");
-    usleep (500000);
-
     uint8_t version;
     writeCommand (CH376_CMD_GET_IC_VER);
     readData (&version);
@@ -1621,12 +1839,20 @@ void usb_host_bus_reset ()
         error ("Not a right version\n");
     version = version&0b00011111;
     printf ("CH376 IC version: %d\n",version);
-    if (version == 3) 
-    {
-        // un-stall endpoint 0
-        writeCommand (CH376_CMD_CLR_STALL);
-        writeData (0x80);
-    }
+
+    bool result;
+    result=set_usb_host_mode(CH375_USB_MODE_HOST);
+    usleep (250000);
+    result = set_usb_host_mode(CH375_USB_MODE_HOST_RESET);
+    usleep (500000);
+    if (!(result=set_usb_host_mode(CH375_USB_MODE_HOST)))
+        error ("host mode not succeeded\n");
+    usleep (250000);
+
+    // configure the number of retries (indefinite)
+    set_retry (0x8f);
+
+
 }
 
 std::vector <_hid_info> hids;
@@ -1684,57 +1910,58 @@ void init_device (uint8_t device_address)
     }
 }
 
-uint32_t tag = 1;
-uint8_t storage_out_toggle=0;
-uint8_t storage_in_toggle=0;
-
 bool do_scsi_command (_storage_info& storage_info,uint8_t lun,bool read,uint8_t* command,uint8_t command_len,uint8_t *&buffer,uint32_t buffer_len)
 {
     command_block_wrapper cbw;
     command_status_wrapper csw;
-    int bytes_read;
+    uint16_t bytes_read;
+    uint8_t status;
 
     // CHECK CAPACITY
     memset (&cbw,0,sizeof (command_block_wrapper));
     cbw.dCBWSignature = 0x43425355;
-    cbw.dCBWTag = tag++;
+    cbw.dCBWTag = storage_info.tag++;
     cbw.bCBWLUN = lun;
     cbw.dCBWDataTransferLength = buffer_len;
-    if (cbw.dCBWDataTransferLength>0 && read)
+    if (cbw.dCBWDataTransferLength>0 || read)
         cbw.bmCBWFlags = 0b10000000; // Data-In;
     else
         cbw.bmCBWFlags = 0b00000000; // Data-Out;
     cbw.bCBWCBLength = command_len;
     memcpy (cbw.data,command,command_len);
-    print_buffer ((uint8_t*) &cbw,sizeof (command_block_wrapper));
-    data_out_transfer ((uint8_t*) &cbw,sizeof(command_block_wrapper),storage_info.device_address,storage_info.bulk_out_endpoint_id,storage_info.bulk_out_packetsize,storage_out_toggle);
+    //print_buffer ((uint8_t*) &cbw,sizeof (command_block_wrapper));
+    if ((status=data_out_transfer ((uint8_t*) &cbw,sizeof(command_block_wrapper),storage_info.device_address,storage_info.bulk_out_endpoint_id,storage_info.bulk_out_packetsize,storage_info.bulk_out_toggle))!=CH375_USB_INT_SUCCESS)
+    {
+        error ("error transferring data to device");
+    }
     if (cbw.dCBWDataTransferLength>0)
     {
         if (read)
         {
             // get command results
-            bytes_read = data_in_transfer (buffer_len,storage_info.device_address,storage_info.bulk_in_endpoint_id,storage_info.bulk_in_packetsize,storage_in_toggle,buffer);
-            if (bytes_read==0 || buffer==NULL)
+            status = data_in_transfer (buffer_len,storage_info.device_address,storage_info.bulk_in_endpoint_id,storage_info.bulk_in_packetsize,storage_info.bulk_in_toggle,buffer);
+            if (status != CH375_USB_INT_SUCCESS)
                 return false;
             print_buffer (buffer,buffer_len);
         }
         else
         {
             /* code */
+            error ("not supported writes");
         }
     }
     // get CSW
-    uint8_t* csw_result;
-    bytes_read = data_in_transfer (sizeof (command_status_wrapper),storage_info.device_address,storage_info.bulk_in_endpoint_id,storage_info.bulk_in_packetsize,storage_in_toggle,csw_result);
-    if (bytes_read==0 || csw_result==NULL)
+    uint8_t* csw_result=(uint8_t*)malloc (sizeof (command_status_wrapper));
+    status = data_in_transfer (sizeof (command_status_wrapper),storage_info.device_address,storage_info.bulk_in_endpoint_id,storage_info.bulk_in_packetsize,storage_info.bulk_in_toggle,csw_result);
+    if (status != CH375_USB_INT_SUCCESS)
         return false;
     memcpy (&csw,csw_result,sizeof(command_status_wrapper));
     free (csw_result);
+    //print_buffer ((uint8_t*)&csw, sizeof (command_status_wrapper));
 
-    //print_buffer (csw_result,sizeof (command_status_wrapper));
     if (csw.dCBWSignature!= 0x53425355 || csw.dCBWTag!=cbw.dCBWTag || csw.bCSWStatus!=0)
     {
-        printf ("\tSignature: %x\n",csw.dCBWSignature);
+        printf ("\tSignature: %x (%s)\n",csw.dCBWSignature,csw.dCBWSignature== 0x53425355?"okay":"nok");
         printf ("\tTag: %x (%s)\n",csw.dCBWTag,csw.dCBWTag==cbw.dCBWTag?"okay":"nok");
         printf ("\tResidue: %x\n",csw.dCSWDataResidue);
         printf ("\tStatus: %x (%s)\n",csw.bCSWStatus,csw.bCSWStatus==0?"Success":"Failed");
@@ -1759,9 +1986,12 @@ bool scsi_read_block (_storage_info& storage_info, uint32_t blocknr, uint16_t bl
 
 void do_storage (_storage_info& storage_info)
 {
+    printf ("DO STORAGE\n");
+    printf ("==========\n");
     // USB HID?
     if (storage_info.configuration_id>0)
     {
+        printf ("\tStorage device address: %d\n",storage_info.device_address);
         uint8_t* buffer=NULL;
         int max_luns;
         
@@ -1770,7 +2000,9 @@ void do_storage (_storage_info& storage_info)
         printf ("\tMax LUNs: %d\n",max_luns);
 
         // INQUIRY
+        printf ("INQUIRY\n");
         scsi_inquiry inquiry;
+        buffer = (uint8_t*) malloc (0x24);
         if (do_scsi_command (storage_info,0,true,(uint8_t*) &inquiry,sizeof(inquiry),buffer,0x24))
         {
             printf ("\tPDT: %d\n",buffer[0]);
@@ -1790,27 +2022,32 @@ void do_storage (_storage_info& storage_info)
             printf ("\tRevision: %s\n",rev);
 
             if (buffer[0]!=0)
-            {
-                printf ("\tNo Direct-access block device\n");
-                free (buffer);
-                return;
-            }
-            free (buffer);
-        }
-        
-        // TEST UNIT READY
-        scsi_test_unit_ready ready;
+                error ("\tNo Direct-access block device\n");
+            else
+                printf ("\tDirect-access block device\n");
+        } 
+        else
+            error ("inquiry failed");
+        free (buffer);
+
         bool device_ready=false;
         while (device_ready==false)
         {
-            if (do_scsi_command (storage_info,0,false,(uint8_t*) &ready,sizeof(scsi_test_unit_ready),buffer,0))
+            // TEST UNIT READY
+            printf ("TEST UNIT READY\n");
+            scsi_test_unit_ready ready;
+            if (do_scsi_command (storage_info,0,true,(uint8_t*) &ready,sizeof(scsi_test_unit_ready),buffer,0))
             {
+                printf ("\tDevice READY\n");
                 device_ready = true;
             }
             else
             {
+                printf ("\tDevice NOT ready\n");
+                printf ("REQUEST SENSE\n");
                 // REQUEST SENSE
                 scsi_request_sense sense;
+                buffer = (uint8_t*) malloc (sense.bAllocationLength);
                 if (do_scsi_command(storage_info,0,true,(uint8_t*) &sense,sizeof (scsi_request_sense),buffer,sense.bAllocationLength))
                 {
                     std::string sense_key;
@@ -1827,37 +2064,41 @@ void do_storage (_storage_info& storage_info)
                     printf ("\tSense Key: %d (%s)\n",buffer[2],sense_key.c_str());
                     printf ("\tAdditional sense code: %d\n",buffer[12]);
                     printf ("\tAdditional sense code qualifier: %d\n",buffer[13]);
-                    free (buffer);
                 }
+                free (buffer);
             }
         }
-        
+
         // CHECK CAPACITY
+        printf ("CHECK CAPACITY\n");
         scsi_capacity capacity;
         uint32_t lba,len;
+        buffer = (uint8_t*) malloc (0x8);
         if (do_scsi_command (storage_info,0,true,(uint8_t*) &capacity,sizeof(capacity),buffer,0x8))
         {
             lba = buffer[0]*16777216+buffer[1]*65536+buffer[2]*256+buffer[3];
             len = buffer[4]*16777216+buffer[5]*65536+buffer[6]*256+buffer[7];
             printf ("\tMax LBA: %ld\n",lba);
-            printf ("\tBlock length in bytes: %ld\n",len);
-            free (buffer);
+            printf ("\tBlock length in bytes: %ld\n",len);   
+            printf ("\tTotal capacity in bytes: %ld\n",len*lba);
         }
+        free (buffer);
 
-        /*
         // MODE SENSE
-        scsi_mode_sense mode;
+        printf ("MODE SENSE\n");
+        scsi_mode_sense6 mode;
         mode.bPageCode = 0x3f; // all mode pages
-        //mode.bPageCode = 0x04; // Flexible Disk
-        mode.bSubpageCode = 0x00;
-        mode.wAllocationLength = 192;
-        if (do_scsi_command (storage_info.device_address,0,true,(uint8_t*) &mode,sizeof(mode),buffer,192))
-        {
-            free (buffer);
-        }
-        */
+        mode.bAllocationLength = 192;
+        buffer = (uint8_t*) malloc (mode.bAllocationLength);
+        if (do_scsi_command (storage_info,0,true,(uint8_t*) &mode,sizeof(mode),buffer,mode.bAllocationLength))
+            printf ("\tMode sense OK\n");
+        else
+            error ("\tMode sense NOK\n");
+        free (buffer);
 
         // READ MBR
+        printf ("READ SECTORS\n");
+        buffer = (uint8_t*) malloc (len);
         if (scsi_read_block (storage_info,0,len,buffer))
         {
             if (buffer[0x1fe]==0x55 && buffer[0x1ff]==0xaa) // Boot signature present?
@@ -1875,6 +2116,7 @@ void do_storage (_storage_info& storage_info)
                     free (buffer);
                     // READ BOOTSECTOR
                     uint8_t cluster_map = 2;
+                    buffer = (uint8_t*) malloc (len);
                     if (scsi_read_block (storage_info,first_partition,len,buffer))
                     {
                         if (buffer[0x1fe]==0x55 && buffer[0x1ff]==0xaa) // Boot signature present
@@ -1917,13 +2159,14 @@ void do_storage (_storage_info& storage_info)
         VERBOSE=0;
         auto t1 = std::chrono::high_resolution_clock::now();
         int i=0;
+        buffer = (uint8_t*) malloc (len);
         while (scsi_read_block (storage_info,i++,len,buffer)) {
 
-            free (buffer);
-            if (i==10)
+            if (i==20)
                 break;
             std::cout << "block " << i << " read" << std::endl;
         }
+        free (buffer);
         auto t2 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
         std::cout << "Read speed: " << i*len / (duration/1000000.0) << " bytes/second" << std::endl;
@@ -1932,6 +2175,8 @@ void do_storage (_storage_info& storage_info)
 }
 void do_hid (_hid_info& hid_info)
 {
+    printf ("DO HID\n");
+    printf ("======\n");
     // USB HID?
     if (hid_info.configuration_id>0)
     {
@@ -1948,7 +2193,8 @@ void do_hid (_hid_info& hid_info)
             // set boot protocol for keyboard and read it
             if (!set_protocol2 (hid_info.device_address,BOOT_PROTOCOL,hid_info.keyboard_interface)) // select boot protocol for our device
                 error ("error setting boot protocol for keyboard");
-            set_idle2(hid_info.device_address, 0x80, 0,hid_info.keyboard_interface); // scan every ~500ms
+            //set_idle2(hid_info.device_address, 0x80, 0,hid_info.keyboard_interface); // scan every ~500ms
+            set_idle2(hid_info.device_address, 0xff, 0,hid_info.keyboard_interface); // maximum wait
             
             read_boot_keyboard (hid_info.device_address,hid_info.keyboard_endpoint,hid_info.keyboard_millis,hid_info.keyboard_packetsize); 
             //read_boot_mouse (device_address,mouse_endpoint,mouse_millis,mouse_packetsize);
@@ -1957,6 +2203,8 @@ void do_hid (_hid_info& hid_info)
 }
 void do_ethernet (_ethernet_info& ethernet_info)
 {
+    printf ("DO ETHERNET\n");
+    printf ("===========\n");
     if (ethernet_info.configuration_id>0)
     {
         printf ("\nWe found an USB CDC ECM device, lets start using it.\n");
@@ -1990,6 +2238,8 @@ void do_ethernet (_ethernet_info& ethernet_info)
 
 void do_hub (_hub_info& hub_info)
 {
+    printf ("DO HUB\n");
+    printf ("======\n");
     if (hub_info.configuration_id>0)
     {
         if (hub_info.hub_interface==255)
@@ -2069,7 +2319,9 @@ void wait_for_insert ()
     uint8_t status,bytes;
     while (1)
     {
-        writeCommand(CH375_CMD_GET_STATUS);
+        writeCommand(CH375_CMD_TEST_CONNECT);
+        usleep (20);
+        //writeCommand(CH375_CMD_GET_STATUS);
         bytes = readData (&status);
         if (bytes)
         {
@@ -2123,13 +2375,46 @@ void do_high_level ()
 }
 int main(int argc, const char * argv[]) 
 {
-    init_serial();
-    testspeed();
-    
-    check_exists();
-    reset_all();
+    #ifdef _VERBOSE_DEBUG
+    curtime = std::chrono::system_clock::now();
+    #endif 
 
+    //const char device[] = "/dev/tty.usbmodem123451";
+    //const char device[] = "/dev/tty.usbmodem39528001";
+    if (argc<2)
+        error ("Please specify which port to use");
+
+    init_serial(argv[1]);
+    //testspeed();
+/*
+    //int longvalue = 5000000;
+    uint8_t loop=0,loop_start;
+    const int BLOCKSIZE = 1;
+    //while (longvalue--)
+    //{
+        uint8_t cmd[] = {SPI_WRITE_MULTIPLE,BLOCKSIZE};
+        write (serial, cmd, sizeof (cmd));
+        loop_start = loop-1;
+        for (int i=0;i<BLOCKSIZE;i++,loop++)
+            write (serial, &loop, 1);
+        uint8_t recvbyte;
+        for (int i=0;i<BLOCKSIZE;i++,loop_start++)
+        {
+            read (serial, &recvbyte, 1);
+            //if (recvbyte!=loop_start)
+            //    printf ("data error\n");
+            printf ("%02X ",recvbyte);
+        }
+        printf ("\n");
+    //}
+    //return 0;
+*/
+    reset_all();
+    check_exists();
+    
     //do_high_level ();
+    //set_usb_host_mode (CH375_USB_MODE_HOST_NON_SOF);
+    //wait_for_insert ();
 
     // set reset bus and set host mode
     usb_host_bus_reset ();
