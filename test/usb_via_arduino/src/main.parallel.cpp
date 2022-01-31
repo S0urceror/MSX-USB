@@ -73,6 +73,7 @@ int serial=-1;
 #define CH376_CMD_DISK_CONNECT 0x30
 #define CH376_CMD_DISK_MOUNT 0x31
 #define CH376_CMD_OPEN_FILE 0x32
+#define CH376_CMD_FILE_ENUM_GO 0x33
 #define CH376_CMD_FILE_CLOSE 0x36
 #define CH376_CMD_DIR_INFO_READ 0x37
 
@@ -95,6 +96,8 @@ int serial=-1;
 #define CH375_USB_MODE_HOST_RESET 0x07
 
 #define CH375_USB_ERR_OPEN_DIR 0x41
+#define CH375_USB_ERR_MISS_FILE 0x42
+#define CH375_USB_ERR_FOUND_NAME 0x43
 
 #define CH375_USB_INT_SUCCESS 0x14
 #define CH375_USB_INT_CONNECT 0x15
@@ -986,6 +989,8 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
     else
     {
         issue_token(endpoint, CH_PID_OUT, 0, 1);
+        interrupt = waitStatus();
+        /*
         uint8_t interrupt;
         while (true)
         {
@@ -1008,6 +1013,7 @@ bool execute_control_transfer (uint8_t target_device_address,uint8_t message[8],
         };
         if (interrupt!=CH375_USB_INT_SUCCESS)
             return false;
+        */
     }
     return true;
 }
@@ -1754,27 +1760,27 @@ void do_ethernet (_ethernet_info&);
 void do_hub (_hub_info&);
 void do_storage (_storage_info&);
 
-void connect_disk ()
+bool connect_disk ()
 {
     writeCommand (CH376_CMD_DISK_CONNECT);
     if (waitStatus ()!=CH375_USB_INT_SUCCESS)
-        error ("disk not connected");
-    
+        return false;
+    return true;
 }
-void mount_disk ()
+bool mount_disk ()
 {
     int status;
     writeCommand (CH376_CMD_DISK_MOUNT);
     status = waitStatus ();
     if ((status==CH375_USB_INT_SUCCESS))
-        return;
-    error ("disk not mounted");
+        return true;
+    return false;
 }
 void abort_nak ()
 {
     writeCommand (CH375_CMD_ABORT_NAK);
 }
-void open_file (char* name)
+void open_file (const char* name)
 {
     int status;
     writeCommand (CH376_CMD_SET_FILE_NAME);
@@ -1795,6 +1801,68 @@ void open_dir (char* name)
         error ("directory not opened");
 }
 
+/* File directory information in FAT data area */
+typedef struct _FAT_DIR_INFO {
+uint8_t DIR_Name [11];; /* 00H, file name, a total of 11 bytes, fill in the blanks */
+uint8_t DIR_Attr;; /* 0BH, file attributes, refer to the following instructions */
+uint8_t DIR_NTRes;; /* 0CH */
+uint8_t DIR_CrtTimeTenth;; /* 0DH, the time of file creation, counted in units of 0.1 seconds */
+uint16_t DIR_CrtTime;; /* 0EH, file creation time */
+uint16_t DIR_CrtDate;; /* 10H, date of file creation */
+uint16_t DIR_LstAccDate;; /* 12H, the date of the last access operation */
+uint16_t DIR_FstClusHI;; /* 14H */
+uint16_t DIR_WrtTime;; /* 16H, file modification time, refer to the previous macro MAKE_FILE_TIME */
+uint16_t DIR_WrtDate;; /* 18H, file modification date, refer to the previous macro MAKE_FILE_DATE */
+uint16_t DIR_FstClusLO;; /* 1AH */
+uint32_t DIR_FileSize;; /* 1CH, file length */
+;} FAT_DIR_INFO;
+
+void get_dirinfo (char* wildcard, std::vector<std::string>& contents)
+{
+    uint8_t status,value;
+    char* pDot;
+    char wild[8];
+    strcpy (wild, wildcard);
+
+    if ((pDot = strstr(wild,".")))
+    {
+        *pDot = '\0';
+        pDot++;
+    }
+
+    // start query
+    writeCommand (CH376_CMD_SET_FILE_NAME);
+    writeDataMultiple ((uint8_t*) wildcard,strlen(wildcard));
+    writeData (0);
+    // open first file
+    writeCommand (CH376_CMD_OPEN_FILE);
+    if ((status=waitStatus ())!=CH375_USB_INT_DISK_READ)
+        error ("file not opened");
+    do 
+    {
+        // get file info
+        writeCommand(CH375_CMD_RD_USB_DATA);
+        ssize_t bytes = readData(&value);
+        FAT_DIR_INFO* dirinfo = (FAT_DIR_INFO*) malloc (sizeof (FAT_DIR_INFO));
+        readDataMultiple ((uint8_t*) dirinfo,value);
+        // get file name
+        if (dirinfo->DIR_Attr==0x20 || dirinfo->DIR_Attr==0x00)
+        {
+            if (strncmp ((char*) dirinfo->DIR_Name+8,pDot,3)==0)
+            {
+                std::string str;
+                for (int i=0;i<11;i++)
+                    str.append (1,(char) dirinfo->DIR_Name[i]);
+                contents.push_back (str);
+            }
+        }
+        free (dirinfo);
+        // continue enumerating
+        writeCommand (CH376_CMD_FILE_ENUM_GO);
+        status=waitStatus ();
+    } while (status==CH375_USB_INT_DISK_READ);
+
+}
 
 void read_file ()
 {
@@ -2314,37 +2382,33 @@ void do_hub (_hub_info& hub_info)
         //init_device (device_address+1);
     }
 }
-void wait_for_insert ()
+bool something_connected ()
 {
     uint8_t status,bytes;
-    while (1)
+    writeCommand(CH375_CMD_TEST_CONNECT);
+    usleep (20);
+    bytes = readData (&status);
+    if (bytes)
     {
-        writeCommand(CH375_CMD_TEST_CONNECT);
-        usleep (20);
-        //writeCommand(CH375_CMD_GET_STATUS);
-        bytes = readData (&status);
-        if (bytes)
-        {
-            if(status==CH375_USB_INT_CONNECT)
-            {
-                printf ("USB device inserted\n");
-                break;
-            }
-            else
-            {
-                printf ("Please insert an USB device\n");
-                sleep (1);
-            }
-        }
+        if(status==CH375_USB_INT_CONNECT)
+            return true;
+        else
+            return false;
     }
 }
-void do_high_level ()
+void wait_for_insert ()
 {
-    bool result;
-    result=set_usb_host_mode(CH375_USB_MODE_HOST);
-    //connect_disk ();
-    //wait_for_insert();
-/*
+    while (1)
+    {
+        if (something_connected ())
+            break;
+        sleep (1);
+        printf ("Please insert an USB device\n");
+    }
+}
+
+void print_registers ()
+{
     uint8_t value = get_register (VAR_SYS_BASE_INFO);
     printf ("VAR_SYS_BASE_INFO : %x\n",value);
     value = get_register (VAR_FILE_BIT_FLAG);
@@ -2357,21 +2421,46 @@ void do_high_level ()
     printf ("VAR_SEC_PER_CLUS : %x\n",value);
     value = get_register (VAR_SEC_PER_CLUS+1);
     printf ("VAR_SEC_PER_CLUS+1 : %x\n",value);
-*/
+    /*
     for (int i=0;i<0x80;i++)
     {
         uint8_t value = get_register (i);
         printf ("%02x : %02x\n",i,value);
     }
+    */
+}
 
+void do_high_level ()
+{
+    bool result;
+    result=set_usb_host_mode(CH375_USB_MODE_HOST);
+    //wait_for_insert();
+    if (!connect_disk ())
+        return;
 
-    mount_disk ();
+    if (!mount_disk ())
+    {
+        print_registers ();
+        return;
+    }
+
+    print_registers();
+
+    std::vector <std::string> files_found;
     open_dir ("/");
-    //open_dir ("_USB");
-    open_file ("COMMAND.COM");
-    read_file ();
-    close_file ();
-    error ("done");
+    get_dirinfo ("*.DSK",files_found);
+    for (std::string str : files_found)
+    {
+        //transform(str.begin(), str.end(), str.begin(), ::toupper);
+        std::cout << str << std::endl;
+    }
+    if (files_found.size()>0)
+    {
+        open_file (files_found.at(0).c_str());
+        read_file ();
+        close_file ();
+    }
+    //error ("done");
 }
 int main(int argc, const char * argv[]) 
 {
@@ -2379,8 +2468,6 @@ int main(int argc, const char * argv[])
     curtime = std::chrono::system_clock::now();
     #endif 
 
-    //const char device[] = "/dev/tty.usbmodem123451";
-    //const char device[] = "/dev/tty.usbmodem39528001";
     if (argc<2)
         error ("Please specify which port to use");
 
@@ -2411,10 +2498,8 @@ int main(int argc, const char * argv[])
 */
     reset_all();
     check_exists();
-    
-    //do_high_level ();
-    //set_usb_host_mode (CH375_USB_MODE_HOST_NON_SOF);
-    //wait_for_insert ();
+
+    do_high_level ();
 
     // set reset bus and set host mode
     usb_host_bus_reset ();

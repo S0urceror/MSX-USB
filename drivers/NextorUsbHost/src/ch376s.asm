@@ -1228,8 +1228,8 @@ _STATUS_OUT:
 _STATUS_NEXT:
     call CH_ISSUE_TOKEN
     call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_SUCCESS
-    jr nz, _STATUS_NEXT_ERROR
+    ;cp CH_USB_INT_SUCCESS
+    ;jr nz, _STATUS_NEXT_ERROR
     ld a, (hl)
     and 0x80
     jr nz, _STATUS_NEXT_IN

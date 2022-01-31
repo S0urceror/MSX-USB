@@ -1,0 +1,63 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+  0 ___str_1                                                       000058 R
+  0 ___str_10                                                      0000D8 R
+  0 ___str_11                                                      0002F5 R
+  0 ___str_12                                                      0002F7 R
+  0 ___str_13                                                      00030D R
+  0 ___str_14                                                      00030F R
+  0 ___str_19                                                      00031F R
+  0 ___str_2                                                       000076 R
+  0 ___str_21                                                      000328 R
+  0 ___str_23                                                      00032A R
+  0 ___str_24                                                      00033C R
+  0 ___str_4                                                       00008A R
+  0 ___str_5                                                       00009B R
+  0 ___str_7                                                       0000AF R
+  0 ___str_8                                                       0000C6 R
+    _ch376_connect_disk                                            ****** GX
+    _ch376_get_fat_info                                            ****** GX
+    _ch376_get_sector_LBA                                          ****** GX
+    _ch376_locate_sector                                           ****** GX
+    _ch376_mount_disk                                              ****** GX
+    _ch376_next_search                                             ****** GX
+    _ch376_open_directory                                          ****** GX
+    _ch376_open_file                                               ****** GX
+    _ch376_open_search                                             ****** GX
+    _ch376_plugged_in                                              ****** GX
+    _ch376_reset_all                                               ****** GX
+    _ch376_set_filename                                            ****** GX
+    _ch376_set_usb_host_mode                                       ****** GX
+    _ch376s_disk_read                                              ****** GX
+    _ch376s_disk_write                                             ****** GX
+    _error                                                         ****** GX
+    _getchar                                                       ****** GX
+    _printf                                                        ****** GX
+    _puts                                                          ****** GX
+  0 _read_write_disk_sectors                                       0003FE GR
+  0 _read_write_file_sectors                                       000359 GR
+  0 _usbdisk_init                                                  000000 GR
+  0 _usbdisk_select_dsk_file                                       0000EB GR
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size    44B   flags    0
+   1 _DATA                                      size      0   flags    0
+   2 _INITIALIZED                               size      0   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      0   flags    0
+   8 _CABS                                      size      0   flags    8
+

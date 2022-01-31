@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "algorithm": "c",
+        "memory": "c",
+        "utility": "c",
+        "hal.h": "c",
+        "usbdisk.h": "c"
+    }
+}

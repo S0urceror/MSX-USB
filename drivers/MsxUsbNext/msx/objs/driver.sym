@@ -1,0 +1,51 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+    CALBNK                                                      =  004042 
+    GWORK                                                       =  004045 
+  0 _CAPS_FLASH                                                    000176 R
+  0 _CAPS_FLASH_ON                                                 000174 R
+  0 ___str_1                                                       000052 R
+  0 ___str_3                                                       000066 R
+  0 ___str_4                                                       000138 R
+  0 ___str_5                                                       000142 R
+  0 ___str_6                                                       00014D R
+  0 _caps_flash                                                    00016A GR
+  0 _get_device_info                                               0000BB GR
+  0 _get_device_status                                             000152 GR
+  0 _get_drive_config                                              00007A GR
+  0 _get_lun_info                                                  00007E GR
+  0 _get_nr_drives_boottime                                        000077 GR
+  0 _get_workarea                                                  000000 GR
+  0 _get_workarea_size                                             000016 GR
+    _hal_init                                                      ****** GX
+  0 _init_driver                                                   00001A GR
+  0 _interrupt                                                     000015 GR
+    _puts                                                          ****** GX
+  0 _read_or_write_sector                                          000179 GR
+    _read_write_disk_sectors                                       ****** GX
+    _read_write_file_sectors                                       ****** GX
+    _usbdisk_init                                                  ****** GX
+    _usbdisk_select_dsk_file                                       ****** GX
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size    1F0   flags    0
+   1 _DATA                                      size      0   flags    0
+   2 _INITIALIZED                               size      0   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      0   flags    0
+   8 _CABS                                      size      0   flags    8
+

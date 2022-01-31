@@ -1,20 +1,12 @@
-;
-; driver.ASM - UNAPI compliant MSX USB driver
-; Copyright (c) 2020 Mario Smit (S0urceror)
-; Based on work of Néstor Soriano (Konamiman)
-; 
-; This program is free software: you can redistribute it and/or modify  
-; it under the terms of the GNU General Public License as published by  
-; the Free Software Foundation, version 3.
-;
-; This program is distributed in the hope that it will be useful, but 
-; WITHOUT ANY WARRANTY; without even the implied warranty of 
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-; General Public License for more details.
-;
-; You should have received a copy of the GNU General Public License 
-; along with this program. If not, see <http://www.gnu.org/licenses/>.
-;
+    ; CH376s disk driver for Nextor 2.1
+    ; By S0urceror, 2/2020
+    ;
+    ; This code can be used as the basis for developing
+    ; a real disk driver: just set DRV_TYPE appropriately,
+    ; change the driver name and version at DRV_NAME and VER_*, and
+    ; implement the required routines depending on the driver type.
+    ;
+    ; See the Nextor driver development guide for more details.
 
 	org	4000h
 	ds	4100h-$,0		; DRV_START must be at 4100h
@@ -37,8 +29,8 @@ CODE_ADD:	equ	0F1D0h
 ;
 
 ;Driver version
-VER_MAIN	equ	0
-VER_SEC		equ	6
+VER_MAIN	equ	1
+VER_SEC		equ	0
 VER_REV		equ	0
 
 ;-----------------------------------------------------------------------------
@@ -165,7 +157,7 @@ SING_DBL  equ     7820h ;"1-Single side / 2-Double side"
 ; Driver name
 ;
 DRV_NAME:
-	db	"MSXUSB Driver"
+	db	"USB Drive"
 	ds	32-($-DRV_NAME)," "
 
 
@@ -210,6 +202,51 @@ DRV_TIMI:
 
 ;-----------------------------------------------------------------------------
 ;
+; Get driver configuration 
+; (bit 2 of driver flags must be set if this routine is implemented)
+;
+; Input:
+;   A = Configuration index
+;   BC, DE, HL = Depends on the configuration
+;
+; Output:
+;   A = 0: Ok
+;       1: Configuration not available for the supplied index
+;   BC, DE, HL = Depends on the configuration
+;
+; * Get number of drives at boot time (for device-based drivers only):
+;   Input:
+;     A = 1
+;     B = 0 for DOS 2 mode, 1 for DOS 1 mode
+;     C: bit 5 set if user is requesting reduced drive count
+;        (by pressing the 5 key)
+;   Output:
+;     B = number of drives
+;
+; * Get default configuration for drive
+;   Input:
+;     A = 2
+;     B = 0 for DOS 2 mode, 1 for DOS 1 mode
+;     C = Relative drive number at boot time
+;   Output:
+;     B = Device index
+;     C = LUN index
+
+DRV_CONFIG:
+	dec a
+	jr nz, _DEF_CONFIG ; A was 2
+	; A was 1
+	ld b, 1 ; number of drives requested, iregardless of DOS version
+	ret
+_DEF_CONFIG:
+	xor a
+	ld b, 1
+	; LUN index = relative drive number at boot time + 1
+	inc c
+	ret
+
+;-----------------------------------------------------------------------------
+;
 ; Driver initialization routine, it is called twice:
 ;
 ; 1) First execution, for information gathering.
@@ -243,6 +280,26 @@ DRV_TIMI:
 ;    (for drive-based drivers only. Device-based drivers always
 ;     get two allocated drives.)
 
+; DRV_INIT is structured as follows:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; check if ch376s is connected, reset ch376s
+; reset usb bus, make us usb host
+; read device descriptor, what is connected?
+; 1 - nothing?
+; 2 - storage device?
+;     assign device id 1
+;     use high-level driver in CH376s
+; 3 - hub?
+;     assign device id 1
+;     how many ports?
+;     init all ports
+;     something connected?
+;     assign device-id (2..nrports+1) and reset it's usb bus via hub
+; 4 - something else?
+;     assign device id 1
+;     another MSXUSB UNAPI driver can do something with it
+;     like MSXUSB Ethernet and Keyboard drivers
+
 DRV_INIT:
 	ld	hl,WRKAREA	; size of work area
 	or	a			; Clear Cy, no interrupts needed
@@ -251,13 +308,6 @@ DRV_INIT:
 	; second call
 	call	MY_GWORK
 	call	INIWORK		; Initialize the work-area
-
-	IFDEF __MISTERSPI
-	; DEBUG
-	ld a, 1
-	out 2fh, a
-	; DEBUG
-	ENDIF
 
 	; initialize CH376s
 	; ============================================
@@ -269,127 +319,136 @@ DRV_INIT:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	call USBHOST_INIT
 
-	; enable the flash rom driver
-	call FLASH_INIT
-
-	; reset CH376s
-    call CH_RESET
-	; wait ~100ms
-	ld bc, WAIT_ONE_SECOND/10
-	call WAIT
-	
-	IFDEF __MISTERSPI	
-	; make MISO the INT line
-	call CH_SET_SD0_INT
-	ENDIF
-
 	; check if CH376s in the cartridge slot
     call CH_HW_TEST
     jr nc, _HW_TEST_OKAY
     ld hl, TXT_NOT_FOUND
     call PRINT
+    and a
     ret
-
 _HW_TEST_OKAY:
-	ld a,(ix+WRKAREA.STATUS)
-    set 0,a
-    ld (ix+WRKAREA.STATUS),a
+	ld (ix+WRKAREA.STATUS),00000001b
    	ld hl, TXT_FOUND
     call PRINT
 
-	; check and display CH376s IC/firmware version
-	ld hl, TXT_IC_VERSION
+	; initialise CH376s
+    call CH_RESET
+    ld hl, TXT_RESET
+    call PRINT
+	ld bc, WAIT_ONE_SECOND/5
+	call WAIT
+
+	; reset bus and device
+	call USB_HOST_BUS_RESET
+	jp nc, _USB_MODE_OKAY
+    ld hl, TXT_MODE_NOT_SET
+    call PRINT
+    ret
+_USB_MODE_OKAY:
+	ld (ix+WRKAREA.STATUS),00000011b
+    ld hl, TXT_MODE_SET
+    call PRINT
+
+	; connect disk
+    call CH_CONNECT_DISK
+    jr nc, _CONNECT_DISK_OKAY
+    ld hl, TXT_DISK_NOT_CONNECTED
+    call PRINT
+    ret
+_CONNECT_DISK_OKAY:
+	ld (ix+WRKAREA.STATUS),00000111b
+    ld hl, TXT_DISK_CONNECTED
+    call PRINT
+
+	; mount USB drive
+    call CH_MOUNT_DISK
+    jr nc, _MOUNT_DISK_OKAY
+    ld hl, TXT_DISK_NOT_MOUNTED
+    call PRINT
+    ret
+_MOUNT_DISK_OKAY
+	ld (ix+WRKAREA.STATUS),00001111b
+    ld hl, TXT_DISK_MOUNTED
+    call PRINT
+
+	; after mounting information about make and model should be able to read
+	ld bc, WRKAREA.DEVICE_INFO
+	call WRKAREAPTR
+	ld hl,ix
+    call CH_READ_DATA
+    ld a, c
+    or a
+    jr nz, _READ_BUFFER_OKAY; we got data
+    ld hl, TXT_NO_MAKE_MODEL
+    call PRINT
+    jr _NEXT
+_READ_BUFFER_OKAY:
+    ld hl, TXT_MAKE_MODEL
+    call PRINT
+	ld bc, WRKAREA.DEVICE_INFO.PRODUCTID
+	call WRKAREAPTR
+	ld hl,ix
+    call PRINT
+    ld hl, TXT_NEWLINE
+    call PRINT
+_NEXT
+	; try to load autoexec.txt
+	ld hl, TXT_AUTOEXEC_TXT
+	call CH_SET_FILE_NAME
+	call CH_FILE_OPEN
+	jr nc, _FILE_OPEN_OKAY1
+	; No? Try to load nextor.dsk
+	ld hl, TXT_NEXTOR_DSK
+	jr _OPEN_DSK
+_FILE_OPEN_OKAY1:
+	; read first line of text in autoexec.txt => HL
+	ld bc, WRKAREA.IO_BUFFER
+	call WRKAREAPTR
+	ld hl,ix
+	call CH_FILE_READ
+	ld hl,ix
+	; terminate first \n to zero
+_NEWLINE_START:
+	ld a, (hl)
+	cp "\n"
+	jr nz, _NEWLINE_NEXT
+	xor a
+	ld (hl), a
+_NEWLINE_NEXT:
+	or a
+	inc hl
+	jr nz, _NEWLINE_START
+	;
+	xor a
+	call CH_FILE_CLOSE
+	;
+	ld hl,ix
+_OPEN_DSK
+    ld bc, 12
+	call MY_GWORK
+    call _STORE_DISK_NAME
+	call CH_SET_FILE_NAME
+    call CH_FILE_OPEN    
+    jr nc, _FILE_OPEN_OKAY2
+    ld hl, TXT_FILEOPEN_FAILED
+    call PRINT
+    ret
+	
+_FILE_OPEN_OKAY2:
+	call MY_GWORK
+	ld (ix+WRKAREA.STATUS),00111111b
+    ld hl, TXT_FILEOPEN_OKAY
+    call PRINT
+	; print opened file
+	ld hl, ix
+	ld bc, WRKAREA.DSK_NAME
+	add hl,bc
 	call PRINT
-	call CH_IC_VERSION
-	add a, '0'
-	call CHPUT
 	ld hl, TXT_NEWLINE
 	call PRINT
 
-	; reset USB bus and device
-    call USB_HOST_BUS_RESET
-
-	; enumerate and initialise USB devices
-	push ix
-	call FN_CONNECT
-	pop ix
-	or a
-	jp nz, _USB_MODE_OKAY
-    ld hl, TXT_DEVICE_CHECK_NOK
-    call PRINT
-	ld bc, WAIT_ONE_SECOND*2
-	call WAIT
-    ret
-_USB_MODE_OKAY:
-	push af
-	ld a, "+"
-	call CHPUT
-	pop af
-	push af
-	add 0x30
-	call CHPUT
-	pop af
-	ld a,(ix+WRKAREA.STATUS)
-    set 1,a
-    ld (ix+WRKAREA.STATUS),a
-    ld hl, TXT_DEVICE_CHECK_OK
-    call PRINT
-	ld a, (ix+WRKAREA.STORAGE_DEVICE_INFO.DEVICE_ADDRESS)
-	and a
-	jr nz, _FOUND_
-    ld hl, TXT_STORAGE_CHECK_NOK
-    call PRINT
-    ret
-_FOUND_:
-	ld hl, TXT_STORAGE_CHECK_OK
-    call PRINT
-	; start communicating with SCSI device
-	call SCSI_MAX_LUNS
-	ret c
-	call SCSI_INIT
-	call SCSI_INQUIRY
-	jr nc, _INQUIRY_OKAY
-	ld hl, TXT_INQUIRY_NOK
-	call PRINT
 	ret
-_INQUIRY_OKAY:
-	push ix
-	;
-	ld hl, TXT_INQUIRY_OK
-	call PRINT
-	ld bc, WRKAREA.SCSI_DEVICE_INFO.VENDORID
-	call WRKAREAPTR
-	ld hl, ix
-	call PRINT
-	ld hl, TXT_INQUIRY_OK
-	call PRINT
-	ld bc, WRKAREA.SCSI_DEVICE_INFO.PRODUCTID
-	call WRKAREAPTR
-	ld hl, ix
-	call PRINT
-	;
-	pop ix
-	ld a,(ix+WRKAREA.STATUS)
-    set 2,a
-    ld (ix+WRKAREA.STATUS),a
 
-	ld hl, TXT_TEST_START
-	call PRINT
-_SCSI_TEST_AGAIN:
-	call SCSI_TEST
-	jr nc, _SCSI_TEST_OKAY
-	call SCSI_REQUEST_SENSE
-	jr _SCSI_TEST_AGAIN
-_SCSI_TEST_OKAY:
-	ld hl, TXT_TEST_OK
-	call PRINT
-	; return status disk present but changed
-	ld a,(ix+WRKAREA.STATUS)
-    set 3,a
-	set 4,a
-	set 5,a
-    ld (ix+WRKAREA.STATUS),a
-	ret
 ;-----------------------------------------------------------------------------
 ;
 ; Obtain the work area address for the driver or the device
@@ -435,65 +494,8 @@ INIWORK:
 	xor	a
 	ld	(hl),a
 	ldir
-
-	; copy NXT_DIRECT to Work-area
-	call NXT_DIRECT_WRKAREA
 	ret
 	
-;-----------------------------------------------------------------------------
-;
-; Get driver configuration 
-; (bit 2 of driver flags must be set if this routine is implemented)
-;
-; Input:
-;   A = Configuration index
-;   BC, DE, HL = Depends on the configuration
-;
-; Output:
-;   A = 0: Ok
-;       1: Configuration not available for the supplied index
-;   BC, DE, HL = Depends on the configuration
-DRV_CONFIG:
-	call MY_GWORK
-	dec a
-	jr nz, _DEFAULT_CONFIG
-; * Get number of drives at boot time (for device-based drivers only):
-;   Input:
-;     A = 1
-;     B = 0 for DOS 2 mode, 1 for DOS 1 mode
-;     C: bit 5 set if user is requesting reduced drive count
-;        (by pressing the 5 key)
-;   Output:
-;     B = number of drives
-_NR_DRIVES_AT_BOOT_TIME:
-	ld a,(ix+WRKAREA.STATUS)
-	ld b, 0
-	bit 7,a ; ROMDRIVE
-	jr z, _CHECK_USB
-	inc b
-_CHECK_USB:
-	bit 3,a ; USB DRIVE INITIALIZED
-	jr z, _CHECK_COMPLETE
-	inc b
-_CHECK_COMPLETE:
-	xor a
-	ret
-
-; * Get default configuration for drive
-;   Input:
-;     A = 2
-;     B = 0 for DOS 2 mode, 1 for DOS 1 mode
-;     C = Relative drive number at boot time
-;   Output:
-;     B = Device index
-;     C = LUN index
-_DEFAULT_CONFIG:
-	ld b, c
-	inc b
-	ld c, 1
-	xor a
-	ret
-
 ;-----------------------------------------------------------------------------
 ;
 ; Obtain driver version
@@ -517,8 +519,7 @@ DRV_VERSION:
 ; it must be done via the CALLB0 routine in kernel page 0.
 
 DRV_BASSTAT:
-	scf
-	ret
+	jp INIT_CALLS
 
 ;-----------------------------------------------------------------------------
 ;
@@ -561,19 +562,6 @@ DRV_DIRECT4:
 ;=====  BEGIN of DEVICE-BASED specific routines
 ;=====
 
-CAPS_FLASH:
-    ; CAPS FLASH
-	in a, (0xaa)
-    bit 6,a
-    jr z, _CAPS_FLASH_ON
-	res 6,a
-    jr _CAPS_FLASH
-_CAPS_FLASH_ON:
-    set 6,a
-_CAPS_FLASH:
-	out (0xaa),a
-    ret
-
 ;-----------------------------------------------------------------------------
 ;
 ; Read or write logical sectors from/to a logical unit
@@ -598,60 +586,64 @@ _CAPS_FLASH:
 ;              _SEEK: Seek error.
 ;         B = Number of sectors actually read (in case of error only)
 DEV_RW:
-	push af ; preserve A + flags
+	jr nc, _DEV_R_NEXT
+	ld iyl,1 ; 1 denotes Write
+	jr _DEV_RW_NEXT_1
+_DEV_R_NEXT:
+	ld iyl,0 ; 0 denotes Read
+_DEV_RW_NEXT_1:
+	cp 1 ; device 1 only
+	jr z, _DEV_RW_NEXT_2
+	ld a, _IDEVL
+	ld b, 0
+	ret
+_DEV_RW_NEXT_2:
 	ld a, c
 	cp 1 ; lun 1 only
-	jr z, _DEV_RW_CHECK_DRIVE
+	jr z, _DEV_RW_NEXT_4
 	ld a, _IDEVL
 	ld b, 0
-	pop af
 	ret
-
-_DEV_RW_CHECK_DRIVE:
-	pop af ; restore A
-	push af ; preserve flags
-	cp 1 ; drive A:
-	jr z, _DEV_RW_DRIVE_A
-	cp 2 ; drive
-	jr z, _DEV_RW_DRIVE_B
-	;
-	ld a, _IDEVL
-	ld b, 0
-	pop af
-	ret
-
-_DEV_RW_DRIVE_A:
-	call MY_GWORK
-	ld c,(ix+WRKAREA.STATUS)
-	bit 7,c
-	jp nz, DEV_RW_ROMDISK ; Drive A is ROM disk
-	;jr DEV_RW_SCSI ; Drive A is USB Storage
-
-_DEV_RW_DRIVE_B: ; Drive B is always USB storage
-DEV_RW_SCSI:
-	call CAPS_FLASH
-	pop af
-	jr c, _DEV_WRITE
-	call SCSI_READ
-	jr c, _DEV_RW_ERR
-	jr _DEV_RW_NEXT_4
-_DEV_WRITE
-	call SCSI_WRITE
-	jr c, _DEV_RW_ERR
 _DEV_RW_NEXT_4:
-	; CAPS OFF
-	in a, 0xaa
-	set 6,a
-	out 0xaa,a
-	;
-	xor a ; success
-	ret
-_DEV_RW_ERR
-	call CAPS_FLASH
-	ld a, _RNF
+	call CH_SEC_LOCATE
+    jr nc, _DEV_RW_NEXT_5
+	ld a, _NRDY
 	ld b, 0
 	ret
-
+_DEV_RW_NEXT_5:
+	push bc
+	ld bc, WRKAREA.IO_BUFFER
+	call WRKAREAPTR
+	pop bc
+	ld a,iyl
+	or a
+	ld a, b ; request B sectors to read or write
+	push af ; retain flags
+   	call z, CH_SEC_READ ; when successful (ix) contains a 4 byte sector allowed count plus a 4 byte disk LBA
+	pop af
+	call nz, CH_SEC_WRITE ; when succesful (ix) contains a 4 byte sector allowed count plus a 4 byte disk LBA
+    jr nc, _DEV_RW_NEXT_6
+    ld a, _RNF
+	ld b, 0
+	ret
+_DEV_RW_NEXT_6:
+	ld a,iyl
+	or a
+	push hl
+	; (ix) should contain a 4 byte sector allowed count plus a 4 byte LBA
+    push af ; retain flags
+   	call z, CH_DISK_READ; (hl) read buffer
+	pop af
+	call nz, CH_DISK_WRITE; (hl) write buffer
+	pop hl
+    jr nc, _DEV_RW_NEXT_7
+	ld a, _DATA
+	ld b, 0
+	ret
+_DEV_RW_NEXT_7:
+	xor a ; success
+	ld	b, 1 ; nr of sectors read/write
+	ret
 
 ;-----------------------------------------------------------------------------
 ;
@@ -671,7 +663,7 @@ _DEV_RW_ERR
 ;         When basic information is requested,
 ;         buffer filled with the following information:
 ;
-;+0 (1): Number of logical units, from 1 to 7. 1 if the device has no logical
+;+0 (1): Numer of logical units, from 1 to 7. 1 if the device has no logical
 ;        units (which is functionally equivalent to having only one).
 ;+1 (1): Device flags, always zero in Beta 2.
 ;
@@ -690,19 +682,9 @@ _DEV_RW_ERR
 ; provided, not the leftmost.
 
 DEV_INFO:
-	cp 1 ; drive A:
-	jr z, _DEV_INFO_DRIVE_A
-	cp 2 ; drive
-	jr z, _DEV_INFO_DRIVE_B
+	cp 1 ; only device 1
 	jr nz, _DEV_INFO_NOT_INSERTED
-_DEV_INFO_DRIVE_A:
-	call MY_GWORK
-	ld a,(ix+WRKAREA.STATUS)
-	bit 7,a
-	jp nz, DEV_INFO_ROMDISK ; Drive A is ROM disk
-	;jr DEV_INFO_SCSI ; Drive A is  USB storage
-_DEV_INFO_DRIVE_B ; Drive B is always USB storage
-DEV_INFO_SCSI:
+	
 	ld c, a
 	ld a, b
 	cp 0
@@ -725,35 +707,28 @@ _DEV_INFO_BASIC:
 
 _DEV_INFO_MANUFACTURER:
 	ld de, hl
-	ld bc, WRKAREA.SCSI_DEVICE_INFO.VENDORID
+	ld bc, WRKAREA.DEVICE_INFO.VENDORID
 	call WRKAREAPTR
+
 	ld hl,ix
 	ld bc, 8
 	ldir
 	xor a
-	ld (de),a
 	ret
 
 _DEV_INFO_DEVICE_NAME:
 	ld de, hl
-	ld bc, WRKAREA.SCSI_DEVICE_INFO.PRODUCTID
+	ld bc, WRKAREA.DEVICE_INFO.PRODUCTID
 	call WRKAREAPTR
+
 	ld hl,ix
 	ld bc, 16
 	ldir
 	xor a
-	ld (de),a
 	ret
 
 _DEV_INFO_SERIAL:
-	ld de, hl
-	ld bc, WRKAREA.SCSI_DEVICE_INFO.PRODUCTREV
-	call WRKAREAPTR
-	ld hl,ix
-	ld bc, 4
-	ldir
-	xor a
-	ld (de),a
+	ld a,2 ; information not available
 	ret
 
 _DEV_INFO_NOT_INSERTED:
@@ -791,32 +766,12 @@ _DEV_INFO_NOT_INSERTED:
 ; DEV_STATUS itself. Please read the Driver Developer Guide for more info.
 
 DEV_STATUS:
-	; check LUN
-	push af
+	cp 1
+	jr nz, _DEV_STATUS_NO_EXIST
 	ld a, b
 	cp 1
 	jr nz, _DEV_STATUS_NO_EXIST
-	pop af
-	; check drive
-	cp 1 ; drive A:
-	jr z, _DEV_STATUS_DRIVE_A
-	cp 2 ; drive
-	jr z, _DEV_STATUS_DRIVE_B
-	jr _DEV_STATUS_NO_EXIST2
-_DEV_STATUS_NO_EXIST:
-	pop af
-_DEV_STATUS_NO_EXIST2:
-	xor	a ; not available
-	ret
 
-_DEV_STATUS_DRIVE_A:
-	call MY_GWORK
-	ld a,(ix+WRKAREA.STATUS)
-	bit 7,a
-	jp nz, DEV_STATUS_ROMDISK ; Drive A is ROM disk
-	;jr DEV_STATUS_SCSI ; Drive A is USB storage
-DEV_STATUS_SCSI:
-_DEV_STATUS_DRIVE_B: ; Drive B is always USB storage
 	call	MY_GWORK
 	; bit 0 = CH376s present, 
 	; bit 1 = initialised, 
@@ -835,12 +790,15 @@ _DEV_STATUS_DRIVE_B: ; Drive B is always USB storage
 	ld (ix+WRKAREA.STATUS),a
 	ld a, 2 ; available, changed
 	ret
-
 _DEV_STATUS_NO_CHANGE:
 	ld a, 1 ; available, no change
 	ret
 
 _DEV_STATUS_ERR:
+	xor	a ; not available
+	ret
+
+_DEV_STATUS_NO_EXIST:
 	xor	a ; not available
 	ret
 
@@ -879,32 +837,13 @@ _DEV_STATUS_ERR:
 ; For other types of device, these fields must be zero.
 
 LUN_INFO:
-	; check LUN
-	push af
+	cp 1
+	jr nz, _LUN_INFO_NO_EXIST
 	ld a, b
 	cp 1
 	jr nz, _LUN_INFO_NO_EXIST
-	pop af
-	; check Drive
-	cp 1 ; drive A:
-	jr z, _LUN_INFO_DRIVE_A
-	cp 2 ; drive
-	jr z, _LUN_INFO_DRIVE_B
-	jr _LUN_INFO_NO_EXIST2
-_LUN_INFO_NO_EXIST:
-	pop af
-_LUN_INFO_NO_EXIST2:
-	ld	a,1
-	ret
 
-_LUN_INFO_DRIVE_A:
-	call MY_GWORK
-	ld a,(ix+WRKAREA.STATUS)
-	bit 7,a
-	jp nz, LUN_INFO_ROMDISK ; Drive A is ROM disk
-	;jr LUN_INFO_SCSI ; Drive A is USB storage
-LUN_INFO_SCSI:
-_LUN_INFO_DRIVE_B:
+	;;;;;;; 128MB diskimages
 	; #0
 	ld (hl),0 ; block device
 	; #1
@@ -918,9 +857,9 @@ _LUN_INFO_DRIVE_B:
 	inc hl
 	ld (hl),00h
 	inc hl
-	ld (hl),00h
+	ld (hl),04h
 	inc hl
-	ld (hl),00h
+	ld (hl),00h ; 262144 sectors * 512 bytes = 134.217.728 bytes
 	; #7
 	inc hl
 	ld (hl),00000001b ; removable + non-read only + no floppy
@@ -939,6 +878,36 @@ _LUN_INFO_DRIVE_B:
 	ld a, 0
 	ret
 
+_LUN_INFO_NO_EXIST:
+	ld	a,1
+	ret
+
+	;;;;;;; 720KB diskimages
+	; device 1, lun 1
+	; TODO: read actual boot sector of DSK file
+	;ld (hl),0 ; block device
+	;inc hl
+	;ld (hl),00h
+	;inc hl
+	;ld (hl),02h ; 512 byte sector
+	;inc hl
+	;ld (hl),0a0h
+	;inc hl
+	;ld (hl),05h
+	;inc hl
+	;ld (hl),00h
+	;inc hl
+	;ld (hl),00h ; 1440 sectors
+	;inc hl
+	;;ld (hl),00000001b ; removable + non-read only + no floppy
+	;inc hl
+	;ld (hl), 80
+	;inc hl
+	;ld (hl), 0 ; cylinders/tracks
+	;inc hl
+	;ld (hl), 1 ; heads
+	;inc hl
+	;ld (hl), 9 ; sectors per track
 
 ;=====
 ;=====  END of DEVICE-BASED specific routines
@@ -948,13 +917,13 @@ _LUN_INFO_DRIVE_B:
 ;
 ; End of the driver code
 
-	include "flashdisk.asm"
-	include "driver_helpers_low.asm"
+	include "driver_helpers.asm"
 	include "print_bios.asm"
+	include "basic_extensions.asm"
 	include "ch376s.asm"
 	include "usbhost.asm"
 	include "nextordirect.asm"
-	include "scsi.asm"
+;	include "ramhelper.asm"
 	
 DRV_END:
 
