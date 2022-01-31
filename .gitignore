@@ -1,5 +1,6 @@
 /**/dist/*
 /**/build/*
+/**/objs/*
 .DS_Store
 !/**/dist/README.md
 !/**/dist/*.com
