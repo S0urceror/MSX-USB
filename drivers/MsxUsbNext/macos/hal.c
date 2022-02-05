@@ -38,6 +38,11 @@ const uint8_t SPI_WRITE_MULTIPLE = 11;
 #define BAUDRATE B115200
 int serial=-1;
 
+bool supports_80_column_mode()
+{
+    return true;
+}
+
 void hal_init ()
 {
     char device[] = "/dev/tty.usbmodem39528001";

@@ -96,9 +96,6 @@ _get_workarea_size::
 ; Function init_driver
 ; ---------------------------------
 _init_driver::
-	push	ix
-	ld	ix,#0
-	add	ix,sp
 ;driver.c:91: hal_init ();
 	call	_hal_init
 ;driver.c:92: workarea_t* workarea = get_workarea();
@@ -107,34 +104,41 @@ _init_driver::
 	push	hl
 	call	_usbdisk_init
 	call	_usbdisk_select_dsk_file
-	pop	de
-	bit	0, l
+	ld	a, l
+	pop	hl
+	ld	(hl), a
+;driver.c:95: switch (workarea->mount_mode)
+	ld	c, (hl)
+	dec	a
 	jr	Z, 00102$
-;driver.c:96: printf ("+Opened disk image\r\n");
-	push	de
+	ld	a, c
+	sub	a, #0x02
+	jr	NZ, 00103$
+;driver.c:98: printf ("+Opened disk image\r\n");
 	ld	hl, #___str_1
 	push	hl
 	call	_puts
 	pop	af
-	pop	de
-;driver.c:97: workarea->mounted_file = true;
-	ld	a, #0x01
-	ld	(de), a
-	jr	00104$
+;driver.c:99: break;
+	ret
+;driver.c:100: case 1:
 00102$:
 ;driver.c:101: printf ("+Full disk mode\r\n");
-	push	de
 	ld	hl, #___str_3
 	push	hl
 	call	_puts
 	pop	af
-	pop	de
-;driver.c:102: workarea->mounted_file = false;
-	xor	a, a
-	ld	(de), a
-00104$:
-;driver.c:104: }
-	pop	ix
+;driver.c:102: break;
+	ret
+;driver.c:103: default:
+00103$:
+;driver.c:104: printf ("+Using floppy disk\r\n");
+	ld	hl, #___str_5
+	push	hl
+	call	_puts
+	pop	af
+;driver.c:106: }   
+;driver.c:107: }
 	ret
 ___str_1:
 	.ascii "+Opened disk image"
@@ -144,30 +148,44 @@ ___str_3:
 	.ascii "+Full disk mode"
 	.db 0x0d
 	.db 0x00
-;driver.c:116: uint8_t get_nr_drives_boottime (uint8_t reduced_drive_count,uint8_t dos_mode)
+___str_5:
+	.ascii "+Using floppy disk"
+	.db 0x0d
+	.db 0x00
+;driver.c:119: uint8_t get_nr_drives_boottime (uint8_t reduced_drive_count,uint8_t dos_mode)
 ;	---------------------------------
 ; Function get_nr_drives_boottime
 ; ---------------------------------
 _get_nr_drives_boottime::
-;driver.c:122: return 1; // 1 drive requested
-	ld	l, #0x01
-;driver.c:123: }
+;driver.c:125: workarea_t* workarea = get_workarea();
+	call	_get_workarea
+;driver.c:126: if (workarea->mount_mode==0)
+	ld	a, (hl)
+;driver.c:127: return 0;
+	or	a,a
+	jr	NZ, 00102$
+	ld	l,a
 	ret
-;driver.c:135: uint16_t get_drive_config (uint8_t relative_drive_number,uint8_t dos_mode)
+00102$:
+;driver.c:129: return 1; // 1 drive requested
+	ld	l, #0x01
+;driver.c:130: }
+	ret
+;driver.c:142: uint16_t get_drive_config (uint8_t relative_drive_number,uint8_t dos_mode)
 ;	---------------------------------
 ; Function get_drive_config
 ; ---------------------------------
 _get_drive_config::
-;driver.c:141: return 0x0101; // device 1, lun 1
+;driver.c:148: return 0x0101; // device 1, lun 1
 	ld	hl, #0x0101
-;driver.c:142: }
+;driver.c:149: }
 	ret
-;driver.c:180: uint8_t get_lun_info (uint8_t nr_lun,uint8_t nr_device,luninfo_t* luninfo)
+;driver.c:187: uint8_t get_lun_info (uint8_t nr_lun,uint8_t nr_device,luninfo_t* luninfo)
 ;	---------------------------------
 ; Function get_lun_info
 ; ---------------------------------
 _get_lun_info::
-;driver.c:186: if (nr_lun==1 && nr_device==1)
+;driver.c:193: if (nr_lun==1 && nr_device==1)
 	ld	iy, #2
 	add	iy, sp
 	ld	a, 0 (iy)
@@ -177,7 +195,7 @@ _get_lun_info::
 	inc	iy
 	dec	a
 	jr	NZ, 00102$
-;driver.c:188: memset (luninfo,0,sizeof (luninfo_t));
+;driver.c:195: memset (luninfo,0,sizeof (luninfo_t));
 	ld	l, 1 (iy)
 	ld	h, 2 (iy)
 	inc	iy
@@ -186,7 +204,7 @@ _get_lun_info::
 	ld	(hl), #0x00
 	inc	hl
 	djnz	00120$
-;driver.c:189: luninfo->sector_size = 512;
+;driver.c:197: luninfo->sector_size = 512;
 	ld	c, 0 (iy)
 	ld	b, 1 (iy)
 	ld	l, c
@@ -195,19 +213,19 @@ _get_lun_info::
 	ld	(hl), #0x00
 	inc	hl
 	ld	(hl), #0x02
-;driver.c:190: luninfo->flags = 0b00000001; // ; removable + non-read only + no floppy
+;driver.c:199: luninfo->flags = 0b00000001; // ; removable + non-read only + no floppy
 	ld	hl, #0x0007
 	add	hl, bc
 	ld	(hl), #0x01
-;driver.c:191: return 0x00;
+;driver.c:203: return 0x00;
 	ld	l, #0x00
 	ret
 00102$:
-;driver.c:194: return 0x01;
+;driver.c:206: return 0x01;
 	ld	l, #0x01
-;driver.c:195: }
+;driver.c:207: }
 	ret
-;driver.c:234: uint8_t get_device_info (uint8_t nr_info,uint8_t nr_device,uint8_t* info_buffer)
+;driver.c:246: uint8_t get_device_info (uint8_t nr_info,uint8_t nr_device,uint8_t* info_buffer)
 ;	---------------------------------
 ; Function get_device_info
 ; ---------------------------------
@@ -215,15 +233,15 @@ _get_device_info::
 	push	ix
 	ld	ix,#0
 	add	ix,sp
-;driver.c:240: if (nr_device!=1)
+;driver.c:252: if (nr_device!=1)
 	ld	a, 5 (ix)
 	dec	a
 	jr	Z, 00102$
-;driver.c:241: return 1;
+;driver.c:253: return 1;
 	ld	l, #0x01
 	jr	00109$
 00102$:
-;driver.c:243: switch (nr_info)
+;driver.c:255: switch (nr_info)
 	ld	a, 4 (ix)
 	or	a, a
 	jr	Z, 00103$
@@ -237,87 +255,87 @@ _get_device_info::
 	sub	a, #0x03
 	jr	Z, 00106$
 	jr	00107$
-;driver.c:245: case 0: // basic information
+;driver.c:257: case 0: // basic information
 00103$:
-;driver.c:246: ((deviceinfo_t*)info_buffer)->nr_luns = 0x01;
+;driver.c:258: ((deviceinfo_t*)info_buffer)->nr_luns = 0x01;
 	ld	l, 6 (ix)
 	ld	h, 7 (ix)
 	ld	(hl), #0x01
-;driver.c:247: ((deviceinfo_t*)info_buffer)->flags = 0x00;
+;driver.c:259: ((deviceinfo_t*)info_buffer)->flags = 0x00;
 	ld	c, 6 (ix)
 	ld	b, 7 (ix)
 	inc	bc
 	xor	a, a
 	ld	(bc), a
-;driver.c:248: break;
+;driver.c:260: break;
 	jr	00108$
-;driver.c:249: case 1: // Manufacturer name string
+;driver.c:261: case 1: // Manufacturer name string
 00104$:
-;driver.c:250: strcpy ((char*)info_buffer,"S0urceror");
+;driver.c:262: strcpy ((char*)info_buffer,"S0urceror");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_4
+	ld	hl, #___str_6
 	xor	a, a
 00141$:
 	cp	a, (hl)
 	ldi
 	jr	NZ, 00141$
-;driver.c:251: break;
+;driver.c:263: break;
 	jr	00108$
-;driver.c:252: case 2: // Device name string
+;driver.c:264: case 2: // Device name string
 00105$:
-;driver.c:253: strcpy ((char*)info_buffer,"MSXUSBNext");
+;driver.c:265: strcpy ((char*)info_buffer,"MSXUSBNext");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_5
+	ld	hl, #___str_7
 	xor	a, a
 00142$:
 	cp	a, (hl)
 	ldi
 	jr	NZ, 00142$
-;driver.c:254: break;
+;driver.c:266: break;
 	jr	00108$
-;driver.c:255: case 3: // Serial number string
+;driver.c:267: case 3: // Serial number string
 00106$:
-;driver.c:256: strcpy ((char*)info_buffer,"0000");
+;driver.c:268: strcpy ((char*)info_buffer,"0000");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_6
+	ld	hl, #___str_8
 	xor	a, a
 00143$:
 	cp	a, (hl)
 	ldi
 	jr	NZ, 00143$
-;driver.c:257: break;
+;driver.c:269: break;
 	jr	00108$
-;driver.c:258: default:
+;driver.c:270: default:
 00107$:
-;driver.c:259: return 2;
+;driver.c:271: return 2;
 	ld	l, #0x02
 	jr	00109$
-;driver.c:261: }
+;driver.c:273: }
 00108$:
-;driver.c:262: return 0;
+;driver.c:274: return 0;
 	ld	l, #0x00
 00109$:
-;driver.c:263: }
+;driver.c:275: }
 	pop	ix
 	ret
-___str_4:
+___str_6:
 	.ascii "S0urceror"
 	.db 0x00
-___str_5:
+___str_7:
 	.ascii "MSXUSBNext"
 	.db 0x00
-___str_6:
+___str_8:
 	.ascii "0000"
 	.db 0x00
-;driver.c:294: uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
+;driver.c:306: uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
 ;	---------------------------------
 ; Function get_device_status
 ; ---------------------------------
 _get_device_status::
-;driver.c:300: if (nr_device!=1 || nr_lun!=1)
+;driver.c:316: if (nr_device!=1 || nr_lun!=1)
 	ld	iy, #3
 	add	iy, sp
 	ld	a, 0 (iy)
@@ -327,20 +345,20 @@ _get_device_status::
 	dec	a
 	jr	Z, 00102$
 00101$:
-;driver.c:301: return 0;
+;driver.c:317: return 0;
 	ld	l, #0x00
 	ret
 00102$:
-;driver.c:303: return 1;
+;driver.c:319: return 1;
 	ld	l, #0x01
-;driver.c:304: }
+;driver.c:320: }
 	ret
-;driver.c:306: void caps_flash () __z88dk_fastcall __naked
+;driver.c:322: void caps_flash () __z88dk_fastcall __naked
 ;	---------------------------------
 ; Function caps_flash
 ; ---------------------------------
 _caps_flash::
-;driver.c:321: __endasm;
+;driver.c:337: __endasm;
 ;	CAPS FLASH
 	in	a, (0xaa)
 	bit	6,a
@@ -353,8 +371,8 @@ _caps_flash::
 	out	(0xaa),a
 	ret
 ;
-;driver.c:322: }
-;driver.c:349: diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device, uint8_t nr_lun, uint8_t nr_sectors, uint32_t* sector, uint8_t* sector_buffer)
+;driver.c:338: }
+;driver.c:365: diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device, uint8_t nr_lun, uint8_t nr_sectors, uint32_t* sector, uint8_t* sector_buffer)
 ;	---------------------------------
 ; Function read_or_write_sector
 ; ---------------------------------
@@ -362,7 +380,9 @@ _read_or_write_sector::
 	push	ix
 	ld	ix,#0
 	add	ix,sp
-;driver.c:358: if (nr_device!=1 || nr_lun!=1)
+;driver.c:374: workarea_t* workarea = get_workarea();
+	call	_get_workarea
+;driver.c:377: if (nr_device!=1 || nr_lun!=1)
 	ld	a, 5 (ix)
 	dec	a
 	jr	NZ, 00101$
@@ -370,34 +390,36 @@ _read_or_write_sector::
 	dec	a
 	jr	Z, 00102$
 00101$:
-;driver.c:359: return IDEVL;
+;driver.c:378: return IDEVL;
 	ld	l, #0xb5
 	jr	00111$
 00102$:
-;driver.c:361: caps_flash ();
+;driver.c:380: caps_flash ();
+	push	hl
 	call	_caps_flash
-;driver.c:363: workarea_t* workarea = get_workarea();
-	call	_get_workarea
-;driver.c:364: if (workarea->mounted_file)
-	ld	c, (hl)
-;driver.c:367: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+	pop	hl
+;driver.c:382: if (workarea->mount_mode==2)
+	ld	e, (hl)
+;driver.c:386: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
 	ld	a, 4 (ix)
 	and	a, #0x01
-	ld	d, a
-;driver.c:364: if (workarea->mounted_file)
-	bit	0, c
-	jr	Z, 00109$
-;driver.c:367: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+	ld	c, a
+;driver.c:382: if (workarea->mount_mode==2)
+	ld	a, e
+	sub	a, #0x02
+	jr	NZ, 00109$
+;driver.c:386: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+	ld	a, c
 	ld	l, 10 (ix)
 	ld	h, 11 (ix)
 	push	hl
 	ld	l, 8 (ix)
 	ld	h, 9 (ix)
 	push	hl
-	ld	a, 7 (ix)
-	push	af
+	ld	h, 7 (ix)
+	push	hl
 	inc	sp
-	push	de
+	push	af
 	inc	sp
 	call	_read_write_file_sectors
 	pop	af
@@ -405,21 +427,22 @@ _read_or_write_sector::
 	pop	af
 	bit	0, l
 	jr	NZ, 00110$
-;driver.c:368: return RNF;
+;driver.c:387: return RNF;
 	ld	l, #0xf9
 	jr	00111$
 00109$:
-;driver.c:373: if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+;driver.c:392: if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+	ld	a, c
 	ld	l, 10 (ix)
 	ld	h, 11 (ix)
 	push	hl
 	ld	l, 8 (ix)
 	ld	h, 9 (ix)
 	push	hl
-	ld	a, 7 (ix)
-	push	af
+	ld	h, 7 (ix)
+	push	hl
 	inc	sp
-	push	de
+	push	af
 	inc	sp
 	call	_read_write_disk_sectors
 	pop	af
@@ -427,16 +450,16 @@ _read_or_write_sector::
 	pop	af
 	bit	0, l
 	jr	NZ, 00110$
-;driver.c:374: return RNF;
+;driver.c:393: return RNF;
 	ld	l, #0xf9
 	jr	00111$
 00110$:
-;driver.c:377: caps_flash ();
+;driver.c:396: caps_flash ();
 	call	_caps_flash
-;driver.c:379: return OK;
+;driver.c:398: return OK;
 	ld	l, #0x00
 00111$:
-;driver.c:380: }
+;driver.c:399: }
 	pop	ix
 	ret
 	.area _CODE

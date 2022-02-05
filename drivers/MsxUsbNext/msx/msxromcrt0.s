@@ -20,7 +20,7 @@ GLOBALS_INITIALIZER = 0 	; we have global vars to initialize?
 ;
 ;Driver version
 	VER_MAIN	.equ	0
-	VER_SEC		.equ	1
+	VER_SEC		.equ	2
 	VER_REV		.equ	0
 
 .if GLOBALS_INITIALIZER

@@ -27,6 +27,7 @@ void    read_data_multiple (uint8_t* buffer,uint8_t len);
 void    write_data_multiple (uint8_t* buffer,uint8_t len);
 void    delay_ms (uint16_t milliseconds);
 void    error (char* txt);
+bool    supports_80_column_mode ();
 
 
 

@@ -12,7 +12,7 @@
     <setting id="invalid_ppi_mode_callback">ppimodecallback</setting>
     <setting id="maxframeskip">100</setting>
     <setting id="di_halt_callback">dihaltcallback</setting>
-    <setting id="osd_disk_path">/Users/mario/Development/MSX</setting>
+    <setting id="osd_disk_path">/Users/mario/Development/MSX/USB/drivers/UsbEthernet/dist</setting>
   </settings>
   <bindings>
     <bind key="keyb R+META">reset</bind>

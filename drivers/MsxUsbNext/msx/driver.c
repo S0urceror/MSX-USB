@@ -91,16 +91,19 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
     hal_init ();
     workarea_t* workarea = get_workarea();
     usbdisk_init ();
-    if (usbdisk_select_dsk_file ())
+    workarea->mount_mode = usbdisk_select_dsk_file ();
+    switch (workarea->mount_mode)
     {
-        printf ("+Opened disk image\r\n");
-        workarea->mounted_file = true;
-    }
-    else
-    {
-        printf ("+Full disk mode\r\n");
-        workarea->mounted_file = false;
-    }
+        case 2:
+            printf ("+Opened disk image\r\n");
+            break;
+        case 1:
+            printf ("+Full disk mode\r\n");
+            break;
+        default:
+            printf ("+Using floppy disk\r\n");
+            break;
+    }   
 }
 
 /*
@@ -118,6 +121,10 @@ uint8_t get_nr_drives_boottime (uint8_t reduced_drive_count,uint8_t dos_mode)
     #ifdef DEBUG
         printf ("get_nr_drives_boottime (%d,%d)\r\n",dos_mode,reduced_drive_count);
     #endif
+
+    workarea_t* workarea = get_workarea();
+    if (workarea->mount_mode==0)
+        return 0;
 
     return 1; // 1 drive requested
 }
@@ -180,14 +187,19 @@ uint16_t get_drive_config (uint8_t relative_drive_number,uint8_t dos_mode)
 uint8_t get_lun_info (uint8_t nr_lun,uint8_t nr_device,luninfo_t* luninfo)
 {
     #ifdef DEBUG
-        printf ("get_lun_info (%x,%x,%x)\r\n",nr_device,nr_lun,luninfo);
+        printf ("get_lun_info (%x,%x)\r\n",nr_device,nr_lun);
     #endif
 
     if (nr_lun==1 && nr_device==1)
     {
         memset (luninfo,0,sizeof (luninfo_t));
+        //luninfo->medium_type = 0;
         luninfo->sector_size = 512;
+        //luninfo->total_nr_sectors = 1440;
         luninfo->flags = 0b00000001; // ; removable + non-read only + no floppy
+        //luninfo->nr_cylinders = 80;
+        //luninfo->nr_heads = 2;
+        //luninfo->nr_sectors_track = 9;
         return 0x00;
     }
     // indicate error
@@ -234,7 +246,7 @@ uint8_t get_lun_info (uint8_t nr_lun,uint8_t nr_device,luninfo_t* luninfo)
 uint8_t get_device_info (uint8_t nr_info,uint8_t nr_device,uint8_t* info_buffer)
 {
     #ifdef DEBUG
-        printf ("get_device_info (%x,%x,%x)\r\n",nr_device,nr_info,info_buffer);
+        printf ("get_device_info (%x,%x)\r\n",nr_device,nr_info);
     #endif
 
     if (nr_device!=1)
@@ -297,6 +309,10 @@ uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
         printf ("get_device_status (%x,%x)\r\n",nr_device,nr_lun);
     #endif
 
+    //workarea_t* workarea = get_workarea();
+    //if (workarea->mount_mode==0)
+    //    return 0;
+
     if (nr_device!=1 || nr_lun!=1)
         return 0;
 
@@ -350,20 +366,23 @@ diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device,
 {
     #ifdef DEBUG
     if (read_or_write_flag & Z80_CARRY_MASK)
-        printf ("write (%x,%x,%x,%x,%x)\r\n",nr_device,nr_lun,nr_sectors,*sector,sector_buffer);
+        printf ("write (%x,%x,%x,%x)\r\n",nr_device,nr_lun,nr_sectors,*sector);
     else
-        printf ("read (%x,%x,%x,%x,%x)\r\n",nr_device,nr_lun,nr_sectors,*sector,sector_buffer);
+        printf ("read (%x,%x,%x,%x)\r\n",nr_device,nr_lun,nr_sectors,*sector);
     #endif
 
+    workarea_t* workarea = get_workarea();
+    //if (workarea->mount_mode==0)
+    //    return NRDY;
     if (nr_device!=1 || nr_lun!=1)
         return IDEVL;
 
     caps_flash ();
 
-    workarea_t* workarea = get_workarea();
-    if (workarea->mounted_file)
+    if (workarea->mount_mode==2)
     {
         // single DSK file mode
+        // we assume file has been opened before and has not been closed
         if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
             return RNF;
     }

@@ -9,37 +9,39 @@ Symbol Table
     .__.H$L.                                                    =  000000 L
     CALBNK                                                      =  004042 
     GWORK                                                       =  004045 
-  0 _CAPS_FLASH                                                    000176 R
-  0 _CAPS_FLASH_ON                                                 000174 R
-  0 ___str_1                                                       000052 R
-  0 ___str_3                                                       000066 R
-  0 ___str_4                                                       000138 R
-  0 ___str_5                                                       000142 R
-  0 ___str_6                                                       00014D R
-  0 _caps_flash                                                    00016A GR
-  0 _get_device_info                                               0000BB GR
-  0 _get_device_status                                             000152 GR
-  0 _get_drive_config                                              00007A GR
-  0 _get_lun_info                                                  00007E GR
-  0 _get_nr_drives_boottime                                        000077 GR
+  0 _CAPS_FLASH                                                    00018F R
+  0 _CAPS_FLASH_ON                                                 00018D R
+  0 ___str_1                                                       00004E R
+  0 ___str_3                                                       000062 R
+  0 ___str_5                                                       000073 R
+  0 ___str_6                                                       000151 R
+  0 ___str_7                                                       00015B R
+  0 ___str_8                                                       000166 R
+  0 _caps_flash                                                    000183 GR
+  0 _get_device_info                                               0000D4 GR
+  0 _get_device_status                                             00016B GR
+  0 _get_drive_config                                              000093 GR
+  0 _get_lun_info                                                  000097 GR
+  0 _get_nr_drives_boottime                                        000087 GR
   0 _get_workarea                                                  000000 GR
   0 _get_workarea_size                                             000016 GR
     _hal_init                                                      ****** GX
   0 _init_driver                                                   00001A GR
   0 _interrupt                                                     000015 GR
     _puts                                                          ****** GX
-  0 _read_or_write_sector                                          000179 GR
+  0 _read_or_write_sector                                          000192 GR
     _read_write_disk_sectors                                       ****** GX
     _read_write_file_sectors                                       ****** GX
     _usbdisk_init                                                  ****** GX
     _usbdisk_select_dsk_file                                       ****** GX
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
 Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size    1F0   flags    0
+   0 _CODE                                      size    20E   flags    0
    1 _DATA                                      size      0   flags    0
    2 _INITIALIZED                               size      0   flags    0
    3 _DABS                                      size      0   flags    8

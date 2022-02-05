@@ -10,7 +10,7 @@
 
 typedef struct
 {
-    bool mounted_file;
+    uint8_t mount_mode;
 } workarea_t;
 
 typedef struct

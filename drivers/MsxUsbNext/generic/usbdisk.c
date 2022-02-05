@@ -2,12 +2,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+
+#include "../include/usbdisk.h"
 #include "../include/ch376s.h"
 #include "../include/hal.h"
 
 void usbdisk_init ()
 {
-    printf ("MSXUSB-NXT v0.1 (c)Sourceror\r\n");
+    printf ("MSXUSB-NXT v0.2 (c)Sourceror\r\n");
     ch376_reset_all();
     if (!ch376_plugged_in())
         error ("-CH376 NOT detected");
@@ -21,24 +24,34 @@ void usbdisk_init ()
     printf ("+USB disk mounted\r\n");
 }
 
-bool usbdisk_select_dsk_file ()
+#define MAX_FILES 26
+select_mode_t usbdisk_select_dsk_file ()
 {
     uint8_t nr_dsk_files_found;
     fat_dir_info_t info;
-    char files[9][12];
+    char files[MAX_FILES][12];
     char filename[9];
+    uint8_t nr_dsks_per_line;
+
+    if (supports_80_column_mode())
+        nr_dsks_per_line = 6;
+    else
+        nr_dsks_per_line = 3;
 
     nr_dsk_files_found=0;
-    ch376_set_filename ("/");
+    ch376_set_filename ("/DSKS");
     if (!ch376_open_directory())
-        error ("-Directory not opened");
-
+    {
+        ch376_set_filename ("/");
+        if (!ch376_open_directory())
+            error ("-Directory not opened");
+    }
     ch376_set_filename ("*");
     if (!ch376_open_search ())
         error ("-No files found");
     
-    printf ("+Select DSK:\r\n");
-    printf (" [D] USBDRIVE\r\n");
+    printf ("+Select device:\r\n");
+    printf (" 1.FLOPPY   2.USBDRIVE\r\n");
     do 
     {
         ch376_get_fat_info (&info);
@@ -48,30 +61,34 @@ bool usbdisk_select_dsk_file ()
             info.DIR_Name[9]=='S' &&
             info.DIR_Name[10]=='K')
         {
-            
+            if (nr_dsk_files_found==0)
+                printf ("+Or, select DSK image:\r\n");
             strncpy (files[nr_dsk_files_found],(char*)info.DIR_Name,11);
             files[nr_dsk_files_found][11] = '\0';
             strncpy (filename,files[nr_dsk_files_found],8);
             filename[8]='\0';
-            printf (" [%d] %s",nr_dsk_files_found+1, filename);
-            if (nr_dsk_files_found%2)
-                printf ("\r\n");
+            printf (" %c.%s",'A'+nr_dsk_files_found, filename);
             nr_dsk_files_found++;
+            if ((nr_dsk_files_found % nr_dsks_per_line) == 0)
+                printf ("\r\n");
         }
     } 
-    while (ch376_next_search () && nr_dsk_files_found<9);
+    while (ch376_next_search () && nr_dsk_files_found<MAX_FILES);
 
     printf ("\r\n");
     char c = getchar ();
-    if (c>='1' && c<='0'+nr_dsk_files_found)
+    c = toupper (c);
+    if (c>='A' && c<='A'+nr_dsk_files_found)
     {
-        c-='0';
-        ch376_set_filename (files[c-1]);
+        c-='A';
+        ch376_set_filename (files[c]);
         if (!ch376_open_file ())
             error ("-DSK not opened\r\n");
-        return true;
+        return DSK_IMAGE;
     }
-    return false;
+    if (c=='2')
+        return USB;
+    return FLOPPY;
 }
 
 bool read_write_file_sectors (bool writing,uint8_t nr_sectors,uint32_t* sector,uint8_t* sector_buffer)

@@ -4,6 +4,7 @@
         "memory": "c",
         "utility": "c",
         "hal.h": "c",
-        "usbdisk.h": "c"
+        "usbdisk.h": "c",
+        "bios.h": "c"
     }
 }

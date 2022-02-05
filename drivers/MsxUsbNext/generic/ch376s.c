@@ -53,16 +53,17 @@ bool ch376_mount_disk ()
 uint8_t ch376_wait_status ()
 {
     uint8_t interrupt;
-    uint8_t counter = 100;
-    while (counter>0)
+    //uint8_t counter = 100;
+    //while (counter>0)
+    while (true)
     {
         interrupt=read_status();
         if ((interrupt&0x80)==0)
             break;
-        counter --;
+        //counter --;
     }
-    if (counter<=0)
-        return 0;
+    //if (counter<=0)
+    //    return 0;
 
     write_command(CMD_GET_STATUS);
     return read_data ();
@@ -144,7 +145,7 @@ bool ch376_get_sector_LBA (uint8_t nr_sectors,uint8_t* sectors_allowed_lba)
     // READ_BUFFER + 4,5,6,7 = LBA absolute disk sector
     write_command(CMD_RD_USB_DATA);
     uint8_t len = read_data();
-    read_data_multiple ((uint8_t*) sectors_allowed_lba,len);
+    read_data_multiple (sectors_allowed_lba,len);
 
     return true;
 }

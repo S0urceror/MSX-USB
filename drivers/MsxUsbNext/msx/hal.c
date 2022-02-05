@@ -4,10 +4,31 @@
 #include "../include/hal.h"
 #include "include/bios.h"
 
+__at (BIOS_HWVER) uint8_t msx_version;
+__at (BIOS_LINL40) uint8_t text_columns;
+
+bool supports_80_column_mode()
+{
+    return msx_version>=1;
+}
+
 void hal_init ()
 {
-    
+    text_columns = 40;
+    // check MSX version
+    if (supports_80_column_mode())
+        text_columns = 80;
+
+    __asm
+    ld     iy,(#BIOS_EXPTBL-1)       ;BIOS slot in iyh
+    push ix
+    ld     ix,#BIOS_INITXT           ;address of BIOS routine
+    call   BIOS_CALSLT               ;interslot call
+    pop ix
+    __endasm;    
 }
+
+
 
 #pragma disable_warning 85	// because the var msg is not used in C context
 void msx_wait (uint16_t times_jiffy)  __z88dk_fastcall __naked
@@ -92,6 +113,7 @@ int putchar (int character)
     return character;
 }
 
+#pragma disable_warning 59	// getchar returns value in HL
 int getchar ()
 {
     __asm
@@ -108,6 +130,7 @@ _get_char_again:
     ld     ix,#BIOS_CHGET      ;address of BIOS routine
     call   BIOS_CALSLT          ;interslot call
     pop ix
+    ld h,#0
     ld l,a
 
     __endasm;
