@@ -14,6 +14,8 @@
 
 ; settings
 GLOBALS_INITIALIZER = 0 	; we have global vars to initialize?
+CALL_EXPANSION = 1			; we want to add BASIC calls
+BIOS_PROCNM  .equ 0xfd89
 ;-----------------------------------------------------------------------------
 ;
 ; Driver configuration constants
@@ -82,7 +84,11 @@ DRV_NAME:
 	jp	_interrupt
 	jp	DRV_VERSION
 	jp	DRV_INIT
-	jp	DRV_BASSTAT
+.if CALL_EXPANSION
+	jp	call_expansion	; BASIC's CALL instruction expansion routine
+.else
+	jp	DRV_BASSTAT				; BASIC's CALL instruction not expanded
+.endif
 	jp	DRV_BASDEV
     jp  DRV_EXTBIO
     jp  DRV_DIRECT0
@@ -310,6 +316,76 @@ init::
 ;   ========== HOME SEGMENT ==========
 ;   ==================================
 	.area _HOME
+.if CALL_EXPANSION
+STR_COMPARE = 1
+call_expansion:
+	exx
+	ld		hl, #callStatementIndex
+	jr		callExpansionParseStmt
+
+callExpansionStmtNotFound:
+	pop hl
+
+callExpansionParseStmt:	
+;	get pointer to statement in table
+	xor		a
+	ld		e, (hl)
+	inc		hl
+	ld		d, (hl)
+	cp		e
+	jr nz,	callExpansionNotEndOfList
+	cp		d
+	jr nz,	callExpansionNotEndOfList
+;	statement not found; end expansion
+	exx
+	scf
+	ret
+
+callExpansionNotEndOfList:
+	inc		hl
+	push	hl
+
+;	get pointer to statement in CALL
+	ld		hl, #BIOS_PROCNM
+	call	compareString
+	jr nz,	callExpansionStmtNotFound
+;	statement found; execute and exit
+	pop		hl
+	inc		de
+	push	de
+	exx
+	pop		de				; *handler
+	push	hl				; parameters
+	ld		hl, #callExpansionFinalize
+	push	hl				; finalize
+	ex		de, hl
+	ld		e, (hl)
+	inc		hl
+	ld		d, (hl)
+	push	de				; handler
+	ret						; calls handler with return to finalize below
+							; handler must return hl pointing to end of command (end of line or ":")
+	
+callExpansionFinalize:
+; at this point, hl must be pointing to end of command (end of line or ":")
+	pop		hl
+	or		a				; resets CY flag
+	ret
+.endif
+
+.if STR_COMPARE
+compareString::
+	ld		a, (hl)
+	ld		b, a
+	ld		a, (de)
+	cp		b
+	ret nz
+	cp		#0
+	ret z
+	inc		hl
+	inc		de
+	jr		compareString
+.endif
 
 ;   =====================================
 ;   ========== GSINIT SEGMENTS ==========
@@ -334,6 +410,15 @@ gsinit_next:
 ;   ========== ROM_DATA SEGMENT ==========
 ;   ======================================
 	.area	_ROMDATA
+.if CALL_EXPANSION
+	callStatementIndex:
+	.dw callStatement_MOUNTDSK
+	.dw       #0
+	.globl _onCallMOUNTDSK
+	callStatement_MOUNTDSK::
+	.ascii    'MOUNTDSK\0'
+	.dw _onCallMOUNTDSK
+.endif
 	
 ;   ==================================
 ;   ========== DATA SEGMENT ==========

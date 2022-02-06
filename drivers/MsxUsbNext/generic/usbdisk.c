@@ -25,7 +25,7 @@ void usbdisk_init ()
 }
 
 #define MAX_FILES 26
-select_mode_t usbdisk_select_dsk_file ()
+select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed)
 {
     uint8_t nr_dsk_files_found;
     fat_dir_info_t info;
@@ -50,8 +50,11 @@ select_mode_t usbdisk_select_dsk_file ()
     if (!ch376_open_search ())
         error ("-No files found");
     
-    printf ("+Select device:\r\n");
-    printf (" 1.FLOPPY   2.USBDRIVE\r\n");
+    if (whole_disk_allowed)
+    {
+        printf ("+Select device:\r\n");
+        printf (" 1.FLOPPY   2.USBDRIVE\r\n");
+    }
     do 
     {
         ch376_get_fat_info (&info);
@@ -62,7 +65,12 @@ select_mode_t usbdisk_select_dsk_file ()
             info.DIR_Name[10]=='K')
         {
             if (nr_dsk_files_found==0)
-                printf ("+Or, select DSK image:\r\n");
+            {
+                if (!whole_disk_allowed)
+                    printf ("Select DSK image:\r\n");
+                else
+                    printf ("+Or, select DSK image:\r\n");
+            }
             strncpy (files[nr_dsk_files_found],(char*)info.DIR_Name,11);
             files[nr_dsk_files_found][11] = '\0';
             strncpy (filename,files[nr_dsk_files_found],8);
@@ -74,6 +82,9 @@ select_mode_t usbdisk_select_dsk_file ()
         }
     } 
     while (ch376_next_search () && nr_dsk_files_found<MAX_FILES);
+
+    if (!whole_disk_allowed && nr_dsk_files_found==0)
+        return USB;
 
     printf ("\r\n");
     char c = getchar ();
@@ -126,4 +137,9 @@ bool read_write_disk_sectors (bool writing,uint8_t nr_sectors,uint32_t* sector,u
     }
     
     return true;
+}
+
+bool usbdisk_close_dsk_file ()
+{
+    return ch376_close_file();
 }

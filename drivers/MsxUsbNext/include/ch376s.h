@@ -23,7 +23,7 @@
 #define CMD_DISK_MOUNT 0x31
 #define CMD_OPEN_FILE 0x32
 #define CMD_FILE_ENUM_GO 0x33
-#define CMD_FILE_CLOSE 0x36
+#define CMD_CLOSE_FILE 0x36
 #define CMD_DIR_INFO_READ 0x37
 
 #define CMD_BYTE_READ 0x3a

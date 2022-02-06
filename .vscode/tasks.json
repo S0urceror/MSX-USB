@@ -7,10 +7,7 @@
             "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {
@@ -137,6 +134,38 @@
             "command": "Make/make.sh Release",
             "group": "build",
             "problemMatcher": []
+        },
+        {
+            "label": "NXT - Make MSX",
+            "type": "shell",
+            "options": {
+                "cwd": "drivers/MsxUsbNext"
+            },
+            "command": "make MSX",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "NXT - Make Teensy",
+            "type": "shell",
+            "options": {
+                "cwd": "drivers/MsxUsbNext"
+            },
+            "command": "make Teensy",
+            "problemMatcher": []
+        },
+        {
+            "label": "NXT - Make MacOS",
+            "type": "shell",
+            "options": {
+                "cwd": "drivers/MsxUsbNext"
+            },
+            "command": "make MacOS",
+            "problemMatcher": [],
+            "group": "build"
         }
     ]
 }

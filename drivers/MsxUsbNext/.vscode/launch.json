@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch MacOS",
+            "name": "NXT - Launch MacOS",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/macos/build/main",
@@ -15,7 +15,7 @@
             "preLaunchTask": "Make MacOS"
         },
         {
-            "name": "(lldb) Launch MSX 2",
+            "name": "NXT - Launch MSX 2",
             "type": "lldb",
             "request": "launch",
             "program": "../../../Emulators/openMSX/derived/openmsx",
@@ -24,7 +24,7 @@
             "preLaunchTask": "Make MSX"
         },
         {
-            "name": "(lldb) Launch MSX 1",
+            "name": "NXT - Launch MSX 1",
             "type": "lldb",
             "request": "launch",
             "program": "../../../Emulators/openMSX/derived/openmsx",

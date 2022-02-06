@@ -37,6 +37,7 @@ const uint8_t SPI_WRITE_MULTIPLE = 11;
 #define  B4000000 0010017
 #define BAUDRATE B115200
 int serial=-1;
+static struct termios termios_old, termios_new;
 
 bool supports_80_column_mode()
 {
@@ -45,6 +46,7 @@ bool supports_80_column_mode()
 
 void hal_init ()
 {
+    // setup serial 
     char device[] = "/dev/tty.usbmodem39528001";
     serial = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if(serial == -1)
@@ -65,6 +67,18 @@ void hal_init ()
     
     tcflush(serial, TCIFLUSH);
     tcsetattr(serial, TCSANOW, &config); 
+
+    // setup terminal/console
+    tcgetattr(STDIN_FILENO, &termios_old);
+    termios_new = termios_old;
+    cfmakeraw(&termios_new);
+    tcsetattr(STDIN_FILENO, TCSANOW, &termios_new);
+
+}
+void hal_deinit ()
+{
+    tcsetattr(STDIN_FILENO, TCSANOW, &termios_old);
+    close (serial);
 }
 
 void write_command (uint8_t command)

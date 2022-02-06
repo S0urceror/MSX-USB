@@ -27,7 +27,10 @@ void hal_init ()
     pop ix
     __endasm;    
 }
-
+void hal_deinit ()
+{
+    // nothing to do
+}
 
 
 #pragma disable_warning 85	// because the var msg is not used in C context

@@ -2,6 +2,7 @@
 #define __HAL_H_
 
 void hal_init ();
+void hal_deinit ();
 #ifndef __SDCC
 
     void    write_command (uint8_t command);
@@ -28,6 +29,7 @@ void    write_data_multiple (uint8_t* buffer,uint8_t len);
 void    delay_ms (uint16_t milliseconds);
 void    error (char* txt);
 bool    supports_80_column_mode ();
+
 
 
 

@@ -9,22 +9,24 @@ Symbol Table
     .__.H$L.                                                    =  000000 L
   0 ___str_1                                                       000058 R
   0 ___str_10                                                      0000D8 R
-  0 ___str_11                                                      0002FE R
-  0 ___str_12                                                      000304 R
-  0 ___str_13                                                      000306 R
-  0 ___str_14                                                      00031C R
-  0 ___str_15                                                      00031E R
+  0 ___str_11                                                      000321 R
+  0 ___str_12                                                      000327 R
+  0 ___str_13                                                      000329 R
+  0 ___str_14                                                      00033F R
+  0 ___str_15                                                      000341 R
   0 ___str_2                                                       000076 R
-  0 ___str_21                                                      00032E R
-  0 ___str_22                                                      000346 R
-  0 ___str_24                                                      00034D R
-  0 ___str_26                                                      00034F R
-  0 ___str_27                                                      000361 R
+  0 ___str_21                                                      000351 R
+  0 ___str_23                                                      000364 R
+  0 ___str_24                                                      00037C R
+  0 ___str_26                                                      000383 R
+  0 ___str_28                                                      000385 R
+  0 ___str_29                                                      000397 R
   0 ___str_4                                                       00008A R
   0 ___str_5                                                       00009B R
   0 ___str_7                                                       0000AF R
   0 ___str_8                                                       0000C6 R
     __moduchar                                                     ****** GX
+    _ch376_close_file                                              ****** GX
     _ch376_connect_disk                                            ****** GX
     _ch376_get_fat_info                                            ****** GX
     _ch376_get_sector_LBA                                          ****** GX
@@ -44,10 +46,11 @@ Symbol Table
     _getchar                                                       ****** GX
     _printf                                                        ****** GX
     _puts                                                          ****** GX
-  0 _read_write_disk_sectors                                       00042F GR
-  0 _read_write_file_sectors                                       00038A GR
+  0 _read_write_disk_sectors                                       000465 GR
+  0 _read_write_file_sectors                                       0003C0 GR
     _supports_80_column_mode                                       ****** GX
     _toupper                                                       ****** GX
+  0 _usbdisk_close_dsk_file                                        0004B2 GR
   0 _usbdisk_init                                                  000000 GR
   0 _usbdisk_select_dsk_file                                       0000EB GR
 
@@ -57,7 +60,7 @@ Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size    47C   flags    0
+   0 _CODE                                      size    4BE   flags    0
    1 _DATA                                      size      0   flags    0
    2 _INITIALIZED                               size      0   flags    0
    3 _DABS                                      size      0   flags    8

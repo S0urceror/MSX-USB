@@ -91,7 +91,7 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
     hal_init ();
     workarea_t* workarea = get_workarea();
     usbdisk_init ();
-    workarea->mount_mode = usbdisk_select_dsk_file ();
+    workarea->mount_mode = usbdisk_select_dsk_file (true);
     switch (workarea->mount_mode)
     {
         case 2:
@@ -104,6 +104,29 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
             printf ("+Using floppy disk\r\n");
             break;
     }   
+}
+
+void onCallMOUNTDSK ()
+{
+    // close previous DSK file, if needed
+    workarea_t* workarea = get_workarea();
+    if (workarea->mount_mode == 2)
+    {
+        usbdisk_close_dsk_file ();
+    }
+
+    hal_init ();
+    workarea->mount_mode = usbdisk_select_dsk_file (false);
+    switch (workarea->mount_mode)
+    {
+        case 2:
+            printf ("+Opened disk image\r\n");
+            workarea->disk_change = true;
+            break;
+        default:
+            printf ("-Not a valid choice\r\n");
+            break;
+    }
 }
 
 /*
@@ -309,12 +332,12 @@ uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
         printf ("get_device_status (%x,%x)\r\n",nr_device,nr_lun);
     #endif
 
-    //workarea_t* workarea = get_workarea();
-    //if (workarea->mount_mode==0)
-    //    return 0;
-
     if (nr_device!=1 || nr_lun!=1)
         return 0;
+
+    workarea_t* workarea = get_workarea();
+    if (workarea->disk_change)
+        return 2;
 
     return 1;
 }

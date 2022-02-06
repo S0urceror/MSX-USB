@@ -7,33 +7,33 @@ Symbol Table
     .__.ABS.                                                    =  000000 G
     .__.CPU.                                                    =  000000 L
     .__.H$L.                                                    =  000000 L
-  0 WAIT                                                           000031 R
+  0 WAIT                                                           000032 R
     __divuint                                                      ****** GX
-  0 _delay_ms                                                      000038 GR
-  0 _error                                                         000059 GR
-  0 _get_char_again                                                000082 R
-  0 _getchar                                                       000082 GR
+  0 _delay_ms                                                      000039 GR
+  0 _error                                                         00005A GR
+  0 _get_char_again                                                000083 R
+  0 _getchar                                                       000083 GR
+  0 _hal_deinit                                                    000030 GR
   0 _hal_init                                                      00000C GR
     _msx_version                                                =  00002D G
-  0 _msx_wait                                                      000030 GR
+  0 _msx_wait                                                      000031 GR
     _printf                                                        ****** GX
-  0 _putchar                                                       000065 GR
-  0 _read_data                                                     000051 GR
-  0 _read_data_multiple                                            000095 GR
-  0 _read_status                                                   000055 GR
+  0 _putchar                                                       000066 GR
+  0 _read_data                                                     000052 GR
+  0 _read_data_multiple                                            000096 GR
+  0 _read_status                                                   000056 GR
   0 _supports_80_column_mode                                       000000 GR
     _text_columns                                               =  00F3AE G
-  0 _write_command                                                 000049 GR
-  0 _write_data                                                    00004D GR
-  0 _write_data_multiple                                           0000AF GR
-
+  0 _write_command                                                 00004A GR
+  0 _write_data                                                    00004E GR
+  0 _write_data_multiple                                           0000B0 GR
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
 Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size     C9   flags    0
+   0 _CODE                                      size     CA   flags    0
    1 _DATA                                      size      0   flags    0
    2 _INITIALIZED                               size      0   flags    0
    3 _DABS                                      size      0   flags    8

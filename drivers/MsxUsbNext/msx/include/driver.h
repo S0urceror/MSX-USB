@@ -11,6 +11,7 @@
 typedef struct
 {
     uint8_t mount_mode;
+    bool    disk_change;
 } workarea_t;
 
 typedef struct

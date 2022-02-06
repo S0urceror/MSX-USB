@@ -89,6 +89,14 @@ bool ch376_open_file ()
         return false;
     return true;
 }
+bool ch376_close_file ()
+{
+    write_command (CMD_CLOSE_FILE);
+    write_data (0);
+    if (ch376_wait_status ()!=USB_INT_SUCCESS)
+        return false;
+    return true;
+}
 bool ch376_open_directory ()
 {
     write_command (CMD_OPEN_FILE);

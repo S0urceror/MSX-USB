@@ -7,23 +7,24 @@ Symbol Table
     .__.ABS.                                                    =  000000 G
     .__.CPU.                                                    =  000000 L
     .__.H$L.                                                    =  000000 L
+  0 _ch376_close_file                                              0000C2 GR
   0 _ch376_connect_disk                                            000049 GR
-  0 _ch376_get_fat_info                                            0000F5 GR
+  0 _ch376_get_fat_info                                            00010B GR
   0 _ch376_get_register_value                                      00007A GR
-  0 _ch376_get_sector_LBA                                          000142 GR
-  0 _ch376_locate_sector                                           00010B GR
+  0 _ch376_get_sector_LBA                                          000158 GR
+  0 _ch376_locate_sector                                           000121 GR
   0 _ch376_mount_disk                                              00005A GR
-  0 _ch376_next_search                                             0000E4 GR
-  0 _ch376_open_directory                                          0000C2 GR
+  0 _ch376_next_search                                             0000FA GR
+  0 _ch376_open_directory                                          0000D8 GR
   0 _ch376_open_file                                               0000B1 GR
-  0 _ch376_open_search                                             0000D3 GR
+  0 _ch376_open_search                                             0000E9 GR
   0 _ch376_plugged_in                                              00000E GR
   0 _ch376_reset_all                                               000000 GR
   0 _ch376_set_filename                                            00008E GR
   0 _ch376_set_usb_host_mode                                       000024 GR
   0 _ch376_wait_status                                             00006B GR
-  0 _ch376s_disk_read                                              000179 GR
-  0 _ch376s_disk_write                                             0001F1 GR
+  0 _ch376s_disk_read                                              00018F GR
+  0 _ch376s_disk_write                                             000207 GR
     _delay_ms                                                      ****** GX
     _read_data                                                     ****** GX
     _read_data_multiple                                            ****** GX
@@ -33,13 +34,12 @@ Symbol Table
     _write_data                                                    ****** GX
     _write_data_multiple                                           ****** GX
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
 Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size    288   flags    0
+   0 _CODE                                      size    29E   flags    0
    1 _DATA                                      size      0   flags    0
    2 _INITIALIZED                               size      0   flags    0
    3 _DABS                                      size      0   flags    8

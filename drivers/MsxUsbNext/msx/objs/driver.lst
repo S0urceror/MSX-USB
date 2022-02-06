@@ -15,461 +15,548 @@
                                      15 	.globl _get_lun_info
                                      16 	.globl _get_drive_config
                                      17 	.globl _get_nr_drives_boottime
-                                     18 	.globl _init_driver
-                                     19 	.globl _get_workarea_size
-                                     20 	.globl _interrupt
-                                     21 	.globl _get_workarea
-                                     22 	.globl _read_write_disk_sectors
-                                     23 	.globl _read_write_file_sectors
-                                     24 	.globl _usbdisk_select_dsk_file
-                                     25 	.globl _usbdisk_init
-                                     26 	.globl _hal_init
-                                     27 	.globl _puts
-                                     28 ;--------------------------------------------------------
-                                     29 ; special function registers
+                                     18 	.globl _onCallMOUNTDSK
+                                     19 	.globl _init_driver
+                                     20 	.globl _get_workarea_size
+                                     21 	.globl _interrupt
+                                     22 	.globl _get_workarea
+                                     23 	.globl _usbdisk_close_dsk_file
+                                     24 	.globl _read_write_disk_sectors
+                                     25 	.globl _read_write_file_sectors
+                                     26 	.globl _usbdisk_select_dsk_file
+                                     27 	.globl _usbdisk_init
+                                     28 	.globl _hal_init
+                                     29 	.globl _puts
                                      30 ;--------------------------------------------------------
-                                     31 ;--------------------------------------------------------
-                                     32 ; ram data
+                                     31 ; special function registers
+                                     32 ;--------------------------------------------------------
                                      33 ;--------------------------------------------------------
-                                     34 	.area _DATA
+                                     34 ; ram data
                                      35 ;--------------------------------------------------------
-                                     36 ; ram data
+                                     36 	.area _DATA
                                      37 ;--------------------------------------------------------
-                                     38 	.area _INITIALIZED
+                                     38 ; ram data
                                      39 ;--------------------------------------------------------
-                                     40 ; absolute external ram data
+                                     40 	.area _INITIALIZED
                                      41 ;--------------------------------------------------------
-                                     42 	.area _DABS (ABS)
+                                     42 ; absolute external ram data
                                      43 ;--------------------------------------------------------
-                                     44 ; global & static initialisations
+                                     44 	.area _DABS (ABS)
                                      45 ;--------------------------------------------------------
-                                     46 	.area _HOME
-                                     47 	.area _GSINIT
-                                     48 	.area _GSFINAL
+                                     46 ; global & static initialisations
+                                     47 ;--------------------------------------------------------
+                                     48 	.area _HOME
                                      49 	.area _GSINIT
-                                     50 ;--------------------------------------------------------
-                                     51 ; Home
+                                     50 	.area _GSFINAL
+                                     51 	.area _GSINIT
                                      52 ;--------------------------------------------------------
-                                     53 	.area _HOME
-                                     54 	.area _HOME
-                                     55 ;--------------------------------------------------------
-                                     56 ; code
+                                     53 ; Home
+                                     54 ;--------------------------------------------------------
+                                     55 	.area _HOME
+                                     56 	.area _HOME
                                      57 ;--------------------------------------------------------
-                                     58 	.area _CODE
-                                     59 ;driver.c:12: workarea_t* get_workarea() __z88dk_fastcall __naked
-                                     60 ;	---------------------------------
-                                     61 ; Function get_workarea
-                                     62 ; ---------------------------------
-      000000                         63 _get_workarea::
-                                     64 ;driver.c:27: __endasm;
-                           004045    65 	GWORK	.equ 0x4045
-                           004042    66 	CALBNK	.equ 0x4042
-      000000 DD E5            [15]   67 	push	ix
-      000002 AF               [ 4]   68 	xor	a
-      000003 08               [ 4]   69 	ex	af,af' ;'
-      000004 AF               [ 4]   70 	xor	a
-      000005 DD 21 45 40      [14]   71 	LD	ix,#GWORK
-      000009 CD 42 40         [17]   72 	call	CALBNK
-      00000C DD 6E 00         [19]   73 	ld	l,0(ix)
-      00000F DD 66 01         [19]   74 	ld	h,1(ix)
-      000012 DD E1            [14]   75 	pop	ix
-      000014 C9               [10]   76 	ret
-                                     77 ;driver.c:28: } 
-                                     78 ;driver.c:36: void interrupt ()
-                                     79 ;	---------------------------------
-                                     80 ; Function interrupt
-                                     81 ; ---------------------------------
-      000015                         82 _interrupt::
-                                     83 ;driver.c:41: }
-      000015 C9               [10]   84 	ret
-                                     85 ;driver.c:56: uint16_t get_workarea_size (uint8_t reduced_drive_count,uint8_t nr_available_drives)
-                                     86 ;	---------------------------------
-                                     87 ; Function get_workarea_size
-                                     88 ; ---------------------------------
-      000016                         89 _get_workarea_size::
-                                     90 ;driver.c:62: return sizeof (workarea_t);
-      000016 21 01 00         [10]   91 	ld	hl, #0x0001
-                                     92 ;driver.c:63: }
-      000019 C9               [10]   93 	ret
-                                     94 ;driver.c:85: void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
-                                     95 ;	---------------------------------
-                                     96 ; Function init_driver
-                                     97 ; ---------------------------------
-      00001A                         98 _init_driver::
-                                     99 ;driver.c:91: hal_init ();
-      00001A CDr00r00         [17]  100 	call	_hal_init
-                                    101 ;driver.c:92: workarea_t* workarea = get_workarea();
-      00001D CDr00r00         [17]  102 	call	_get_workarea
-                                    103 ;driver.c:93: usbdisk_init ();
-      000020 E5               [11]  104 	push	hl
-      000021 CDr00r00         [17]  105 	call	_usbdisk_init
-      000024 CDr00r00         [17]  106 	call	_usbdisk_select_dsk_file
-      000027 7D               [ 4]  107 	ld	a, l
-      000028 E1               [10]  108 	pop	hl
-      000029 77               [ 7]  109 	ld	(hl), a
-                                    110 ;driver.c:95: switch (workarea->mount_mode)
-      00002A 4E               [ 7]  111 	ld	c, (hl)
-      00002B 3D               [ 4]  112 	dec	a
-      00002C 28 0E            [12]  113 	jr	Z, 00102$
-      00002E 79               [ 4]  114 	ld	a, c
-      00002F D6 02            [ 7]  115 	sub	a, #0x02
-      000031 20 12            [12]  116 	jr	NZ, 00103$
-                                    117 ;driver.c:98: printf ("+Opened disk image\r\n");
-      000033 21r4Er00         [10]  118 	ld	hl, #___str_1
-      000036 E5               [11]  119 	push	hl
-      000037 CDr00r00         [17]  120 	call	_puts
-      00003A F1               [10]  121 	pop	af
-                                    122 ;driver.c:99: break;
-      00003B C9               [10]  123 	ret
-                                    124 ;driver.c:100: case 1:
-      00003C                        125 00102$:
-                                    126 ;driver.c:101: printf ("+Full disk mode\r\n");
-      00003C 21r62r00         [10]  127 	ld	hl, #___str_3
-      00003F E5               [11]  128 	push	hl
-      000040 CDr00r00         [17]  129 	call	_puts
-      000043 F1               [10]  130 	pop	af
-                                    131 ;driver.c:102: break;
-      000044 C9               [10]  132 	ret
-                                    133 ;driver.c:103: default:
-      000045                        134 00103$:
-                                    135 ;driver.c:104: printf ("+Using floppy disk\r\n");
-      000045 21r73r00         [10]  136 	ld	hl, #___str_5
-      000048 E5               [11]  137 	push	hl
-      000049 CDr00r00         [17]  138 	call	_puts
-      00004C F1               [10]  139 	pop	af
-                                    140 ;driver.c:106: }   
-                                    141 ;driver.c:107: }
-      00004D C9               [10]  142 	ret
-      00004E                        143 ___str_1:
-      00004E 2B 4F 70 65 6E 65 64   144 	.ascii "+Opened disk image"
+                                     58 ; code
+                                     59 ;--------------------------------------------------------
+                                     60 	.area _CODE
+                                     61 ;driver.c:12: workarea_t* get_workarea() __z88dk_fastcall __naked
+                                     62 ;	---------------------------------
+                                     63 ; Function get_workarea
+                                     64 ; ---------------------------------
+      000000                         65 _get_workarea::
+                                     66 ;driver.c:27: __endasm;
+                           004045    67 	GWORK	.equ 0x4045
+                           004042    68 	CALBNK	.equ 0x4042
+      000000 DD E5            [15]   69 	push	ix
+      000002 AF               [ 4]   70 	xor	a
+      000003 08               [ 4]   71 	ex	af,af' ;'
+      000004 AF               [ 4]   72 	xor	a
+      000005 DD 21 45 40      [14]   73 	LD	ix,#GWORK
+      000009 CD 42 40         [17]   74 	call	CALBNK
+      00000C DD 6E 00         [19]   75 	ld	l,0(ix)
+      00000F DD 66 01         [19]   76 	ld	h,1(ix)
+      000012 DD E1            [14]   77 	pop	ix
+      000014 C9               [10]   78 	ret
+                                     79 ;driver.c:28: } 
+                                     80 ;driver.c:36: void interrupt ()
+                                     81 ;	---------------------------------
+                                     82 ; Function interrupt
+                                     83 ; ---------------------------------
+      000015                         84 _interrupt::
+                                     85 ;driver.c:41: }
+      000015 C9               [10]   86 	ret
+                                     87 ;driver.c:56: uint16_t get_workarea_size (uint8_t reduced_drive_count,uint8_t nr_available_drives)
+                                     88 ;	---------------------------------
+                                     89 ; Function get_workarea_size
+                                     90 ; ---------------------------------
+      000016                         91 _get_workarea_size::
+                                     92 ;driver.c:62: return sizeof (workarea_t);
+      000016 21 02 00         [10]   93 	ld	hl, #0x0002
+                                     94 ;driver.c:63: }
+      000019 C9               [10]   95 	ret
+                                     96 ;driver.c:85: void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
+                                     97 ;	---------------------------------
+                                     98 ; Function init_driver
+                                     99 ; ---------------------------------
+      00001A                        100 _init_driver::
+                                    101 ;driver.c:91: hal_init ();
+      00001A CDr00r00         [17]  102 	call	_hal_init
+                                    103 ;driver.c:92: workarea_t* workarea = get_workarea();
+      00001D CDr00r00         [17]  104 	call	_get_workarea
+                                    105 ;driver.c:93: usbdisk_init ();
+      000020 E5               [11]  106 	push	hl
+      000021 CDr00r00         [17]  107 	call	_usbdisk_init
+      000024 3E 01            [ 7]  108 	ld	a, #0x01
+      000026 F5               [11]  109 	push	af
+      000027 33               [ 6]  110 	inc	sp
+      000028 CDr00r00         [17]  111 	call	_usbdisk_select_dsk_file
+      00002B 7D               [ 4]  112 	ld	a, l
+      00002C 33               [ 6]  113 	inc	sp
+      00002D E1               [10]  114 	pop	hl
+      00002E 77               [ 7]  115 	ld	(hl), a
+                                    116 ;driver.c:95: switch (workarea->mount_mode)
+      00002F 4E               [ 7]  117 	ld	c, (hl)
+      000030 3D               [ 4]  118 	dec	a
+      000031 28 0E            [12]  119 	jr	Z, 00102$
+      000033 79               [ 4]  120 	ld	a, c
+      000034 D6 02            [ 7]  121 	sub	a, #0x02
+      000036 20 12            [12]  122 	jr	NZ, 00103$
+                                    123 ;driver.c:98: printf ("+Opened disk image\r\n");
+      000038 21r53r00         [10]  124 	ld	hl, #___str_1
+      00003B E5               [11]  125 	push	hl
+      00003C CDr00r00         [17]  126 	call	_puts
+      00003F F1               [10]  127 	pop	af
+                                    128 ;driver.c:99: break;
+      000040 C9               [10]  129 	ret
+                                    130 ;driver.c:100: case 1:
+      000041                        131 00102$:
+                                    132 ;driver.c:101: printf ("+Full disk mode\r\n");
+      000041 21r67r00         [10]  133 	ld	hl, #___str_3
+      000044 E5               [11]  134 	push	hl
+      000045 CDr00r00         [17]  135 	call	_puts
+      000048 F1               [10]  136 	pop	af
+                                    137 ;driver.c:102: break;
+      000049 C9               [10]  138 	ret
+                                    139 ;driver.c:103: default:
+      00004A                        140 00103$:
+                                    141 ;driver.c:104: printf ("+Using floppy disk\r\n");
+      00004A 21r78r00         [10]  142 	ld	hl, #___str_5
+      00004D E5               [11]  143 	push	hl
+      00004E CDr00r00         [17]  144 	call	_puts
+      000051 F1               [10]  145 	pop	af
+                                    146 ;driver.c:106: }   
+                                    147 ;driver.c:107: }
+      000052 C9               [10]  148 	ret
+      000053                        149 ___str_1:
+      000053 2B 4F 70 65 6E 65 64   150 	.ascii "+Opened disk image"
              20 64 69 73 6B 20 69
              6D 61 67 65
-      000060 0D                     145 	.db 0x0d
-      000061 00                     146 	.db 0x00
-      000062                        147 ___str_3:
-      000062 2B 46 75 6C 6C 20 64   148 	.ascii "+Full disk mode"
+      000065 0D                     151 	.db 0x0d
+      000066 00                     152 	.db 0x00
+      000067                        153 ___str_3:
+      000067 2B 46 75 6C 6C 20 64   154 	.ascii "+Full disk mode"
              69 73 6B 20 6D 6F 64
              65
-      000071 0D                     149 	.db 0x0d
-      000072 00                     150 	.db 0x00
-      000073                        151 ___str_5:
-      000073 2B 55 73 69 6E 67 20   152 	.ascii "+Using floppy disk"
+      000076 0D                     155 	.db 0x0d
+      000077 00                     156 	.db 0x00
+      000078                        157 ___str_5:
+      000078 2B 55 73 69 6E 67 20   158 	.ascii "+Using floppy disk"
              66 6C 6F 70 70 79 20
              64 69 73 6B
-      000085 0D                     153 	.db 0x0d
-      000086 00                     154 	.db 0x00
-                                    155 ;driver.c:119: uint8_t get_nr_drives_boottime (uint8_t reduced_drive_count,uint8_t dos_mode)
-                                    156 ;	---------------------------------
-                                    157 ; Function get_nr_drives_boottime
-                                    158 ; ---------------------------------
-      000087                        159 _get_nr_drives_boottime::
-                                    160 ;driver.c:125: workarea_t* workarea = get_workarea();
-      000087 CDr00r00         [17]  161 	call	_get_workarea
-                                    162 ;driver.c:126: if (workarea->mount_mode==0)
-      00008A 7E               [ 7]  163 	ld	a, (hl)
-                                    164 ;driver.c:127: return 0;
-      00008B B7               [ 4]  165 	or	a,a
-      00008C 20 02            [12]  166 	jr	NZ, 00102$
-      00008E 6F               [ 4]  167 	ld	l,a
-      00008F C9               [10]  168 	ret
-      000090                        169 00102$:
-                                    170 ;driver.c:129: return 1; // 1 drive requested
-      000090 2E 01            [ 7]  171 	ld	l, #0x01
-                                    172 ;driver.c:130: }
-      000092 C9               [10]  173 	ret
-                                    174 ;driver.c:142: uint16_t get_drive_config (uint8_t relative_drive_number,uint8_t dos_mode)
-                                    175 ;	---------------------------------
-                                    176 ; Function get_drive_config
-                                    177 ; ---------------------------------
-      000093                        178 _get_drive_config::
-                                    179 ;driver.c:148: return 0x0101; // device 1, lun 1
-      000093 21 01 01         [10]  180 	ld	hl, #0x0101
-                                    181 ;driver.c:149: }
-      000096 C9               [10]  182 	ret
-                                    183 ;driver.c:187: uint8_t get_lun_info (uint8_t nr_lun,uint8_t nr_device,luninfo_t* luninfo)
-                                    184 ;	---------------------------------
-                                    185 ; Function get_lun_info
-                                    186 ; ---------------------------------
-      000097                        187 _get_lun_info::
-                                    188 ;driver.c:193: if (nr_lun==1 && nr_device==1)
-      000097 FD 21 02 00      [14]  189 	ld	iy, #2
-      00009B FD 39            [15]  190 	add	iy, sp
-      00009D FD 7E 00         [19]  191 	ld	a, 0 (iy)
-      0000A0 3D               [ 4]  192 	dec	a
-      0000A1 20 2E            [12]  193 	jr	NZ, 00102$
-      0000A3 FD 7E 01         [19]  194 	ld	a, 1 (iy)
-      0000A6 FD 23            [10]  195 	inc	iy
-      0000A8 3D               [ 4]  196 	dec	a
-      0000A9 20 26            [12]  197 	jr	NZ, 00102$
-                                    198 ;driver.c:195: memset (luninfo,0,sizeof (luninfo_t));
-      0000AB FD 6E 01         [19]  199 	ld	l, 1 (iy)
-      0000AE FD 66 02         [19]  200 	ld	h, 2 (iy)
-      0000B1 FD 23            [10]  201 	inc	iy
-      0000B3 06 0C            [ 7]  202 	ld	b, #0x0c
-      0000B5                        203 00120$:
-      0000B5 36 00            [10]  204 	ld	(hl), #0x00
-      0000B7 23               [ 6]  205 	inc	hl
-      0000B8 10 FB            [13]  206 	djnz	00120$
-                                    207 ;driver.c:197: luninfo->sector_size = 512;
-      0000BA FD 4E 00         [19]  208 	ld	c, 0 (iy)
-      0000BD FD 46 01         [19]  209 	ld	b, 1 (iy)
-      0000C0 69               [ 4]  210 	ld	l, c
-      0000C1 60               [ 4]  211 	ld	h, b
-      0000C2 23               [ 6]  212 	inc	hl
-      0000C3 36 00            [10]  213 	ld	(hl), #0x00
-      0000C5 23               [ 6]  214 	inc	hl
-      0000C6 36 02            [10]  215 	ld	(hl), #0x02
-                                    216 ;driver.c:199: luninfo->flags = 0b00000001; // ; removable + non-read only + no floppy
-      0000C8 21 07 00         [10]  217 	ld	hl, #0x0007
-      0000CB 09               [11]  218 	add	hl, bc
-      0000CC 36 01            [10]  219 	ld	(hl), #0x01
-                                    220 ;driver.c:203: return 0x00;
-      0000CE 2E 00            [ 7]  221 	ld	l, #0x00
-      0000D0 C9               [10]  222 	ret
-      0000D1                        223 00102$:
-                                    224 ;driver.c:206: return 0x01;
-      0000D1 2E 01            [ 7]  225 	ld	l, #0x01
-                                    226 ;driver.c:207: }
-      0000D3 C9               [10]  227 	ret
-                                    228 ;driver.c:246: uint8_t get_device_info (uint8_t nr_info,uint8_t nr_device,uint8_t* info_buffer)
-                                    229 ;	---------------------------------
-                                    230 ; Function get_device_info
-                                    231 ; ---------------------------------
-      0000D4                        232 _get_device_info::
-      0000D4 DD E5            [15]  233 	push	ix
-      0000D6 DD 21 00 00      [14]  234 	ld	ix,#0
-      0000DA DD 39            [15]  235 	add	ix,sp
-                                    236 ;driver.c:252: if (nr_device!=1)
-      0000DC DD 7E 05         [19]  237 	ld	a, 5 (ix)
-      0000DF 3D               [ 4]  238 	dec	a
-      0000E0 28 04            [12]  239 	jr	Z, 00102$
-                                    240 ;driver.c:253: return 1;
-      0000E2 2E 01            [ 7]  241 	ld	l, #0x01
-      0000E4 18 68            [12]  242 	jr	00109$
-      0000E6                        243 00102$:
-                                    244 ;driver.c:255: switch (nr_info)
-      0000E6 DD 7E 04         [19]  245 	ld	a, 4 (ix)
-      0000E9 B7               [ 4]  246 	or	a, a
-      0000EA 28 16            [12]  247 	jr	Z, 00103$
-      0000EC DD 7E 04         [19]  248 	ld	a, 4 (ix)
-      0000EF 3D               [ 4]  249 	dec	a
-      0000F0 28 23            [12]  250 	jr	Z, 00104$
-      0000F2 DD 7E 04         [19]  251 	ld	a, 4 (ix)
-      0000F5 D6 02            [ 7]  252 	sub	a, #0x02
-      0000F7 28 2D            [12]  253 	jr	Z, 00105$
-      0000F9 DD 7E 04         [19]  254 	ld	a, 4 (ix)
-      0000FC D6 03            [ 7]  255 	sub	a, #0x03
-      0000FE 28 37            [12]  256 	jr	Z, 00106$
-      000100 18 46            [12]  257 	jr	00107$
-                                    258 ;driver.c:257: case 0: // basic information
-      000102                        259 00103$:
-                                    260 ;driver.c:258: ((deviceinfo_t*)info_buffer)->nr_luns = 0x01;
-      000102 DD 6E 06         [19]  261 	ld	l, 6 (ix)
-      000105 DD 66 07         [19]  262 	ld	h, 7 (ix)
-      000108 36 01            [10]  263 	ld	(hl), #0x01
-                                    264 ;driver.c:259: ((deviceinfo_t*)info_buffer)->flags = 0x00;
-      00010A DD 4E 06         [19]  265 	ld	c, 6 (ix)
-      00010D DD 46 07         [19]  266 	ld	b, 7 (ix)
-      000110 03               [ 6]  267 	inc	bc
-      000111 AF               [ 4]  268 	xor	a, a
-      000112 02               [ 7]  269 	ld	(bc), a
-                                    270 ;driver.c:260: break;
-      000113 18 37            [12]  271 	jr	00108$
-                                    272 ;driver.c:261: case 1: // Manufacturer name string
-      000115                        273 00104$:
-                                    274 ;driver.c:262: strcpy ((char*)info_buffer,"S0urceror");
-      000115 DD 5E 06         [19]  275 	ld	e, 6 (ix)
-      000118 DD 56 07         [19]  276 	ld	d, 7 (ix)
-      00011B 21r51r01         [10]  277 	ld	hl, #___str_6
-      00011E AF               [ 4]  278 	xor	a, a
-      00011F                        279 00141$:
-      00011F BE               [ 7]  280 	cp	a, (hl)
-      000120 ED A0            [16]  281 	ldi
-      000122 20 FB            [12]  282 	jr	NZ, 00141$
-                                    283 ;driver.c:263: break;
-      000124 18 26            [12]  284 	jr	00108$
-                                    285 ;driver.c:264: case 2: // Device name string
-      000126                        286 00105$:
-                                    287 ;driver.c:265: strcpy ((char*)info_buffer,"MSXUSBNext");
-      000126 DD 5E 06         [19]  288 	ld	e, 6 (ix)
-      000129 DD 56 07         [19]  289 	ld	d, 7 (ix)
-      00012C 21r5Br01         [10]  290 	ld	hl, #___str_7
-      00012F AF               [ 4]  291 	xor	a, a
-      000130                        292 00142$:
-      000130 BE               [ 7]  293 	cp	a, (hl)
-      000131 ED A0            [16]  294 	ldi
-      000133 20 FB            [12]  295 	jr	NZ, 00142$
-                                    296 ;driver.c:266: break;
-      000135 18 15            [12]  297 	jr	00108$
-                                    298 ;driver.c:267: case 3: // Serial number string
-      000137                        299 00106$:
-                                    300 ;driver.c:268: strcpy ((char*)info_buffer,"0000");
-      000137 DD 5E 06         [19]  301 	ld	e, 6 (ix)
-      00013A DD 56 07         [19]  302 	ld	d, 7 (ix)
-      00013D 21r66r01         [10]  303 	ld	hl, #___str_8
-      000140 AF               [ 4]  304 	xor	a, a
-      000141                        305 00143$:
-      000141 BE               [ 7]  306 	cp	a, (hl)
-      000142 ED A0            [16]  307 	ldi
-      000144 20 FB            [12]  308 	jr	NZ, 00143$
-                                    309 ;driver.c:269: break;
-      000146 18 04            [12]  310 	jr	00108$
-                                    311 ;driver.c:270: default:
-      000148                        312 00107$:
-                                    313 ;driver.c:271: return 2;
-      000148 2E 02            [ 7]  314 	ld	l, #0x02
-      00014A 18 02            [12]  315 	jr	00109$
-                                    316 ;driver.c:273: }
-      00014C                        317 00108$:
-                                    318 ;driver.c:274: return 0;
-      00014C 2E 00            [ 7]  319 	ld	l, #0x00
-      00014E                        320 00109$:
-                                    321 ;driver.c:275: }
-      00014E DD E1            [14]  322 	pop	ix
-      000150 C9               [10]  323 	ret
-      000151                        324 ___str_6:
-      000151 53 30 75 72 63 65 72   325 	.ascii "S0urceror"
+      00008A 0D                     159 	.db 0x0d
+      00008B 00                     160 	.db 0x00
+                                    161 ;driver.c:109: void onCallMOUNTDSK ()
+                                    162 ;	---------------------------------
+                                    163 ; Function onCallMOUNTDSK
+                                    164 ; ---------------------------------
+      00008C                        165 _onCallMOUNTDSK::
+      00008C DD E5            [15]  166 	push	ix
+      00008E DD 21 00 00      [14]  167 	ld	ix,#0
+      000092 DD 39            [15]  168 	add	ix,sp
+      000094 F5               [11]  169 	push	af
+                                    170 ;driver.c:112: workarea_t* workarea = get_workarea();
+      000095 CDr00r00         [17]  171 	call	_get_workarea
+      000098 E3               [19]  172 	ex	(sp), hl
+                                    173 ;driver.c:113: if (workarea->mount_mode == 2)
+      000099 E1               [10]  174 	pop	hl
+      00009A E5               [11]  175 	push	hl
+      00009B 7E               [ 7]  176 	ld	a, (hl)
+      00009C D6 02            [ 7]  177 	sub	a, #0x02
+      00009E 20 03            [12]  178 	jr	NZ, 00102$
+                                    179 ;driver.c:115: usbdisk_close_dsk_file ();
+      0000A0 CDr00r00         [17]  180 	call	_usbdisk_close_dsk_file
+      0000A3                        181 00102$:
+                                    182 ;driver.c:118: hal_init ();
+      0000A3 CDr00r00         [17]  183 	call	_hal_init
+                                    184 ;driver.c:119: workarea->mount_mode = usbdisk_select_dsk_file (false);
+      0000A6 AF               [ 4]  185 	xor	a, a
+      0000A7 F5               [11]  186 	push	af
+      0000A8 33               [ 6]  187 	inc	sp
+      0000A9 CDr00r00         [17]  188 	call	_usbdisk_select_dsk_file
+      0000AC 7D               [ 4]  189 	ld	a, l
+      0000AD 33               [ 6]  190 	inc	sp
+      0000AE E1               [10]  191 	pop	hl
+      0000AF E5               [11]  192 	push	hl
+      0000B0 77               [ 7]  193 	ld	(hl), a
+                                    194 ;driver.c:120: switch (workarea->mount_mode)
+      0000B1 D6 02            [ 7]  195 	sub	a, #0x02
+      0000B3 20 0F            [12]  196 	jr	NZ, 00104$
+                                    197 ;driver.c:123: printf ("+Opened disk image\r\n");
+      0000B5 21rD1r00         [10]  198 	ld	hl, #___str_7
+      0000B8 E5               [11]  199 	push	hl
+      0000B9 CDr00r00         [17]  200 	call	_puts
+      0000BC F1               [10]  201 	pop	af
+                                    202 ;driver.c:124: workarea->disk_change = true;
+      0000BD E1               [10]  203 	pop	hl
+      0000BE E5               [11]  204 	push	hl
+      0000BF 23               [ 6]  205 	inc	hl
+      0000C0 36 01            [10]  206 	ld	(hl), #0x01
+                                    207 ;driver.c:125: break;
+      0000C2 18 08            [12]  208 	jr	00106$
+                                    209 ;driver.c:126: default:
+      0000C4                        210 00104$:
+                                    211 ;driver.c:127: printf ("-Not a valid choice\r\n");
+      0000C4 21rE5r00         [10]  212 	ld	hl, #___str_9
+      0000C7 E5               [11]  213 	push	hl
+      0000C8 CDr00r00         [17]  214 	call	_puts
+      0000CB F1               [10]  215 	pop	af
+                                    216 ;driver.c:129: }
+      0000CC                        217 00106$:
+                                    218 ;driver.c:130: }
+      0000CC DD F9            [10]  219 	ld	sp, ix
+      0000CE DD E1            [14]  220 	pop	ix
+      0000D0 C9               [10]  221 	ret
+      0000D1                        222 ___str_7:
+      0000D1 2B 4F 70 65 6E 65 64   223 	.ascii "+Opened disk image"
+             20 64 69 73 6B 20 69
+             6D 61 67 65
+      0000E3 0D                     224 	.db 0x0d
+      0000E4 00                     225 	.db 0x00
+      0000E5                        226 ___str_9:
+      0000E5 2D 4E 6F 74 20 61 20   227 	.ascii "-Not a valid choice"
+             76 61 6C 69 64 20 63
+             68 6F 69 63 65
+      0000F8 0D                     228 	.db 0x0d
+      0000F9 00                     229 	.db 0x00
+                                    230 ;driver.c:142: uint8_t get_nr_drives_boottime (uint8_t reduced_drive_count,uint8_t dos_mode)
+                                    231 ;	---------------------------------
+                                    232 ; Function get_nr_drives_boottime
+                                    233 ; ---------------------------------
+      0000FA                        234 _get_nr_drives_boottime::
+                                    235 ;driver.c:148: workarea_t* workarea = get_workarea();
+      0000FA CDr00r00         [17]  236 	call	_get_workarea
+                                    237 ;driver.c:149: if (workarea->mount_mode==0)
+      0000FD 7E               [ 7]  238 	ld	a, (hl)
+                                    239 ;driver.c:150: return 0;
+      0000FE B7               [ 4]  240 	or	a,a
+      0000FF 20 02            [12]  241 	jr	NZ, 00102$
+      000101 6F               [ 4]  242 	ld	l,a
+      000102 C9               [10]  243 	ret
+      000103                        244 00102$:
+                                    245 ;driver.c:152: return 1; // 1 drive requested
+      000103 2E 01            [ 7]  246 	ld	l, #0x01
+                                    247 ;driver.c:153: }
+      000105 C9               [10]  248 	ret
+                                    249 ;driver.c:165: uint16_t get_drive_config (uint8_t relative_drive_number,uint8_t dos_mode)
+                                    250 ;	---------------------------------
+                                    251 ; Function get_drive_config
+                                    252 ; ---------------------------------
+      000106                        253 _get_drive_config::
+                                    254 ;driver.c:171: return 0x0101; // device 1, lun 1
+      000106 21 01 01         [10]  255 	ld	hl, #0x0101
+                                    256 ;driver.c:172: }
+      000109 C9               [10]  257 	ret
+                                    258 ;driver.c:210: uint8_t get_lun_info (uint8_t nr_lun,uint8_t nr_device,luninfo_t* luninfo)
+                                    259 ;	---------------------------------
+                                    260 ; Function get_lun_info
+                                    261 ; ---------------------------------
+      00010A                        262 _get_lun_info::
+                                    263 ;driver.c:216: if (nr_lun==1 && nr_device==1)
+      00010A FD 21 02 00      [14]  264 	ld	iy, #2
+      00010E FD 39            [15]  265 	add	iy, sp
+      000110 FD 7E 00         [19]  266 	ld	a, 0 (iy)
+      000113 3D               [ 4]  267 	dec	a
+      000114 20 2E            [12]  268 	jr	NZ, 00102$
+      000116 FD 7E 01         [19]  269 	ld	a, 1 (iy)
+      000119 FD 23            [10]  270 	inc	iy
+      00011B 3D               [ 4]  271 	dec	a
+      00011C 20 26            [12]  272 	jr	NZ, 00102$
+                                    273 ;driver.c:218: memset (luninfo,0,sizeof (luninfo_t));
+      00011E FD 6E 01         [19]  274 	ld	l, 1 (iy)
+      000121 FD 66 02         [19]  275 	ld	h, 2 (iy)
+      000124 FD 23            [10]  276 	inc	iy
+      000126 06 0C            [ 7]  277 	ld	b, #0x0c
+      000128                        278 00120$:
+      000128 36 00            [10]  279 	ld	(hl), #0x00
+      00012A 23               [ 6]  280 	inc	hl
+      00012B 10 FB            [13]  281 	djnz	00120$
+                                    282 ;driver.c:220: luninfo->sector_size = 512;
+      00012D FD 4E 00         [19]  283 	ld	c, 0 (iy)
+      000130 FD 46 01         [19]  284 	ld	b, 1 (iy)
+      000133 69               [ 4]  285 	ld	l, c
+      000134 60               [ 4]  286 	ld	h, b
+      000135 23               [ 6]  287 	inc	hl
+      000136 36 00            [10]  288 	ld	(hl), #0x00
+      000138 23               [ 6]  289 	inc	hl
+      000139 36 02            [10]  290 	ld	(hl), #0x02
+                                    291 ;driver.c:222: luninfo->flags = 0b00000001; // ; removable + non-read only + no floppy
+      00013B 21 07 00         [10]  292 	ld	hl, #0x0007
+      00013E 09               [11]  293 	add	hl, bc
+      00013F 36 01            [10]  294 	ld	(hl), #0x01
+                                    295 ;driver.c:226: return 0x00;
+      000141 2E 00            [ 7]  296 	ld	l, #0x00
+      000143 C9               [10]  297 	ret
+      000144                        298 00102$:
+                                    299 ;driver.c:229: return 0x01;
+      000144 2E 01            [ 7]  300 	ld	l, #0x01
+                                    301 ;driver.c:230: }
+      000146 C9               [10]  302 	ret
+                                    303 ;driver.c:269: uint8_t get_device_info (uint8_t nr_info,uint8_t nr_device,uint8_t* info_buffer)
+                                    304 ;	---------------------------------
+                                    305 ; Function get_device_info
+                                    306 ; ---------------------------------
+      000147                        307 _get_device_info::
+      000147 DD E5            [15]  308 	push	ix
+      000149 DD 21 00 00      [14]  309 	ld	ix,#0
+      00014D DD 39            [15]  310 	add	ix,sp
+                                    311 ;driver.c:275: if (nr_device!=1)
+      00014F DD 7E 05         [19]  312 	ld	a, 5 (ix)
+      000152 3D               [ 4]  313 	dec	a
+      000153 28 04            [12]  314 	jr	Z, 00102$
+                                    315 ;driver.c:276: return 1;
+      000155 2E 01            [ 7]  316 	ld	l, #0x01
+      000157 18 68            [12]  317 	jr	00109$
+      000159                        318 00102$:
+                                    319 ;driver.c:278: switch (nr_info)
+      000159 DD 7E 04         [19]  320 	ld	a, 4 (ix)
+      00015C B7               [ 4]  321 	or	a, a
+      00015D 28 16            [12]  322 	jr	Z, 00103$
+      00015F DD 7E 04         [19]  323 	ld	a, 4 (ix)
+      000162 3D               [ 4]  324 	dec	a
+      000163 28 23            [12]  325 	jr	Z, 00104$
+      000165 DD 7E 04         [19]  326 	ld	a, 4 (ix)
+      000168 D6 02            [ 7]  327 	sub	a, #0x02
+      00016A 28 2D            [12]  328 	jr	Z, 00105$
+      00016C DD 7E 04         [19]  329 	ld	a, 4 (ix)
+      00016F D6 03            [ 7]  330 	sub	a, #0x03
+      000171 28 37            [12]  331 	jr	Z, 00106$
+      000173 18 46            [12]  332 	jr	00107$
+                                    333 ;driver.c:280: case 0: // basic information
+      000175                        334 00103$:
+                                    335 ;driver.c:281: ((deviceinfo_t*)info_buffer)->nr_luns = 0x01;
+      000175 DD 6E 06         [19]  336 	ld	l, 6 (ix)
+      000178 DD 66 07         [19]  337 	ld	h, 7 (ix)
+      00017B 36 01            [10]  338 	ld	(hl), #0x01
+                                    339 ;driver.c:282: ((deviceinfo_t*)info_buffer)->flags = 0x00;
+      00017D DD 4E 06         [19]  340 	ld	c, 6 (ix)
+      000180 DD 46 07         [19]  341 	ld	b, 7 (ix)
+      000183 03               [ 6]  342 	inc	bc
+      000184 AF               [ 4]  343 	xor	a, a
+      000185 02               [ 7]  344 	ld	(bc), a
+                                    345 ;driver.c:283: break;
+      000186 18 37            [12]  346 	jr	00108$
+                                    347 ;driver.c:284: case 1: // Manufacturer name string
+      000188                        348 00104$:
+                                    349 ;driver.c:285: strcpy ((char*)info_buffer,"S0urceror");
+      000188 DD 5E 06         [19]  350 	ld	e, 6 (ix)
+      00018B DD 56 07         [19]  351 	ld	d, 7 (ix)
+      00018E 21rC4r01         [10]  352 	ld	hl, #___str_10
+      000191 AF               [ 4]  353 	xor	a, a
+      000192                        354 00141$:
+      000192 BE               [ 7]  355 	cp	a, (hl)
+      000193 ED A0            [16]  356 	ldi
+      000195 20 FB            [12]  357 	jr	NZ, 00141$
+                                    358 ;driver.c:286: break;
+      000197 18 26            [12]  359 	jr	00108$
+                                    360 ;driver.c:287: case 2: // Device name string
+      000199                        361 00105$:
+                                    362 ;driver.c:288: strcpy ((char*)info_buffer,"MSXUSBNext");
+      000199 DD 5E 06         [19]  363 	ld	e, 6 (ix)
+      00019C DD 56 07         [19]  364 	ld	d, 7 (ix)
+      00019F 21rCEr01         [10]  365 	ld	hl, #___str_11
+      0001A2 AF               [ 4]  366 	xor	a, a
+      0001A3                        367 00142$:
+      0001A3 BE               [ 7]  368 	cp	a, (hl)
+      0001A4 ED A0            [16]  369 	ldi
+      0001A6 20 FB            [12]  370 	jr	NZ, 00142$
+                                    371 ;driver.c:289: break;
+      0001A8 18 15            [12]  372 	jr	00108$
+                                    373 ;driver.c:290: case 3: // Serial number string
+      0001AA                        374 00106$:
+                                    375 ;driver.c:291: strcpy ((char*)info_buffer,"0000");
+      0001AA DD 5E 06         [19]  376 	ld	e, 6 (ix)
+      0001AD DD 56 07         [19]  377 	ld	d, 7 (ix)
+      0001B0 21rD9r01         [10]  378 	ld	hl, #___str_12
+      0001B3 AF               [ 4]  379 	xor	a, a
+      0001B4                        380 00143$:
+      0001B4 BE               [ 7]  381 	cp	a, (hl)
+      0001B5 ED A0            [16]  382 	ldi
+      0001B7 20 FB            [12]  383 	jr	NZ, 00143$
+                                    384 ;driver.c:292: break;
+      0001B9 18 04            [12]  385 	jr	00108$
+                                    386 ;driver.c:293: default:
+      0001BB                        387 00107$:
+                                    388 ;driver.c:294: return 2;
+      0001BB 2E 02            [ 7]  389 	ld	l, #0x02
+      0001BD 18 02            [12]  390 	jr	00109$
+                                    391 ;driver.c:296: }
+      0001BF                        392 00108$:
+                                    393 ;driver.c:297: return 0;
+      0001BF 2E 00            [ 7]  394 	ld	l, #0x00
+      0001C1                        395 00109$:
+                                    396 ;driver.c:298: }
+      0001C1 DD E1            [14]  397 	pop	ix
+      0001C3 C9               [10]  398 	ret
+      0001C4                        399 ___str_10:
+      0001C4 53 30 75 72 63 65 72   400 	.ascii "S0urceror"
              6F 72
-      00015A 00                     326 	.db 0x00
-      00015B                        327 ___str_7:
-      00015B 4D 53 58 55 53 42 4E   328 	.ascii "MSXUSBNext"
+      0001CD 00                     401 	.db 0x00
+      0001CE                        402 ___str_11:
+      0001CE 4D 53 58 55 53 42 4E   403 	.ascii "MSXUSBNext"
              65 78 74
-      000165 00                     329 	.db 0x00
-      000166                        330 ___str_8:
-      000166 30 30 30 30            331 	.ascii "0000"
-      00016A 00                     332 	.db 0x00
-                                    333 ;driver.c:306: uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
-                                    334 ;	---------------------------------
-                                    335 ; Function get_device_status
-                                    336 ; ---------------------------------
-      00016B                        337 _get_device_status::
-                                    338 ;driver.c:316: if (nr_device!=1 || nr_lun!=1)
-      00016B FD 21 03 00      [14]  339 	ld	iy, #3
-      00016F FD 39            [15]  340 	add	iy, sp
-      000171 FD 7E 00         [19]  341 	ld	a, 0 (iy)
-      000174 3D               [ 4]  342 	dec	a
-      000175 20 06            [12]  343 	jr	NZ, 00101$
-      000177 FD 7E FF         [19]  344 	ld	a, -1 (iy)
-      00017A 3D               [ 4]  345 	dec	a
-      00017B 28 03            [12]  346 	jr	Z, 00102$
-      00017D                        347 00101$:
-                                    348 ;driver.c:317: return 0;
-      00017D 2E 00            [ 7]  349 	ld	l, #0x00
-      00017F C9               [10]  350 	ret
-      000180                        351 00102$:
-                                    352 ;driver.c:319: return 1;
-      000180 2E 01            [ 7]  353 	ld	l, #0x01
-                                    354 ;driver.c:320: }
-      000182 C9               [10]  355 	ret
-                                    356 ;driver.c:322: void caps_flash () __z88dk_fastcall __naked
-                                    357 ;	---------------------------------
-                                    358 ; Function caps_flash
-                                    359 ; ---------------------------------
-      000183                        360 _caps_flash::
-                                    361 ;driver.c:337: __endasm;
-                                    362 ;	CAPS FLASH
-      000183 DB AA            [11]  363 	in	a, (0xaa)
-      000185 CB 77            [ 8]  364 	bit	6,a
-      000187 28 04            [12]  365 	jr	z, _CAPS_FLASH_ON
-      000189 CB B7            [ 8]  366 	res	6,a
-      00018B 18 02            [12]  367 	jr	_CAPS_FLASH
-      00018D                        368 	_CAPS_FLASH_ON:
-      00018D CB F7            [ 8]  369 	set	6,a
-      00018F                        370 	_CAPS_FLASH:
-      00018F D3 AA            [11]  371 	out	(0xaa),a
-      000191 C9               [10]  372 	ret
-                                    373 ;
-                                    374 ;driver.c:338: }
-                                    375 ;driver.c:365: diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device, uint8_t nr_lun, uint8_t nr_sectors, uint32_t* sector, uint8_t* sector_buffer)
-                                    376 ;	---------------------------------
-                                    377 ; Function read_or_write_sector
-                                    378 ; ---------------------------------
-      000192                        379 _read_or_write_sector::
-      000192 DD E5            [15]  380 	push	ix
-      000194 DD 21 00 00      [14]  381 	ld	ix,#0
-      000198 DD 39            [15]  382 	add	ix,sp
-                                    383 ;driver.c:374: workarea_t* workarea = get_workarea();
-      00019A CDr00r00         [17]  384 	call	_get_workarea
-                                    385 ;driver.c:377: if (nr_device!=1 || nr_lun!=1)
-      00019D DD 7E 05         [19]  386 	ld	a, 5 (ix)
-      0001A0 3D               [ 4]  387 	dec	a
-      0001A1 20 06            [12]  388 	jr	NZ, 00101$
-      0001A3 DD 7E 06         [19]  389 	ld	a, 6 (ix)
-      0001A6 3D               [ 4]  390 	dec	a
-      0001A7 28 04            [12]  391 	jr	Z, 00102$
-      0001A9                        392 00101$:
-                                    393 ;driver.c:378: return IDEVL;
-      0001A9 2E B5            [ 7]  394 	ld	l, #0xb5
-      0001AB 18 5E            [12]  395 	jr	00111$
-      0001AD                        396 00102$:
-                                    397 ;driver.c:380: caps_flash ();
-      0001AD E5               [11]  398 	push	hl
-      0001AE CDr83r01         [17]  399 	call	_caps_flash
-      0001B1 E1               [10]  400 	pop	hl
-                                    401 ;driver.c:382: if (workarea->mount_mode==2)
-      0001B2 5E               [ 7]  402 	ld	e, (hl)
-                                    403 ;driver.c:386: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
-      0001B3 DD 7E 04         [19]  404 	ld	a, 4 (ix)
-      0001B6 E6 01            [ 7]  405 	and	a, #0x01
-      0001B8 4F               [ 4]  406 	ld	c, a
-                                    407 ;driver.c:382: if (workarea->mount_mode==2)
-      0001B9 7B               [ 4]  408 	ld	a, e
-      0001BA D6 02            [ 7]  409 	sub	a, #0x02
-      0001BC 20 24            [12]  410 	jr	NZ, 00109$
-                                    411 ;driver.c:386: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
-      0001BE 79               [ 4]  412 	ld	a, c
-      0001BF DD 6E 0A         [19]  413 	ld	l, 10 (ix)
-      0001C2 DD 66 0B         [19]  414 	ld	h, 11 (ix)
-      0001C5 E5               [11]  415 	push	hl
-      0001C6 DD 6E 08         [19]  416 	ld	l, 8 (ix)
-      0001C9 DD 66 09         [19]  417 	ld	h, 9 (ix)
-      0001CC E5               [11]  418 	push	hl
-      0001CD DD 66 07         [19]  419 	ld	h, 7 (ix)
-      0001D0 E5               [11]  420 	push	hl
-      0001D1 33               [ 6]  421 	inc	sp
-      0001D2 F5               [11]  422 	push	af
-      0001D3 33               [ 6]  423 	inc	sp
-      0001D4 CDr00r00         [17]  424 	call	_read_write_file_sectors
-      0001D7 F1               [10]  425 	pop	af
-      0001D8 F1               [10]  426 	pop	af
-      0001D9 F1               [10]  427 	pop	af
-      0001DA CB 45            [ 8]  428 	bit	0, l
-      0001DC 20 28            [12]  429 	jr	NZ, 00110$
-                                    430 ;driver.c:387: return RNF;
-      0001DE 2E F9            [ 7]  431 	ld	l, #0xf9
-      0001E0 18 29            [12]  432 	jr	00111$
-      0001E2                        433 00109$:
-                                    434 ;driver.c:392: if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
-      0001E2 79               [ 4]  435 	ld	a, c
-      0001E3 DD 6E 0A         [19]  436 	ld	l, 10 (ix)
-      0001E6 DD 66 0B         [19]  437 	ld	h, 11 (ix)
-      0001E9 E5               [11]  438 	push	hl
-      0001EA DD 6E 08         [19]  439 	ld	l, 8 (ix)
-      0001ED DD 66 09         [19]  440 	ld	h, 9 (ix)
-      0001F0 E5               [11]  441 	push	hl
-      0001F1 DD 66 07         [19]  442 	ld	h, 7 (ix)
-      0001F4 E5               [11]  443 	push	hl
-      0001F5 33               [ 6]  444 	inc	sp
-      0001F6 F5               [11]  445 	push	af
-      0001F7 33               [ 6]  446 	inc	sp
-      0001F8 CDr00r00         [17]  447 	call	_read_write_disk_sectors
-      0001FB F1               [10]  448 	pop	af
-      0001FC F1               [10]  449 	pop	af
-      0001FD F1               [10]  450 	pop	af
-      0001FE CB 45            [ 8]  451 	bit	0, l
-      000200 20 04            [12]  452 	jr	NZ, 00110$
-                                    453 ;driver.c:393: return RNF;
-      000202 2E F9            [ 7]  454 	ld	l, #0xf9
-      000204 18 05            [12]  455 	jr	00111$
-      000206                        456 00110$:
-                                    457 ;driver.c:396: caps_flash ();
-      000206 CDr83r01         [17]  458 	call	_caps_flash
-                                    459 ;driver.c:398: return OK;
-      000209 2E 00            [ 7]  460 	ld	l, #0x00
-      00020B                        461 00111$:
-                                    462 ;driver.c:399: }
-      00020B DD E1            [14]  463 	pop	ix
-      00020D C9               [10]  464 	ret
-                                    465 	.area _CODE
-                                    466 	.area _INITIALIZER
-                                    467 	.area _CABS (ABS)
+      0001D8 00                     404 	.db 0x00
+      0001D9                        405 ___str_12:
+      0001D9 30 30 30 30            406 	.ascii "0000"
+      0001DD 00                     407 	.db 0x00
+                                    408 ;driver.c:329: uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
+                                    409 ;	---------------------------------
+                                    410 ; Function get_device_status
+                                    411 ; ---------------------------------
+      0001DE                        412 _get_device_status::
+                                    413 ;driver.c:335: if (nr_device!=1 || nr_lun!=1)
+      0001DE FD 21 03 00      [14]  414 	ld	iy, #3
+      0001E2 FD 39            [15]  415 	add	iy, sp
+      0001E4 FD 7E 00         [19]  416 	ld	a, 0 (iy)
+      0001E7 3D               [ 4]  417 	dec	a
+      0001E8 20 06            [12]  418 	jr	NZ, 00101$
+      0001EA FD 7E FF         [19]  419 	ld	a, -1 (iy)
+      0001ED 3D               [ 4]  420 	dec	a
+      0001EE 28 03            [12]  421 	jr	Z, 00102$
+      0001F0                        422 00101$:
+                                    423 ;driver.c:336: return 0;
+      0001F0 2E 00            [ 7]  424 	ld	l, #0x00
+      0001F2 C9               [10]  425 	ret
+      0001F3                        426 00102$:
+                                    427 ;driver.c:338: workarea_t* workarea = get_workarea();
+      0001F3 CDr00r00         [17]  428 	call	_get_workarea
+                                    429 ;driver.c:339: if (workarea->disk_change)
+      0001F6 23               [ 6]  430 	inc	hl
+      0001F7 CB 46            [12]  431 	bit	0, (hl)
+                                    432 ;driver.c:340: return 2;
+                                    433 ;driver.c:342: return 1;
+      0001F9 2E 02            [ 7]  434 	ld	l, #0x02
+      0001FB C0               [11]  435 	ret	NZ
+      0001FC 2E 01            [ 7]  436 	ld	l, #0x01
+                                    437 ;driver.c:343: }
+      0001FE C9               [10]  438 	ret
+                                    439 ;driver.c:345: void caps_flash () __z88dk_fastcall __naked
+                                    440 ;	---------------------------------
+                                    441 ; Function caps_flash
+                                    442 ; ---------------------------------
+      0001FF                        443 _caps_flash::
+                                    444 ;driver.c:360: __endasm;
+                                    445 ;	CAPS FLASH
+      0001FF DB AA            [11]  446 	in	a, (0xaa)
+      000201 CB 77            [ 8]  447 	bit	6,a
+      000203 28 04            [12]  448 	jr	z, _CAPS_FLASH_ON
+      000205 CB B7            [ 8]  449 	res	6,a
+      000207 18 02            [12]  450 	jr	_CAPS_FLASH
+      000209                        451 	_CAPS_FLASH_ON:
+      000209 CB F7            [ 8]  452 	set	6,a
+      00020B                        453 	_CAPS_FLASH:
+      00020B D3 AA            [11]  454 	out	(0xaa),a
+      00020D C9               [10]  455 	ret
+                                    456 ;
+                                    457 ;driver.c:361: }
+                                    458 ;driver.c:388: diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device, uint8_t nr_lun, uint8_t nr_sectors, uint32_t* sector, uint8_t* sector_buffer)
+                                    459 ;	---------------------------------
+                                    460 ; Function read_or_write_sector
+                                    461 ; ---------------------------------
+      00020E                        462 _read_or_write_sector::
+      00020E DD E5            [15]  463 	push	ix
+      000210 DD 21 00 00      [14]  464 	ld	ix,#0
+      000214 DD 39            [15]  465 	add	ix,sp
+                                    466 ;driver.c:397: workarea_t* workarea = get_workarea();
+      000216 CDr00r00         [17]  467 	call	_get_workarea
+                                    468 ;driver.c:400: if (nr_device!=1 || nr_lun!=1)
+      000219 DD 7E 05         [19]  469 	ld	a, 5 (ix)
+      00021C 3D               [ 4]  470 	dec	a
+      00021D 20 06            [12]  471 	jr	NZ, 00101$
+      00021F DD 7E 06         [19]  472 	ld	a, 6 (ix)
+      000222 3D               [ 4]  473 	dec	a
+      000223 28 04            [12]  474 	jr	Z, 00102$
+      000225                        475 00101$:
+                                    476 ;driver.c:401: return IDEVL;
+      000225 2E B5            [ 7]  477 	ld	l, #0xb5
+      000227 18 5E            [12]  478 	jr	00111$
+      000229                        479 00102$:
+                                    480 ;driver.c:403: caps_flash ();
+      000229 E5               [11]  481 	push	hl
+      00022A CDrFFr01         [17]  482 	call	_caps_flash
+      00022D E1               [10]  483 	pop	hl
+                                    484 ;driver.c:405: if (workarea->mount_mode==2)
+      00022E 5E               [ 7]  485 	ld	e, (hl)
+                                    486 ;driver.c:409: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+      00022F DD 7E 04         [19]  487 	ld	a, 4 (ix)
+      000232 E6 01            [ 7]  488 	and	a, #0x01
+      000234 4F               [ 4]  489 	ld	c, a
+                                    490 ;driver.c:405: if (workarea->mount_mode==2)
+      000235 7B               [ 4]  491 	ld	a, e
+      000236 D6 02            [ 7]  492 	sub	a, #0x02
+      000238 20 24            [12]  493 	jr	NZ, 00109$
+                                    494 ;driver.c:409: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+      00023A 79               [ 4]  495 	ld	a, c
+      00023B DD 6E 0A         [19]  496 	ld	l, 10 (ix)
+      00023E DD 66 0B         [19]  497 	ld	h, 11 (ix)
+      000241 E5               [11]  498 	push	hl
+      000242 DD 6E 08         [19]  499 	ld	l, 8 (ix)
+      000245 DD 66 09         [19]  500 	ld	h, 9 (ix)
+      000248 E5               [11]  501 	push	hl
+      000249 DD 66 07         [19]  502 	ld	h, 7 (ix)
+      00024C E5               [11]  503 	push	hl
+      00024D 33               [ 6]  504 	inc	sp
+      00024E F5               [11]  505 	push	af
+      00024F 33               [ 6]  506 	inc	sp
+      000250 CDr00r00         [17]  507 	call	_read_write_file_sectors
+      000253 F1               [10]  508 	pop	af
+      000254 F1               [10]  509 	pop	af
+      000255 F1               [10]  510 	pop	af
+      000256 CB 45            [ 8]  511 	bit	0, l
+      000258 20 28            [12]  512 	jr	NZ, 00110$
+                                    513 ;driver.c:410: return RNF;
+      00025A 2E F9            [ 7]  514 	ld	l, #0xf9
+      00025C 18 29            [12]  515 	jr	00111$
+      00025E                        516 00109$:
+                                    517 ;driver.c:415: if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+      00025E 79               [ 4]  518 	ld	a, c
+      00025F DD 6E 0A         [19]  519 	ld	l, 10 (ix)
+      000262 DD 66 0B         [19]  520 	ld	h, 11 (ix)
+      000265 E5               [11]  521 	push	hl
+      000266 DD 6E 08         [19]  522 	ld	l, 8 (ix)
+      000269 DD 66 09         [19]  523 	ld	h, 9 (ix)
+      00026C E5               [11]  524 	push	hl
+      00026D DD 66 07         [19]  525 	ld	h, 7 (ix)
+      000270 E5               [11]  526 	push	hl
+      000271 33               [ 6]  527 	inc	sp
+      000272 F5               [11]  528 	push	af
+      000273 33               [ 6]  529 	inc	sp
+      000274 CDr00r00         [17]  530 	call	_read_write_disk_sectors
+      000277 F1               [10]  531 	pop	af
+      000278 F1               [10]  532 	pop	af
+      000279 F1               [10]  533 	pop	af
+      00027A CB 45            [ 8]  534 	bit	0, l
+      00027C 20 04            [12]  535 	jr	NZ, 00110$
+                                    536 ;driver.c:416: return RNF;
+      00027E 2E F9            [ 7]  537 	ld	l, #0xf9
+      000280 18 05            [12]  538 	jr	00111$
+      000282                        539 00110$:
+                                    540 ;driver.c:419: caps_flash ();
+      000282 CDrFFr01         [17]  541 	call	_caps_flash
+                                    542 ;driver.c:421: return OK;
+      000285 2E 00            [ 7]  543 	ld	l, #0x00
+      000287                        544 00111$:
+                                    545 ;driver.c:422: }
+      000287 DD E1            [14]  546 	pop	ix
+      000289 C9               [10]  547 	ret
+                                    548 	.area _CODE
+                                    549 	.area _INITIALIZER
+                                    550 	.area _CABS (ABS)

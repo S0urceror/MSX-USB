@@ -136,6 +136,34 @@
             "resetOnLaunch": false,
             "rootFolder": "${workspaceFolder}",
             "tmpDir": ".tmp"
+        },
+        {
+            "name": "NXT - Launch MacOS",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/drivers/MsxUsbNext/macos/build/main",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/drivers/MsxUsbNext/macos/build",
+            "preLaunchTask": "NXT - Make MacOS"
+        },
+        {
+            "name": "NXT - Launch MSX 2",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/openMSX/derived/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_MSXUSBNext", "-diska", "${workspaceFolder}/drivers/MsxUsbNext/msx/dist"],
+            "cwd": "../Emulators/openMSX/share",
+            "preLaunchTask": "NXT - Make MSX"
+        },
+        {
+            "name": "NXT - Launch MSX 1",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/openMSX/derived/openmsx",
+            "args": ["-machine", "Philips_VG_8020_MSXUSBNext"],
+            "cwd": "../Emulators/openMSX/share",
+            "preLaunchTask": "NXT - Make MSX"
         }
     ]
 }
