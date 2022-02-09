@@ -28,7 +28,7 @@ int main ()
 
     hal_init ();
     usbdisk_init ();
-    mount_mode = usbdisk_select_dsk_file ();
+    mount_mode = usbdisk_select_dsk_file (true,"/");
     switch (mount_mode)
     {
         case 2:

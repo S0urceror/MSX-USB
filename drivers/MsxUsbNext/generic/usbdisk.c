@@ -10,7 +10,7 @@
 
 void usbdisk_init ()
 {
-    printf ("MSXUSB-NXT v0.2 (c)Sourceror\r\n");
+    printf ("MSXUSB-NXT v0.3 (c)Sourceror\r\n");
     ch376_reset_all();
     if (!ch376_plugged_in())
         error ("-CH376 NOT detected");
@@ -24,8 +24,17 @@ void usbdisk_init ()
     printf ("+USB disk mounted\r\n");
 }
 
+char* toLower(char* s) {
+  for(char *p=s; *p; p++) *p=tolower(*p);
+  return s;
+}
+char* toUpper(char* s) {
+  for(char *p=s; *p; p++) *p=toupper(*p);
+  return s;
+}
+
 #define MAX_FILES 26
-select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed)
+select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed,char* start_directory)
 {
     uint8_t nr_dsk_files_found;
     fat_dir_info_t info;
@@ -34,17 +43,16 @@ select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed)
     uint8_t nr_dsks_per_line;
 
     if (supports_80_column_mode())
-        nr_dsks_per_line = 6;
+        nr_dsks_per_line = 5;
     else
-        nr_dsks_per_line = 3;
+        nr_dsks_per_line = 2;
 
     nr_dsk_files_found=0;
-    ch376_set_filename ("/DSKS");
+
+    ch376_set_filename (start_directory);
     if (!ch376_open_directory())
     {
-        ch376_set_filename ("/");
-        if (!ch376_open_directory())
-            error ("-Directory not opened");
+        error ("-Directory not opened");
     }
     ch376_set_filename ("*");
     if (!ch376_open_search ())
@@ -52,39 +60,63 @@ select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed)
     
     if (whole_disk_allowed)
     {
-        printf ("+Select device:\r\n");
+        printf ("\r\nSelect device, or:\r\n");
         printf (" 1.FLOPPY   2.USBDRIVE\r\n");
     }
+    printf ("Select DSK from [%s]:\r\n",start_directory);
+    uint8_t cnt;
     do 
     {
         ch376_get_fat_info (&info);
-        // check for normal files with DSK extension
-        if ((info.DIR_Attr==0x20 || info.DIR_Attr==0x00) &&
-            info.DIR_Name[8]=='D' &&
-            info.DIR_Name[9]=='S' &&
-            info.DIR_Name[10]=='K')
+        if (!(info.DIR_Attr&0x02)) // show non-hidden normal or archived files
         {
-            if (nr_dsk_files_found==0)
+            if (info.DIR_Attr&0x20 || info.DIR_Attr==0x00)
             {
-                if (!whole_disk_allowed)
-                    printf ("Select DSK image:\r\n");
-                else
-                    printf ("+Or, select DSK image:\r\n");
+                if (info.DIR_Name[8]=='D' &&
+                    info.DIR_Name[9]=='S' &&
+                    info.DIR_Name[10]=='K')
+                {
+                    putchar ('A'+nr_dsk_files_found);
+                    putchar ('.');
+                    files[nr_dsk_files_found][11]='\0';
+                    for (cnt=0;cnt<11;cnt++)
+                    {
+                        if (cnt==8)
+                            putchar ('.');
+                        putchar (info.DIR_Name[cnt]);
+                        files[nr_dsk_files_found][cnt]=info.DIR_Name[cnt];
+                    }
+                    putchar (' ');
+                    nr_dsk_files_found++;
+                }
             }
-            strncpy (files[nr_dsk_files_found],(char*)info.DIR_Name,11);
-            files[nr_dsk_files_found][11] = '\0';
-            strncpy (filename,files[nr_dsk_files_found],8);
-            filename[8]='\0';
-            printf (" %c.%s",'A'+nr_dsk_files_found, filename);
-            nr_dsk_files_found++;
-            if ((nr_dsk_files_found % nr_dsks_per_line) == 0)
-                printf ("\r\n");
+            if (info.DIR_Attr&0x10)
+            {
+                putchar ('A'+nr_dsk_files_found);
+                putchar ('.');
+                files[nr_dsk_files_found][8]='\0';
+                for (cnt=0;cnt<8;cnt++)
+                {
+                    putchar (tolower(info.DIR_Name[cnt]));
+                    files[nr_dsk_files_found][cnt]=info.DIR_Name[cnt];
+                }
+                putchar (' ');
+                putchar ('D');
+                putchar ('I');
+                putchar ('R');
+                putchar (' ');
+                nr_dsk_files_found++;
+            }
+            if ((nr_dsk_files_found%nr_dsks_per_line) == 0)
+            {
+                putchar ('\r');
+                putchar ('\n');
+            }
         }
-    } 
+    }
     while (ch376_next_search () && nr_dsk_files_found<MAX_FILES);
-
-    if (!whole_disk_allowed && nr_dsk_files_found==0)
-        return USB;
+    putchar ('\r');
+    putchar ('\n');
 
     printf ("\r\n");
     char c = getchar ();
@@ -92,13 +124,26 @@ select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed)
     if (c>='A' && c<='A'+nr_dsk_files_found)
     {
         c-='A';
-        ch376_set_filename (files[c]);
-        if (!ch376_open_file ())
-            error ("-DSK not opened\r\n");
-        return DSK_IMAGE;
+        if (files[c][8]=='\0')
+        {
+            // directory
+            if (files[c][0]=='.')
+                return usbdisk_select_dsk_file (whole_disk_allowed,"/");
+            else
+                return usbdisk_select_dsk_file (whole_disk_allowed,files[c]);
+        }
+        else
+        {
+            // files
+            ch376_set_filename (files[c]);
+            if (!ch376_open_file ())
+                error ("-DSK not opened\r\n");
+            return DSK_IMAGE;
+        }
     }
     if (c=='2')
         return USB;
+
     return FLOPPY;
 }
 

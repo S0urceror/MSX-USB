@@ -9,30 +9,32 @@ Symbol Table
     .__.H$L.                                                    =  000000 L
     CALBNK                                                      =  004042 
     GWORK                                                       =  004045 
-  0 _CAPS_FLASH                                                    00020B R
-  0 _CAPS_FLASH_ON                                                 000209 R
-  0 ___str_1                                                       000053 R
-  0 ___str_10                                                      0001C4 R
-  0 ___str_11                                                      0001CE R
-  0 ___str_12                                                      0001D9 R
-  0 ___str_3                                                       000067 R
-  0 ___str_5                                                       000078 R
-  0 ___str_7                                                       0000D1 R
-  0 ___str_9                                                       0000E5 R
-  0 _caps_flash                                                    0001FF GR
-  0 _get_device_info                                               000147 GR
-  0 _get_device_status                                             0001DE GR
-  0 _get_drive_config                                              000106 GR
-  0 _get_lun_info                                                  00010A GR
-  0 _get_nr_drives_boottime                                        0000FA GR
+  0 _CAPS_FLASH                                                    000227 R
+  0 _CAPS_FLASH_ON                                                 000225 R
+  0 ___str_0                                                       000066 R
+  0 ___str_11                                                      000101 R
+  0 ___str_12                                                      0001E0 R
+  0 ___str_13                                                      0001EA R
+  0 ___str_14                                                      0001F5 R
+  0 ___str_2                                                       000068 R
+  0 ___str_4                                                       00007C R
+  0 ___str_6                                                       00008D R
+  0 ___str_7                                                       0000EB R
+  0 ___str_9                                                       0000ED R
+  0 _caps_flash                                                    00021B GR
+  0 _get_device_info                                               000163 GR
+  0 _get_device_status                                             0001FA GR
+  0 _get_drive_config                                              000122 GR
+  0 _get_lun_info                                                  000126 GR
+  0 _get_nr_drives_boottime                                        000116 GR
   0 _get_workarea                                                  000000 GR
   0 _get_workarea_size                                             000016 GR
     _hal_init                                                      ****** GX
   0 _init_driver                                                   00001A GR
   0 _interrupt                                                     000015 GR
-  0 _onCallMOUNTDSK                                                00008C GR
+  0 _onCallMOUNTDSK                                                0000A1 GR
     _puts                                                          ****** GX
-  0 _read_or_write_sector                                          00020E GR
+  0 _read_or_write_sector                                          00022A GR
     _read_write_disk_sectors                                       ****** GX
     _read_write_file_sectors                                       ****** GX
     _usbdisk_close_dsk_file                                        ****** GX
@@ -45,7 +47,7 @@ Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size    28A   flags    0
+   0 _CODE                                      size    2A6   flags    0
    1 _DATA                                      size      0   flags    0
    2 _INITIALIZED                               size      0   flags    0
    3 _DABS                                      size      0   flags    8

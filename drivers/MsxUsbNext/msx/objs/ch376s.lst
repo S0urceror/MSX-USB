@@ -8,24 +8,24 @@
                                       8 ;--------------------------------------------------------
                                       9 ; Public variables in this module
                                      10 ;--------------------------------------------------------
-                                     11 	.globl _ch376_close_file
-                                     12 	.globl _delay_ms
-                                     13 	.globl _write_data_multiple
-                                     14 	.globl _read_data_multiple
-                                     15 	.globl _read_status
-                                     16 	.globl _read_data
-                                     17 	.globl _write_data
-                                     18 	.globl _write_command
-                                     19 	.globl _strlen
-                                     20 	.globl _ch376_reset_all
-                                     21 	.globl _ch376_plugged_in
-                                     22 	.globl _ch376_set_usb_host_mode
-                                     23 	.globl _ch376_connect_disk
-                                     24 	.globl _ch376_mount_disk
-                                     25 	.globl _ch376_wait_status
-                                     26 	.globl _ch376_get_register_value
-                                     27 	.globl _ch376_set_filename
-                                     28 	.globl _ch376_open_file
+                                     11 	.globl _delay_ms
+                                     12 	.globl _write_data_multiple
+                                     13 	.globl _read_data_multiple
+                                     14 	.globl _read_status
+                                     15 	.globl _read_data
+                                     16 	.globl _write_data
+                                     17 	.globl _write_command
+                                     18 	.globl _strlen
+                                     19 	.globl _ch376_reset_all
+                                     20 	.globl _ch376_plugged_in
+                                     21 	.globl _ch376_set_usb_host_mode
+                                     22 	.globl _ch376_connect_disk
+                                     23 	.globl _ch376_mount_disk
+                                     24 	.globl _ch376_wait_status
+                                     25 	.globl _ch376_get_register_value
+                                     26 	.globl _ch376_set_filename
+                                     27 	.globl _ch376_open_file
+                                     28 	.globl _ch376_close_file
                                      29 	.globl _ch376_open_directory
                                      30 	.globl _ch376_open_search
                                      31 	.globl _ch376_next_search

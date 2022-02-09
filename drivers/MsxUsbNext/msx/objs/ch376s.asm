@@ -8,7 +8,6 @@
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
-	.globl _ch376_close_file
 	.globl _delay_ms
 	.globl _write_data_multiple
 	.globl _read_data_multiple
@@ -26,6 +25,7 @@
 	.globl _ch376_get_register_value
 	.globl _ch376_set_filename
 	.globl _ch376_open_file
+	.globl _ch376_close_file
 	.globl _ch376_open_directory
 	.globl _ch376_open_search
 	.globl _ch376_next_search

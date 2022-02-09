@@ -98,6 +98,9 @@ _get_workarea_size::
 ; Function init_driver
 ; ---------------------------------
 _init_driver::
+	push	ix
+	ld	ix,#0
+	add	ix,sp
 ;driver.c:91: hal_init ();
 	call	_hal_init
 ;driver.c:92: workarea_t* workarea = get_workarea();
@@ -105,10 +108,16 @@ _init_driver::
 ;driver.c:93: usbdisk_init ();
 	push	hl
 	call	_usbdisk_init
+	pop	hl
+;driver.c:94: workarea->mount_mode = usbdisk_select_dsk_file (true,"/");
+	ld	bc, #___str_0+0
+	push	hl
+	push	bc
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_usbdisk_select_dsk_file
+	pop	af
 	ld	a, l
 	inc	sp
 	pop	hl
@@ -121,40 +130,45 @@ _init_driver::
 	sub	a, #0x02
 	jr	NZ, 00103$
 ;driver.c:98: printf ("+Opened disk image\r\n");
-	ld	hl, #___str_1
+	ld	hl, #___str_2
 	push	hl
 	call	_puts
 	pop	af
 ;driver.c:99: break;
-	ret
+	jr	00105$
 ;driver.c:100: case 1:
 00102$:
 ;driver.c:101: printf ("+Full disk mode\r\n");
-	ld	hl, #___str_3
+	ld	hl, #___str_4
 	push	hl
 	call	_puts
 	pop	af
 ;driver.c:102: break;
-	ret
+	jr	00105$
 ;driver.c:103: default:
 00103$:
 ;driver.c:104: printf ("+Using floppy disk\r\n");
-	ld	hl, #___str_5
+	ld	hl, #___str_6
 	push	hl
 	call	_puts
 	pop	af
 ;driver.c:106: }   
+00105$:
 ;driver.c:107: }
+	pop	ix
 	ret
-___str_1:
+___str_0:
+	.ascii "/"
+	.db 0x00
+___str_2:
 	.ascii "+Opened disk image"
 	.db 0x0d
 	.db 0x00
-___str_3:
+___str_4:
 	.ascii "+Full disk mode"
 	.db 0x0d
 	.db 0x00
-___str_5:
+___str_6:
 	.ascii "+Using floppy disk"
 	.db 0x0d
 	.db 0x00
@@ -181,11 +195,14 @@ _onCallMOUNTDSK::
 00102$:
 ;driver.c:118: hal_init ();
 	call	_hal_init
-;driver.c:119: workarea->mount_mode = usbdisk_select_dsk_file (false);
+;driver.c:119: workarea->mount_mode = usbdisk_select_dsk_file (false,"/");
+	ld	hl, #___str_7
+	push	hl
 	xor	a, a
 	push	af
 	inc	sp
 	call	_usbdisk_select_dsk_file
+	pop	af
 	ld	a, l
 	inc	sp
 	pop	hl
@@ -195,7 +212,7 @@ _onCallMOUNTDSK::
 	sub	a, #0x02
 	jr	NZ, 00104$
 ;driver.c:123: printf ("+Opened disk image\r\n");
-	ld	hl, #___str_7
+	ld	hl, #___str_9
 	push	hl
 	call	_puts
 	pop	af
@@ -209,7 +226,7 @@ _onCallMOUNTDSK::
 ;driver.c:126: default:
 00104$:
 ;driver.c:127: printf ("-Not a valid choice\r\n");
-	ld	hl, #___str_9
+	ld	hl, #___str_11
 	push	hl
 	call	_puts
 	pop	af
@@ -220,10 +237,13 @@ _onCallMOUNTDSK::
 	pop	ix
 	ret
 ___str_7:
+	.ascii "/"
+	.db 0x00
+___str_9:
 	.ascii "+Opened disk image"
 	.db 0x0d
 	.db 0x00
-___str_9:
+___str_11:
 	.ascii "-Not a valid choice"
 	.db 0x0d
 	.db 0x00
@@ -349,7 +369,7 @@ _get_device_info::
 ;driver.c:285: strcpy ((char*)info_buffer,"S0urceror");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_10
+	ld	hl, #___str_12
 	xor	a, a
 00141$:
 	cp	a, (hl)
@@ -362,7 +382,7 @@ _get_device_info::
 ;driver.c:288: strcpy ((char*)info_buffer,"MSXUSBNext");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_11
+	ld	hl, #___str_13
 	xor	a, a
 00142$:
 	cp	a, (hl)
@@ -375,7 +395,7 @@ _get_device_info::
 ;driver.c:291: strcpy ((char*)info_buffer,"0000");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_12
+	ld	hl, #___str_14
 	xor	a, a
 00143$:
 	cp	a, (hl)
@@ -396,13 +416,13 @@ _get_device_info::
 ;driver.c:298: }
 	pop	ix
 	ret
-___str_10:
+___str_12:
 	.ascii "S0urceror"
 	.db 0x00
-___str_11:
+___str_13:
 	.ascii "MSXUSBNext"
 	.db 0x00
-___str_12:
+___str_14:
 	.ascii "0000"
 	.db 0x00
 ;driver.c:329: uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)

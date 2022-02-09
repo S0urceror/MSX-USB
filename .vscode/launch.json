@@ -152,7 +152,7 @@
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/openMSX/derived/openmsx",
-            "args": ["-machine", "Philips_NMS_8250_MSXUSBNext", "-diska", "${workspaceFolder}/drivers/MsxUsbNext/msx/dist"],
+            "args": ["-machine", "Philips_NMS_8250_MSXUSBNext", "-diska", "${workspaceFolder}/software/dist"],
             "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "NXT - Make MSX"
         },

@@ -91,6 +91,7 @@ bool ch376_mount_disk ();
 uint8_t ch376_wait_status ();
 uint8_t ch376_get_register_value (uint8_t reg);
 bool ch376_open_file ();
+bool ch376_close_file ();
 bool ch376_open_directory ();
 void ch376_set_filename (char* name);
 bool ch376_open_search ();

@@ -110,7 +110,8 @@
 			"kinetis.h": "c",
 			"CH372FRM.C": "cpp",
 			"PARA_HW.C": "cpp",
-			"__bits": "cpp"
+			"__bits": "cpp",
+			"string.h": "c"
 		}
 	}
 }
