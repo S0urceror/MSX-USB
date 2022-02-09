@@ -1080,7 +1080,7 @@ std::string get_string2 (uint8_t target_device_address,uint8_t string_id)
     if (string_id==0)
         return no_data;
     
-    uint8_t cmd[] = {0x80,6,string_id,3,0,0,255,0};
+    uint8_t cmd[] = {0x80,6,string_id,3,0,0,max_packet_size,0};
     uint8_t* data=(uint8_t*) malloc (max_packet_size);
     std::string str8;
     //bool result = execute_control_transfer(target_device_address,cmd,NULL,max_packet_size,0,data);
