@@ -91,7 +91,10 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
     hal_init ();
     workarea_t* workarea = get_workarea();
     usbdisk_init ();
-    workarea->mount_mode = usbdisk_select_dsk_file (true,"/");
+    if (usbdisk_autoexec_dsk())
+        workarea->mount_mode = 2;
+    else
+        workarea->mount_mode = usbdisk_select_dsk_file ("/");
     switch (workarea->mount_mode)
     {
         case 2:
@@ -108,25 +111,22 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
 
 void onCallMOUNTDSK ()
 {
-    // close previous DSK file, if needed
-    workarea_t* workarea = get_workarea();
-    if (workarea->mount_mode == 2)
-    {
-        usbdisk_close_dsk_file ();
-    }
-
     hal_init ();
-    workarea->mount_mode = usbdisk_select_dsk_file (false,"/");
+    workarea_t* workarea = get_workarea();
+    usbdisk_init ();
+    workarea->mount_mode = usbdisk_select_dsk_file ("/");
     switch (workarea->mount_mode)
     {
         case 2:
             printf ("+Opened disk image\r\n");
-            workarea->disk_change = true;
+            break;
+        case 1:
+            printf ("+Full disk mode\r\n");
             break;
         default:
-            printf ("-Not a valid choice\r\n");
+            printf ("+Using floppy disk\r\n");
             break;
-    }
+    }   
 }
 
 /*

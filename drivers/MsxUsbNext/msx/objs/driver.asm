@@ -20,7 +20,6 @@
 	.globl _get_workarea_size
 	.globl _interrupt
 	.globl _get_workarea
-	.globl _usbdisk_close_dsk_file
 	.globl _read_write_disk_sectors
 	.globl _read_write_file_sectors
 	.globl _usbdisk_select_dsk_file
@@ -108,53 +107,58 @@ _init_driver::
 ;driver.c:93: usbdisk_init ();
 	push	hl
 	call	_usbdisk_init
+	call	_usbdisk_autoexec_dsk
+	ex	de, hl
 	pop	hl
-;driver.c:94: workarea->mount_mode = usbdisk_select_dsk_file (true,"/");
+	ld	a, d
+	or	a, e
+	jr	Z, 00102$
+;driver.c:95: workarea->mount_mode = 2;
+	ld	(hl), #0x02
+	jr	00103$
+00102$:
+;driver.c:97: workarea->mount_mode = usbdisk_select_dsk_file ("/");
 	ld	bc, #___str_0+0
 	push	hl
 	push	bc
-	ld	a, #0x01
-	push	af
-	inc	sp
 	call	_usbdisk_select_dsk_file
 	pop	af
 	ld	a, l
-	inc	sp
 	pop	hl
 	ld	(hl), a
-;driver.c:95: switch (workarea->mount_mode)
-	ld	c, (hl)
-	dec	a
-	jr	Z, 00102$
-	ld	a, c
+00103$:
+;driver.c:98: switch (workarea->mount_mode)
+	ld	a, (hl)
+	cp	a, #0x01
+	jr	Z, 00105$
 	sub	a, #0x02
-	jr	NZ, 00103$
-;driver.c:98: printf ("+Opened disk image\r\n");
+	jr	NZ, 00106$
+;driver.c:101: printf ("+Opened disk image\r\n");
 	ld	hl, #___str_2
 	push	hl
 	call	_puts
 	pop	af
-;driver.c:99: break;
-	jr	00105$
-;driver.c:100: case 1:
-00102$:
-;driver.c:101: printf ("+Full disk mode\r\n");
+;driver.c:102: break;
+	jr	00108$
+;driver.c:103: case 1:
+00105$:
+;driver.c:104: printf ("+Full disk mode\r\n");
 	ld	hl, #___str_4
 	push	hl
 	call	_puts
 	pop	af
-;driver.c:102: break;
-	jr	00105$
-;driver.c:103: default:
-00103$:
-;driver.c:104: printf ("+Using floppy disk\r\n");
+;driver.c:105: break;
+	jr	00108$
+;driver.c:106: default:
+00106$:
+;driver.c:107: printf ("+Using floppy disk\r\n");
 	ld	hl, #___str_6
 	push	hl
 	call	_puts
 	pop	af
-;driver.c:106: }   
-00105$:
-;driver.c:107: }
+;driver.c:109: }   
+00108$:
+;driver.c:110: }
 	pop	ix
 	ret
 ___str_0:
@@ -172,69 +176,60 @@ ___str_6:
 	.ascii "+Using floppy disk"
 	.db 0x0d
 	.db 0x00
-;driver.c:109: void onCallMOUNTDSK ()
+;driver.c:112: void onCallMOUNTDSK ()
 ;	---------------------------------
 ; Function onCallMOUNTDSK
 ; ---------------------------------
 _onCallMOUNTDSK::
-	push	ix
-	ld	ix,#0
-	add	ix,sp
-	push	af
-;driver.c:112: workarea_t* workarea = get_workarea();
-	call	_get_workarea
-	ex	(sp), hl
-;driver.c:113: if (workarea->mount_mode == 2)
-	pop	hl
-	push	hl
-	ld	a, (hl)
-	sub	a, #0x02
-	jr	NZ, 00102$
-;driver.c:115: usbdisk_close_dsk_file ();
-	call	_usbdisk_close_dsk_file
-00102$:
-;driver.c:118: hal_init ();
+;driver.c:114: hal_init ();
 	call	_hal_init
-;driver.c:119: workarea->mount_mode = usbdisk_select_dsk_file (false,"/");
-	ld	hl, #___str_7
+;driver.c:115: workarea_t* workarea = get_workarea();
+	call	_get_workarea
+;driver.c:116: usbdisk_init ();
 	push	hl
-	xor	a, a
-	push	af
-	inc	sp
+	call	_usbdisk_init
+	pop	hl
+;driver.c:117: workarea->mount_mode = usbdisk_select_dsk_file ("/");
+	ld	bc, #___str_7+0
+	push	hl
+	push	bc
 	call	_usbdisk_select_dsk_file
 	pop	af
 	ld	a, l
-	inc	sp
 	pop	hl
-	push	hl
 	ld	(hl), a
-;driver.c:120: switch (workarea->mount_mode)
+;driver.c:118: switch (workarea->mount_mode)
+	ld	c, (hl)
+	dec	a
+	jr	Z, 00102$
+	ld	a, c
 	sub	a, #0x02
-	jr	NZ, 00104$
-;driver.c:123: printf ("+Opened disk image\r\n");
+	jr	NZ, 00103$
+;driver.c:121: printf ("+Opened disk image\r\n");
 	ld	hl, #___str_9
 	push	hl
 	call	_puts
 	pop	af
-;driver.c:124: workarea->disk_change = true;
-	pop	hl
-	push	hl
-	inc	hl
-	ld	(hl), #0x01
-;driver.c:125: break;
-	jr	00106$
-;driver.c:126: default:
-00104$:
-;driver.c:127: printf ("-Not a valid choice\r\n");
+;driver.c:122: break;
+	ret
+;driver.c:123: case 1:
+00102$:
+;driver.c:124: printf ("+Full disk mode\r\n");
 	ld	hl, #___str_11
 	push	hl
 	call	_puts
 	pop	af
-;driver.c:129: }
-00106$:
+;driver.c:125: break;
+	ret
+;driver.c:126: default:
+00103$:
+;driver.c:127: printf ("+Using floppy disk\r\n");
+	ld	hl, #___str_13
+	push	hl
+	call	_puts
+	pop	af
+;driver.c:129: }   
 ;driver.c:130: }
-	ld	sp, ix
-	pop	ix
 	ret
 ___str_7:
 	.ascii "/"
@@ -244,7 +239,11 @@ ___str_9:
 	.db 0x0d
 	.db 0x00
 ___str_11:
-	.ascii "-Not a valid choice"
+	.ascii "+Full disk mode"
+	.db 0x0d
+	.db 0x00
+___str_13:
+	.ascii "+Using floppy disk"
 	.db 0x0d
 	.db 0x00
 ;driver.c:142: uint8_t get_nr_drives_boottime (uint8_t reduced_drive_count,uint8_t dos_mode)
@@ -369,7 +368,7 @@ _get_device_info::
 ;driver.c:285: strcpy ((char*)info_buffer,"S0urceror");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_12
+	ld	hl, #___str_14
 	xor	a, a
 00141$:
 	cp	a, (hl)
@@ -382,7 +381,7 @@ _get_device_info::
 ;driver.c:288: strcpy ((char*)info_buffer,"MSXUSBNext");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_13
+	ld	hl, #___str_15
 	xor	a, a
 00142$:
 	cp	a, (hl)
@@ -395,7 +394,7 @@ _get_device_info::
 ;driver.c:291: strcpy ((char*)info_buffer,"0000");
 	ld	e, 6 (ix)
 	ld	d, 7 (ix)
-	ld	hl, #___str_14
+	ld	hl, #___str_16
 	xor	a, a
 00143$:
 	cp	a, (hl)
@@ -416,13 +415,13 @@ _get_device_info::
 ;driver.c:298: }
 	pop	ix
 	ret
-___str_12:
+___str_14:
 	.ascii "S0urceror"
 	.db 0x00
-___str_13:
+___str_15:
 	.ascii "MSXUSBNext"
 	.db 0x00
-___str_14:
+___str_16:
 	.ascii "0000"
 	.db 0x00
 ;driver.c:329: uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)

@@ -14,14 +14,14 @@ void usbdisk_init ()
     ch376_reset_all();
     if (!ch376_plugged_in())
         error ("-CH376 NOT detected");
-    printf ("+CH376 detected\r\n");
+    //printf ("+CH376 detected\r\n");
     ch376_set_usb_host_mode(USB_MODE_HOST);
     if (!ch376_connect_disk ())
         error ("-Connect USB device");
-    printf ("+USB device connected\r\n");
+    //printf ("+USB device connected\r\n");
     if (!ch376_mount_disk ())
         error ("-Not a valid disk");
-    printf ("+USB disk mounted\r\n");
+    //printf ("+USB disk mounted\r\n");
 }
 
 char* toLower(char* s) {
@@ -33,8 +33,44 @@ char* toUpper(char* s) {
   return s;
 }
 
+bool usbdisk_autoexec_dsk()
+{
+    uint8_t cnt_times;
+
+    // open root directory
+    ch376_set_filename ("/");
+    if (!ch376_open_directory())
+    {
+        error ("-Directory not opened");
+    }
+
+    // try to open AUTOEXEC.DSK
+    ch376_set_filename ("AUTOEXEC.DSK");
+    if (ch376_open_file())
+    {
+        printf ("\r\nStarting AUTOEXEC.DSK or press ESC ");
+        for (cnt_times=3;cnt_times>0;cnt_times--)
+        {
+            delay_ms (1000);
+            if (pressed_ESC())
+                break;            
+            printf (".");
+        }
+        if (cnt_times==0)
+        {
+            printf ("\r\n");
+            return true;
+        }
+        else 
+        {
+            ch376_close_file ();
+        }
+    }
+    return false;
+}
+
 #define MAX_FILES 26
-select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed,char* start_directory)
+select_mode_t usbdisk_select_dsk_file (char* start_directory)
 {
     uint8_t nr_dsk_files_found;
     fat_dir_info_t info;
@@ -49,21 +85,23 @@ select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed,char* start_direc
 
     nr_dsk_files_found=0;
 
+    // open directory passed in the argument
     ch376_set_filename (start_directory);
     if (!ch376_open_directory())
     {
         error ("-Directory not opened");
     }
+
+    // standard options
+    printf ("\r\nSelect device:\r\n");
+    printf ("1.FLOPPY       2.USBDRIVE\r\n\r\n");
+    
+    // browse directory
     ch376_set_filename ("*");
     if (!ch376_open_search ())
         error ("-No files found");
     
-    if (whole_disk_allowed)
-    {
-        printf ("\r\nSelect device, or:\r\n");
-        printf (" 1.FLOPPY   2.USBDRIVE\r\n");
-    }
-    printf ("Select DSK from [%s]:\r\n",start_directory);
+    printf ("Or, select DSK image [%s]:\r\n",start_directory);
     uint8_t cnt;
     do 
     {
@@ -88,12 +126,18 @@ select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed,char* start_direc
                     }
                     putchar (' ');
                     nr_dsk_files_found++;
+                    if ((nr_dsk_files_found%nr_dsks_per_line) == 0)
+                    {
+                        putchar ('\r');
+                        putchar ('\n');
+                    }                    
                 }
             }
             if (info.DIR_Attr&0x10)
             {
                 putchar ('A'+nr_dsk_files_found);
                 putchar ('.');
+                putchar ('\\');
                 files[nr_dsk_files_found][8]='\0';
                 for (cnt=0;cnt<8;cnt++)
                 {
@@ -101,16 +145,15 @@ select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed,char* start_direc
                     files[nr_dsk_files_found][cnt]=info.DIR_Name[cnt];
                 }
                 putchar (' ');
-                putchar ('D');
-                putchar ('I');
-                putchar ('R');
+                putchar (' ');
+                putchar (' ');
                 putchar (' ');
                 nr_dsk_files_found++;
-            }
-            if ((nr_dsk_files_found%nr_dsks_per_line) == 0)
-            {
-                putchar ('\r');
-                putchar ('\n');
+                if ((nr_dsk_files_found%nr_dsks_per_line) == 0)
+                {
+                    putchar ('\r');
+                    putchar ('\n');
+                }
             }
         }
     }
@@ -128,9 +171,9 @@ select_mode_t usbdisk_select_dsk_file (bool whole_disk_allowed,char* start_direc
         {
             // directory
             if (files[c][0]=='.')
-                return usbdisk_select_dsk_file (whole_disk_allowed,"/");
+                return usbdisk_select_dsk_file ("/");
             else
-                return usbdisk_select_dsk_file (whole_disk_allowed,files[c]);
+                return usbdisk_select_dsk_file (files[c]);
         }
         else
         {

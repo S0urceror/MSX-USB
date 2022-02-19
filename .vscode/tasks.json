@@ -143,7 +143,10 @@
             },
             "command": "make MSX",
             "problemMatcher": [],
-            "group": "build"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "NXT - Make Teensy",
@@ -162,10 +165,7 @@
             },
             "command": "make MacOS",
             "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         }
     ]
 }

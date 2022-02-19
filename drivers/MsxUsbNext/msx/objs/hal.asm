@@ -23,6 +23,7 @@
 	.globl _error
 	.globl _putchar
 	.globl _getchar
+	.globl _pressed_ESC
 	.globl _read_data_multiple
 	.globl _write_data_multiple
 ;--------------------------------------------------------
@@ -225,14 +226,7 @@ _putchar::
 ; Function getchar
 ; ---------------------------------
 _getchar::
-;hal.c:139: __endasm;
-	_get_char_again:
-;ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
-;push	ix
-;ld	ix,#0x009c ;address of BIOS routine
-;call	0x001c ;interslot call
-;pop	ix
-;jr	z, _get_char_again
+;hal.c:131: __endasm;
 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
 	push	ix
 	ld	ix,#0x009f ;address of BIOS routine
@@ -240,70 +234,64 @@ _getchar::
 	pop	ix
 	ld	h,#0
 	ld	l,a
-;hal.c:140: }
+;hal.c:132: }
 	ret
-;hal.c:142: void  read_data_multiple (uint8_t* buffer,uint8_t len)
+;hal.c:134: bool pressed_ESC() __z88dk_fastcall __naked
+;	---------------------------------
+; Function pressed_ESC
+; ---------------------------------
+_pressed_ESC::
+;hal.c:157: __endasm;
+;	character in keybuffer?
+	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
+	push	ix
+	ld	ix,#0x009c ;address of BIOS routine
+	call	0x001c ;interslot call
+	pop	ix
+	ld	l,#0
+	ret	z
+;	yes? lets check if its ESCape
+	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
+	push	ix
+	ld	ix,#0x009f ;address of BIOS routine
+	call	0x001c ;interslot call
+	pop	ix
+	cp	#27
+	ld	l,#1
+	ret	z
+	ld	l,#0
+	ret
+;hal.c:158: }
+;hal.c:160: void  read_data_multiple (uint8_t* buffer,uint8_t len)
 ;	---------------------------------
 ; Function read_data_multiple
 ; ---------------------------------
 _read_data_multiple::
-;hal.c:145: uint8_t* ptr=buffer;
-	pop	de
-	pop	bc
-	push	bc
-	push	de
-;hal.c:146: for (cnt=0;cnt<len;cnt++)
-	ld	e, #0x00
-00103$:
-	ld	hl, #4
-	add	hl, sp
-	ld	a, e
-	sub	a, (hl)
-	ret	NC
-;hal.c:147: *(ptr++) = read_data();
-	push	bc
-	push	de
-	call	_read_data
-	ld	a, l
-	pop	de
-	pop	bc
-	ld	(bc), a
-	inc	bc
-;hal.c:146: for (cnt=0;cnt<len;cnt++)
-	inc	e
-;hal.c:148: }
-	jr	00103$
-;hal.c:149: void    write_data_multiple (uint8_t* buffer,uint8_t len)
+;hal.c:170: __endasm;
+	ld	iy, #2
+	add	iy,sp
+	ld	b,+2(iy)
+	ld	h,+1(iy)
+	ld	l,+0(iy)
+	ld	c, #0x10
+	inir
+;hal.c:171: }
+	ret
+;hal.c:172: void    write_data_multiple (uint8_t* buffer,uint8_t len)
 ;	---------------------------------
 ; Function write_data_multiple
 ; ---------------------------------
 _write_data_multiple::
-;hal.c:152: uint8_t* ptr=buffer;
-	pop	de
-	pop	bc
-	push	bc
-	push	de
-;hal.c:153: for (cnt=0;cnt<len;cnt++)
-	ld	e, #0x00
-00103$:
-	ld	hl, #4
-	add	hl, sp
-	ld	a, e
-	sub	a, (hl)
-	ret	NC
-;hal.c:154: write_data(*(ptr++));
-	ld	a, (bc)
-	ld	l, a
-	inc	bc
-	push	bc
-	push	de
-	call	_write_data
-	pop	de
-	pop	bc
-;hal.c:153: for (cnt=0;cnt<len;cnt++)
-	inc	e
-;hal.c:155: }
-	jr	00103$
+;hal.c:182: __endasm;
+	ld	iy, #2
+	add	iy,sp
+	ld	b,+2(iy)
+	ld	h,+1(iy)
+	ld	l,+0(iy)
+	ld	c, #0x10
+	otir
+;hal.c:183: }
+	ret
 	.area _CODE
 	.area _INITIALIZER
 	.area _CABS (ABS)

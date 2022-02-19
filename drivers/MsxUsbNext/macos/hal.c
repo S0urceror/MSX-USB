@@ -139,3 +139,7 @@ void error (char* txt)
     printf ("Error: %s\r\n",txt);
     exit (0);
 }
+bool pressed_ESC()
+{
+    return true;
+}

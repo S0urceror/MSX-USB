@@ -1,5 +1,5 @@
 XL3
-H 9 areas 13 global symbols
+H 9 areas 14 global symbols
 M hal
 O -mz80
 S __divuint Ref000000
@@ -7,12 +7,13 @@ S _text_columns Def00F3AE
 S _msx_version Def00002D
 S .__.ABS. Def000000
 S _printf Ref000000
-A _CODE size CA flags 0 addr 0
+A _CODE size E7 flags 0 addr 0
 S _write_data Def00004E
 S _write_command Def00004A
 S _error Def00005A
 S _msx_wait Def000031
-S _write_data_multiple Def0000B0
+S _write_data_multiple Def0000D3
+S _pressed_ESC Def000096
 S _putchar Def000066
 S _hal_init Def00000C
 S _supports_80_column_mode Def000000
@@ -21,7 +22,7 @@ S _hal_deinit Def000030
 S _read_data Def000052
 S _getchar Def000083
 S _read_status Def000056
-S _read_data_multiple Def000096
+S _read_data_multiple Def0000BF
 A _DATA size 0 flags 0 addr 0
 A _INITIALIZED size 0 flags 0 addr 0
 A _DABS size 0 flags 8 addr 0
@@ -94,29 +95,29 @@ T 80 00 00 66 6F C9
 R 00 00 00 00
 T 83 00 00
 R 00 00 00 00
-T 83 00 00
-R 00 00 00 00
 T 83 00 00 FD 2A C0 FC DD E5 DD 21 9F 00 CD 1C 00
 R 00 00 00 00
 T 90 00 00 DD E1 26 00 6F C9
 R 00 00 00 00
 T 96 00 00
 R 00 00 00 00
-T 96 00 00 D1 C1 C5 D5 1E 00
+T 96 00 00 FD 2A C0 FC DD E5 DD 21 9C 00 CD 1C 00
 R 00 00 00 00
-T 9C 00 00
+T A3 00 00 DD E1 2E 00 C8 FD 2A C0 FC DD E5 DD 21
 R 00 00 00 00
-T 9C 00 00 21 04 00 39 7B 96 D0 C5 D5 CD 52 00 7D
-R 00 00 00 00 00 0D 00 00
-T A9 00 00 D1 C1 02 03 1C 18 EC
+T B0 00 00 9F 00 CD 1C 00 DD E1 FE 1B 2E 01 C8 2E
 R 00 00 00 00
-T B0 00 00
+T BD 00 00 00 C9
 R 00 00 00 00
-T B0 00 00 D1 C1 C5 D5 1E 00
+T BF 00 00
 R 00 00 00 00
-T B6 00 00
+T BF 00 00 FD 21 02 00 FD 39 FD 46 02 FD 66 01 FD
 R 00 00 00 00
-T B6 00 00 21 04 00 39 7B 96 D0 0A 6F 03 C5 D5 CD
+T CC 00 00 6E 00 0E 10 ED B2 C9
 R 00 00 00 00
-T C3 00 00 4E 00 D1 C1 1C 18 EC
-R 00 00 00 00 00 03 00 00
+T D3 00 00
+R 00 00 00 00
+T D3 00 00 FD 21 02 00 FD 39 FD 46 02 FD 66 01 FD
+R 00 00 00 00
+T E0 00 00 6E 00 0E 10 ED B3 C9
+R 00 00 00 00

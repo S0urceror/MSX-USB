@@ -120,14 +120,6 @@ int putchar (int character)
 int getchar ()
 {
     __asm
-_get_char_again:
-    ;ld     iy,(#BIOS_EXPTBL-1)       ;BIOS slot in iyh
-    ;push ix
-    ;ld     ix,#BIOS_CHSNS      ;address of BIOS routine
-    ;call   BIOS_CALSLT          ;interslot call
-    ;pop ix
-    ;jr z, _get_char_again
-
     ld     iy,(#BIOS_EXPTBL-1)       ;BIOS slot in iyh
     push ix
     ld     ix,#BIOS_CHGET      ;address of BIOS routine
@@ -139,6 +131,58 @@ _get_char_again:
     __endasm;
 }
 
+bool pressed_ESC() __z88dk_fastcall __naked
+{
+    __asm
+    ; character in keybuffer?
+    ld     iy,(#BIOS_EXPTBL-1)       ;BIOS slot in iyh
+    push ix
+    ld     ix,#BIOS_CHSNS      ;address of BIOS routine
+    call   BIOS_CALSLT          ;interslot call
+    pop ix
+    ld l,#0
+    ret z
+
+    ; yes? lets check if its ESCape
+    ld     iy,(#BIOS_EXPTBL-1)       ;BIOS slot in iyh
+    push ix
+    ld     ix,#BIOS_CHGET      ;address of BIOS routine
+    call   BIOS_CALSLT          ;interslot call
+    pop ix
+    cp #27
+    ld l,#1
+    ret z
+    ld l,#0
+    ret
+    __endasm;
+}
+
+void  read_data_multiple (uint8_t* buffer,uint8_t len)
+{
+    __asm
+    ld iy, #2
+    add iy,sp
+    ld b,+2(iy)
+    ld h,+1(iy)
+    ld l,+0(iy)
+    ld c, #DATA_PORT
+    inir 
+    __endasm;
+}
+void    write_data_multiple (uint8_t* buffer,uint8_t len)
+{
+    __asm
+    ld iy, #2
+    add iy,sp
+    ld b,+2(iy)
+    ld h,+1(iy)
+    ld l,+0(iy)
+    ld c, #DATA_PORT
+    otir 
+    __endasm;
+}
+
+/*
 void  read_data_multiple (uint8_t* buffer,uint8_t len)
 {
     uint8_t cnt;
@@ -153,3 +197,4 @@ void    write_data_multiple (uint8_t* buffer,uint8_t len)
     for (cnt=0;cnt<len;cnt++)
         write_data(*(ptr++));
 }
+*/

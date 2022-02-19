@@ -9,6 +9,7 @@ void hal_deinit ();
     void    write_data (uint8_t data);
     uint8_t read_data ();
     uint8_t read_status ();
+    bool    pressed_ESC();
 #else
     #ifndef ROOKIEDRIVE
         #define CMD_PORT 0x11
@@ -23,12 +24,14 @@ void hal_deinit ();
     uint8_t read_status ()  __z88dk_fastcall __naked;
     int     putchar (int character);
     int     getchar ();
+    bool    pressed_ESC() __z88dk_fastcall __naked;
 #endif
 void    read_data_multiple (uint8_t* buffer,uint8_t len);
 void    write_data_multiple (uint8_t* buffer,uint8_t len);
 void    delay_ms (uint16_t milliseconds);
 void    error (char* txt);
 bool    supports_80_column_mode ();
+
 
 
 
