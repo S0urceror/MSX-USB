@@ -91,7 +91,7 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
     hal_init ();
     workarea_t* workarea = get_workarea();
     usbdisk_init ();
-    if (usbdisk_autoexec_dsk())
+    if (usbdisk_autoexec_dsk()==true)
         workarea->mount_mode = 2;
     else
         workarea->mount_mode = usbdisk_select_dsk_file ("/");

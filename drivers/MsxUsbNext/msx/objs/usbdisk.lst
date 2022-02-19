@@ -239,7 +239,7 @@
       0000F2 E5               [11]  230 	push	hl
       0000F3 CDr00r00         [17]  231 	call	_ch376_set_filename
       0000F6 F1               [10]  232 	pop	af
-                                    233 ;../generic/usbdisk.c:49: if (ch376_open_file())
+                                    233 ;../generic/usbdisk.c:49: if (ch376_open_file()==true)
       0000F7 CDr00r00         [17]  234 	call	_ch376_open_file
       0000FA CB 45            [ 8]  235 	bit	0, l
       0000FC 28 3E            [12]  236 	jr	Z, 00110$

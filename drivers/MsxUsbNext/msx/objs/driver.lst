@@ -23,112 +23,112 @@
                                      23 	.globl _read_write_disk_sectors
                                      24 	.globl _read_write_file_sectors
                                      25 	.globl _usbdisk_select_dsk_file
-                                     26 	.globl _usbdisk_init
-                                     27 	.globl _hal_init
-                                     28 	.globl _puts
-                                     29 ;--------------------------------------------------------
-                                     30 ; special function registers
-                                     31 ;--------------------------------------------------------
+                                     26 	.globl _usbdisk_autoexec_dsk
+                                     27 	.globl _usbdisk_init
+                                     28 	.globl _hal_init
+                                     29 	.globl _puts
+                                     30 ;--------------------------------------------------------
+                                     31 ; special function registers
                                      32 ;--------------------------------------------------------
-                                     33 ; ram data
-                                     34 ;--------------------------------------------------------
-                                     35 	.area _DATA
-                                     36 ;--------------------------------------------------------
-                                     37 ; ram data
-                                     38 ;--------------------------------------------------------
-                                     39 	.area _INITIALIZED
-                                     40 ;--------------------------------------------------------
-                                     41 ; absolute external ram data
-                                     42 ;--------------------------------------------------------
-                                     43 	.area _DABS (ABS)
-                                     44 ;--------------------------------------------------------
-                                     45 ; global & static initialisations
-                                     46 ;--------------------------------------------------------
-                                     47 	.area _HOME
-                                     48 	.area _GSINIT
-                                     49 	.area _GSFINAL
-                                     50 	.area _GSINIT
-                                     51 ;--------------------------------------------------------
-                                     52 ; Home
-                                     53 ;--------------------------------------------------------
-                                     54 	.area _HOME
+                                     33 ;--------------------------------------------------------
+                                     34 ; ram data
+                                     35 ;--------------------------------------------------------
+                                     36 	.area _DATA
+                                     37 ;--------------------------------------------------------
+                                     38 ; ram data
+                                     39 ;--------------------------------------------------------
+                                     40 	.area _INITIALIZED
+                                     41 ;--------------------------------------------------------
+                                     42 ; absolute external ram data
+                                     43 ;--------------------------------------------------------
+                                     44 	.area _DABS (ABS)
+                                     45 ;--------------------------------------------------------
+                                     46 ; global & static initialisations
+                                     47 ;--------------------------------------------------------
+                                     48 	.area _HOME
+                                     49 	.area _GSINIT
+                                     50 	.area _GSFINAL
+                                     51 	.area _GSINIT
+                                     52 ;--------------------------------------------------------
+                                     53 ; Home
+                                     54 ;--------------------------------------------------------
                                      55 	.area _HOME
-                                     56 ;--------------------------------------------------------
-                                     57 ; code
-                                     58 ;--------------------------------------------------------
-                                     59 	.area _CODE
-                                     60 ;driver.c:12: workarea_t* get_workarea() __z88dk_fastcall __naked
-                                     61 ;	---------------------------------
-                                     62 ; Function get_workarea
-                                     63 ; ---------------------------------
-      000000                         64 _get_workarea::
-                                     65 ;driver.c:27: __endasm;
-                           004045    66 	GWORK	.equ 0x4045
-                           004042    67 	CALBNK	.equ 0x4042
-      000000 DD E5            [15]   68 	push	ix
-      000002 AF               [ 4]   69 	xor	a
-      000003 08               [ 4]   70 	ex	af,af' ;'
-      000004 AF               [ 4]   71 	xor	a
-      000005 DD 21 45 40      [14]   72 	LD	ix,#GWORK
-      000009 CD 42 40         [17]   73 	call	CALBNK
-      00000C DD 6E 00         [19]   74 	ld	l,0(ix)
-      00000F DD 66 01         [19]   75 	ld	h,1(ix)
-      000012 DD E1            [14]   76 	pop	ix
-      000014 C9               [10]   77 	ret
-                                     78 ;driver.c:28: } 
-                                     79 ;driver.c:36: void interrupt ()
-                                     80 ;	---------------------------------
-                                     81 ; Function interrupt
-                                     82 ; ---------------------------------
-      000015                         83 _interrupt::
-                                     84 ;driver.c:41: }
-      000015 C9               [10]   85 	ret
-                                     86 ;driver.c:56: uint16_t get_workarea_size (uint8_t reduced_drive_count,uint8_t nr_available_drives)
-                                     87 ;	---------------------------------
-                                     88 ; Function get_workarea_size
-                                     89 ; ---------------------------------
-      000016                         90 _get_workarea_size::
-                                     91 ;driver.c:62: return sizeof (workarea_t);
-      000016 21 02 00         [10]   92 	ld	hl, #0x0002
-                                     93 ;driver.c:63: }
-      000019 C9               [10]   94 	ret
-                                     95 ;driver.c:85: void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
-                                     96 ;	---------------------------------
-                                     97 ; Function init_driver
-                                     98 ; ---------------------------------
-      00001A                         99 _init_driver::
-      00001A DD E5            [15]  100 	push	ix
-      00001C DD 21 00 00      [14]  101 	ld	ix,#0
-      000020 DD 39            [15]  102 	add	ix,sp
-                                    103 ;driver.c:91: hal_init ();
-      000022 CDr00r00         [17]  104 	call	_hal_init
-                                    105 ;driver.c:92: workarea_t* workarea = get_workarea();
-      000025 CDr00r00         [17]  106 	call	_get_workarea
-                                    107 ;driver.c:93: usbdisk_init ();
-      000028 E5               [11]  108 	push	hl
-      000029 CDr00r00         [17]  109 	call	_usbdisk_init
-      00002C CDr00r00         [17]  110 	call	_usbdisk_autoexec_dsk
-      00002F EB               [ 4]  111 	ex	de, hl
-      000030 E1               [10]  112 	pop	hl
-      000031 7A               [ 4]  113 	ld	a, d
-      000032 B3               [ 4]  114 	or	a, e
-      000033 28 04            [12]  115 	jr	Z, 00102$
-                                    116 ;driver.c:95: workarea->mount_mode = 2;
-      000035 36 02            [10]  117 	ld	(hl), #0x02
+                                     56 	.area _HOME
+                                     57 ;--------------------------------------------------------
+                                     58 ; code
+                                     59 ;--------------------------------------------------------
+                                     60 	.area _CODE
+                                     61 ;driver.c:12: workarea_t* get_workarea() __z88dk_fastcall __naked
+                                     62 ;	---------------------------------
+                                     63 ; Function get_workarea
+                                     64 ; ---------------------------------
+      000000                         65 _get_workarea::
+                                     66 ;driver.c:27: __endasm;
+                           004045    67 	GWORK	.equ 0x4045
+                           004042    68 	CALBNK	.equ 0x4042
+      000000 DD E5            [15]   69 	push	ix
+      000002 AF               [ 4]   70 	xor	a
+      000003 08               [ 4]   71 	ex	af,af' ;'
+      000004 AF               [ 4]   72 	xor	a
+      000005 DD 21 45 40      [14]   73 	LD	ix,#GWORK
+      000009 CD 42 40         [17]   74 	call	CALBNK
+      00000C DD 6E 00         [19]   75 	ld	l,0(ix)
+      00000F DD 66 01         [19]   76 	ld	h,1(ix)
+      000012 DD E1            [14]   77 	pop	ix
+      000014 C9               [10]   78 	ret
+                                     79 ;driver.c:28: } 
+                                     80 ;driver.c:36: void interrupt ()
+                                     81 ;	---------------------------------
+                                     82 ; Function interrupt
+                                     83 ; ---------------------------------
+      000015                         84 _interrupt::
+                                     85 ;driver.c:41: }
+      000015 C9               [10]   86 	ret
+                                     87 ;driver.c:56: uint16_t get_workarea_size (uint8_t reduced_drive_count,uint8_t nr_available_drives)
+                                     88 ;	---------------------------------
+                                     89 ; Function get_workarea_size
+                                     90 ; ---------------------------------
+      000016                         91 _get_workarea_size::
+                                     92 ;driver.c:62: return sizeof (workarea_t);
+      000016 21 02 00         [10]   93 	ld	hl, #0x0002
+                                     94 ;driver.c:63: }
+      000019 C9               [10]   95 	ret
+                                     96 ;driver.c:85: void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
+                                     97 ;	---------------------------------
+                                     98 ; Function init_driver
+                                     99 ; ---------------------------------
+      00001A                        100 _init_driver::
+      00001A DD E5            [15]  101 	push	ix
+      00001C DD 21 00 00      [14]  102 	ld	ix,#0
+      000020 DD 39            [15]  103 	add	ix,sp
+                                    104 ;driver.c:91: hal_init ();
+      000022 CDr00r00         [17]  105 	call	_hal_init
+                                    106 ;driver.c:92: workarea_t* workarea = get_workarea();
+      000025 CDr00r00         [17]  107 	call	_get_workarea
+                                    108 ;driver.c:93: usbdisk_init ();
+      000028 E5               [11]  109 	push	hl
+      000029 CDr00r00         [17]  110 	call	_usbdisk_init
+      00002C CDr00r00         [17]  111 	call	_usbdisk_autoexec_dsk
+      00002F D1               [10]  112 	pop	de
+      000030 CB 45            [ 8]  113 	bit	0, l
+      000032 28 05            [12]  114 	jr	Z, 00102$
+                                    115 ;driver.c:95: workarea->mount_mode = 2;
+      000034 3E 02            [ 7]  116 	ld	a, #0x02
+      000036 12               [ 7]  117 	ld	(de), a
       000037 18 0C            [12]  118 	jr	00103$
       000039                        119 00102$:
                                     120 ;driver.c:97: workarea->mount_mode = usbdisk_select_dsk_file ("/");
-      000039 01r6Dr00         [10]  121 	ld	bc, #___str_0+0
-      00003C E5               [11]  122 	push	hl
-      00003D C5               [11]  123 	push	bc
+      000039 D5               [11]  121 	push	de
+      00003A 21r6Dr00         [10]  122 	ld	hl, #___str_0
+      00003D E5               [11]  123 	push	hl
       00003E CDr00r00         [17]  124 	call	_usbdisk_select_dsk_file
       000041 F1               [10]  125 	pop	af
       000042 7D               [ 4]  126 	ld	a, l
-      000043 E1               [10]  127 	pop	hl
-      000044 77               [ 7]  128 	ld	(hl), a
+      000043 D1               [10]  127 	pop	de
+      000044 12               [ 7]  128 	ld	(de), a
       000045                        129 00103$:
                                     130 ;driver.c:98: switch (workarea->mount_mode)
-      000045 7E               [ 7]  131 	ld	a, (hl)
+      000045 1A               [ 7]  131 	ld	a, (de)
       000046 FE 01            [ 7]  132 	cp	a, #0x01
       000048 28 0E            [12]  133 	jr	Z, 00105$
       00004A D6 02            [ 7]  134 	sub	a, #0x02

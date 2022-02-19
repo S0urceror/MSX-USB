@@ -46,7 +46,7 @@ bool usbdisk_autoexec_dsk()
 
     // try to open AUTOEXEC.DSK
     ch376_set_filename ("AUTOEXEC.DSK");
-    if (ch376_open_file())
+    if (ch376_open_file()==true)
     {
         printf ("\r\nStarting AUTOEXEC.DSK or press ESC ");
         for (cnt_times=3;cnt_times>0;cnt_times--)

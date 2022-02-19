@@ -23,6 +23,7 @@
 	.globl _read_write_disk_sectors
 	.globl _read_write_file_sectors
 	.globl _usbdisk_select_dsk_file
+	.globl _usbdisk_autoexec_dsk
 	.globl _usbdisk_init
 	.globl _hal_init
 	.globl _puts
@@ -108,27 +109,26 @@ _init_driver::
 	push	hl
 	call	_usbdisk_init
 	call	_usbdisk_autoexec_dsk
-	ex	de, hl
-	pop	hl
-	ld	a, d
-	or	a, e
+	pop	de
+	bit	0, l
 	jr	Z, 00102$
 ;driver.c:95: workarea->mount_mode = 2;
-	ld	(hl), #0x02
+	ld	a, #0x02
+	ld	(de), a
 	jr	00103$
 00102$:
 ;driver.c:97: workarea->mount_mode = usbdisk_select_dsk_file ("/");
-	ld	bc, #___str_0+0
+	push	de
+	ld	hl, #___str_0
 	push	hl
-	push	bc
 	call	_usbdisk_select_dsk_file
 	pop	af
 	ld	a, l
-	pop	hl
-	ld	(hl), a
+	pop	de
+	ld	(de), a
 00103$:
 ;driver.c:98: switch (workarea->mount_mode)
-	ld	a, (hl)
+	ld	a, (de)
 	cp	a, #0x01
 	jr	Z, 00105$
 	sub	a, #0x02

@@ -230,7 +230,7 @@ _usbdisk_autoexec_dsk::
 	push	hl
 	call	_ch376_set_filename
 	pop	af
-;../generic/usbdisk.c:49: if (ch376_open_file())
+;../generic/usbdisk.c:49: if (ch376_open_file()==true)
 	call	_ch376_open_file
 	bit	0, l
 	jr	Z, 00110$

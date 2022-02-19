@@ -15,6 +15,9 @@ This is a Nextor driver programmed in C. It mounts the USB disk connected to the
     - Format in MacOS, Linux or by DD-ing a DSK file to the USB drive. 
     - You will waste a lot of space because now the USB drive can only contain 720kb.
 
+### MSX compatibility
+On MSX 1 you can only mount FAT12 720kb DSK images. On MSX 2 and higher you can mount FAT16 DSK images of various sizes or the whole USB disk when formatted in FAT16.
+
 ### AUTOEXEC.DSK
 Place a disk image called AUTOEXEC.DSK in the root of the USB drive to mount this image automatically. If your press ESCape within 3 seconds it will show the normal boot menu.
 
