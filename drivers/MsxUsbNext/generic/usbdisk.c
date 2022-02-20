@@ -10,7 +10,7 @@
 
 void usbdisk_init ()
 {
-    printf ("MSXUSB-NXT v0.3 (c)Sourceror\r\n");
+    printf ("MSXUSB-NXT v0.4 (c)Sourceror\r\n");
     ch376_reset_all();
     if (!ch376_plugged_in())
         error ("-CH376 NOT detected");
@@ -162,32 +162,35 @@ select_mode_t usbdisk_select_dsk_file (char* start_directory)
     putchar ('\n');
 
     printf ("\r\n");
-    char c = getchar ();
-    c = toupper (c);
-    if (c>='A' && c<='A'+nr_dsk_files_found)
+    while (true)
     {
-        c-='A';
-        if (files[c][8]=='\0')
+        char c = getchar ();
+        c = toupper (c);
+        if (c>='A' && c<='A'+nr_dsk_files_found)
         {
-            // directory
-            if (files[c][0]=='.')
-                return usbdisk_select_dsk_file ("/");
+            c-='A';
+            if (files[c][8]=='\0')
+            {
+                // directory
+                if (files[c][0]=='.')
+                    return usbdisk_select_dsk_file ("/");
+                else
+                    return usbdisk_select_dsk_file (files[c]);
+            }
             else
-                return usbdisk_select_dsk_file (files[c]);
+            {
+                // files
+                ch376_set_filename (files[c]);
+                if (!ch376_open_file ())
+                    error ("-DSK not opened\r\n");
+                return DSK_IMAGE;
+            }
         }
-        else
-        {
-            // files
-            ch376_set_filename (files[c]);
-            if (!ch376_open_file ())
-                error ("-DSK not opened\r\n");
-            return DSK_IMAGE;
-        }
+        if (c=='1')
+            return FLOPPY;
+        if (c=='2')
+            return USB;
     }
-    if (c=='2')
-        return USB;
-
-    return FLOPPY;
 }
 
 bool read_write_file_sectors (bool writing,uint8_t nr_sectors,uint32_t* sector,uint8_t* sector_buffer)

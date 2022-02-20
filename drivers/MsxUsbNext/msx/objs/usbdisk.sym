@@ -9,15 +9,15 @@ Symbol Table
     .__.H$L.                                                    =  000000 L
   0 ___str_1                                                       000040 R
   0 ___str_11                                                      00018C R
-  0 ___str_12                                                      0004AF R
-  0 ___str_17                                                      0004C5 R
-  0 ___str_18                                                      0004C7 R
-  0 ___str_19                                                      0004D7 R
+  0 ___str_12                                                      00049E R
+  0 ___str_17                                                      0004B4 R
+  0 ___str_18                                                      0004B6 R
+  0 ___str_19                                                      0004C6 R
   0 ___str_2                                                       00005E R
-  0 ___str_21                                                      0004F4 R
-  0 ___str_22                                                      0004F6 R
-  0 ___str_23                                                      0004F8 R
-  0 ___str_24                                                      00050A R
+  0 ___str_21                                                      0004E3 R
+  0 ___str_22                                                      0004E5 R
+  0 ___str_23                                                      0004E7 R
+  0 ___str_24                                                      0004F9 R
   0 ___str_3                                                       000072 R
   0 ___str_4                                                       000086 R
   0 ___str_5                                                       00013F R
@@ -49,15 +49,15 @@ Symbol Table
     _printf                                                        ****** GX
     _putchar                                                       ****** GX
     _puts                                                          ****** GX
-  0 _read_write_disk_sectors                                       0005DE GR
-  0 _read_write_file_sectors                                       000539 GR
+  0 _read_write_disk_sectors                                       0005CD GR
+  0 _read_write_file_sectors                                       000528 GR
     _supports_80_column_mode                                       ****** GX
   0 _toLower                                                       000098 GR
   0 _toUpper                                                       0000B8 GR
     _tolower                                                       ****** GX
     _toupper                                                       ****** GX
   0 _usbdisk_autoexec_dsk                                          0000D8 GR
-  0 _usbdisk_close_dsk_file                                        00062B GR
+  0 _usbdisk_close_dsk_file                                        00061A GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
 Hexadecimal [24-Bits]
 
@@ -71,7 +71,7 @@ Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size    62E   flags    0
+   0 _CODE                                      size    61D   flags    0
    1 _DATA                                      size      0   flags    0
    2 _INITIALIZED                               size      0   flags    0
    3 _DABS                                      size      0   flags    8

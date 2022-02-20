@@ -22,7 +22,7 @@ BIOS_PROCNM  .equ 0xfd89
 ;
 ;Driver version
 	VER_MAIN	.equ	0
-	VER_SEC		.equ	3
+	VER_SEC		.equ	4
 	VER_REV		.equ	0
 
 .if GLOBALS_INITIALIZER
