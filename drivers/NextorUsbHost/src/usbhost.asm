@@ -20,7 +20,7 @@ UNAPI_P:  equ  0
 UNAPI_S:  equ  3
 ; S0urceror's CH376s driver, major and minor version
 IMPLEMENTATION_P:  equ  0
-IMPLEMENTATION_S:  equ  6
+IMPLEMENTATION_S:  equ  8
 
 NXT_DIRECT EQU 0x0000
 

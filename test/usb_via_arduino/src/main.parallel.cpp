@@ -807,39 +807,7 @@ uint8_t data_in_transfer (uint16_t length, uint8_t target_device_address, uint8_
     {
         issue_token(endpoint_number, CH_PID_IN, endpoint_toggle, 0);
         if ((status=waitStatus())!=CH375_USB_INT_SUCCESS)
-        {
             return status;
-/*
-            if ((status&0x2f)==0b00101010) // 2A
-            {
-                printf (">> NAK <<\n");
-                result = NULL;
-                return 0;
-            }
-            if ((status&0x2f)==0b00101110) // 2E
-            {
-                printf (">> STALL <<\n");
-                // un-stall endpoint
-                writeCommand (CH376_CMD_CLR_STALL);
-                writeData (0x80+endpoint_number);
-                if (waitStatus ()!=CH375_USB_INT_SUCCESS)
-                {
-                    //unrecoverable
-                    result = NULL;
-                    return 0;
-                }
-                endpoint_toggle = 0;
-                continue;
-            }
-            if ((status&0x23)==0b00100000) // 20
-            {
-                printf (">> OVER TIME <<\n");
-                result = NULL;
-                return 0;
-            }
-            printf (">> UNEXPECTED 0x%x <<\n",status);
-*/
-        }; 
         endpoint_toggle = endpoint_toggle ^ 1;
         bytes_read = read_usb_data (pTemp,length);
         remaining_data_length -= bytes_read;

@@ -1187,8 +1187,9 @@ _CH_CONTROL_HANDLE_ERROR:
     CH_SEND_DATA
     CH_END_COMMAND
     call CH_WAIT_INT_AND_GET_RESULT
-    cp CH_USB_INT_SUCCESS
-    jr z, _RETRY_AGAIN
+    ; do not check USB_INT_SUCCESS because it won't after STALL
+    ; just try again with the risk of doing this forever
+    jr _RETRY_AGAIN
     ; not interested in preserving original values
     pop ix
     pop ix

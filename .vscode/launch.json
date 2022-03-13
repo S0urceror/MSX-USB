@@ -45,7 +45,7 @@
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/openMSX/derived/openmsx",
-            "args": ["-machine", "Philips_NMS_8250_MSXUSB", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
+            "args": ["-machine", "Philips_NMS_8250_MSXUSB", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
