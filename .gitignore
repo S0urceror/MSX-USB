@@ -11,3 +11,4 @@
 /**/*.vhd
 /openmsx.xml
 /.vscode/*
+drivers/MsxUsbNext/msx/kernel/mknexrom
