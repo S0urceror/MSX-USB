@@ -1,60 +1,60 @@
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
-Hexadecimal [24-Bits]
+Hexadecimal [16-Bits]
 
 Symbol Table
 
-    .__.$$$.                                                    =  002710 L
-    .__.ABS.                                                    =  000000 G
-    .__.CPU.                                                    =  000000 L
-    .__.H$L.                                                    =  000000 L
-    CALBNK                                                      =  004042 
-    GWORK                                                       =  004045 
-  0 _CAPS_FLASH                                                    00022F R
-  0 _CAPS_FLASH_ON                                                 00022D R
-  0 ___str_0                                                       00006D R
-  0 ___str_11                                                      0000F9 R
-  0 ___str_13                                                      00010A R
-  0 ___str_14                                                      0001E8 R
-  0 ___str_15                                                      0001F2 R
-  0 ___str_16                                                      0001FD R
-  0 ___str_2                                                       00006F R
-  0 ___str_4                                                       000083 R
-  0 ___str_6                                                       000094 R
-  0 ___str_7                                                       0000E3 R
-  0 ___str_9                                                       0000E5 R
-  0 _caps_flash                                                    000223 GR
-  0 _get_device_info                                               00016B GR
-  0 _get_device_status                                             000202 GR
-  0 _get_drive_config                                              00012A GR
-  0 _get_lun_info                                                  00012E GR
-  0 _get_nr_drives_boottime                                        00011E GR
-  0 _get_workarea                                                  000000 GR
-  0 _get_workarea_size                                             000016 GR
-    _hal_init                                                      ****** GX
-  0 _init_driver                                                   00001A GR
-  0 _interrupt                                                     000015 GR
-  0 _onCallMOUNTDSK                                                0000A8 GR
-    _puts                                                          ****** GX
-  0 _read_or_write_sector                                          000232 GR
-    _read_write_disk_sectors                                       ****** GX
-    _read_write_file_sectors                                       ****** GX
-    _usbdisk_autoexec_dsk                                          ****** GX
-    _usbdisk_init                                                  ****** GX
-    _usbdisk_select_dsk_file                                       ****** GX
+    .__.$$$.                                                    =  2710 L
+    .__.ABS.                                                    =  0000 G
+    .__.CPU.                                                    =  0000 L
+    .__.H$L.                                                    =  0000 L
+    CALBNK                                                      =  4042 
+    GWORK                                                       =  4045 
+  0 _CAPS_FLASH                                                    020E R
+  0 _CAPS_FLASH_ON                                                 020C R
+  0 ___str_0                                                       0067 R
+  0 ___str_11                                                      00F3 R
+  0 ___str_13                                                      0104 R
+  0 ___str_14                                                      01E2 R
+  0 ___str_15                                                      01EC R
+  0 ___str_16                                                      01F7 R
+  0 ___str_2                                                       0069 R
+  0 ___str_4                                                       007D R
+  0 ___str_6                                                       008E R
+  0 ___str_7                                                       00DD R
+  0 ___str_9                                                       00DF R
+  0 _caps_flash                                                    0202 GR
+  0 _get_device_info                                               0165 GR
+  0 _get_device_status                                             01FC GR
+  0 _get_drive_config                                              0124 GR
+  0 _get_lun_info                                                  0128 GR
+  0 _get_nr_drives_boottime                                        0118 GR
+  0 _get_workarea                                                  0000 GR
+  0 _get_workarea_size                                             0016 GR
+    _hal_init                                                      **** GX
+  0 _init_driver                                                   001A GR
+  0 _interrupt                                                     0015 GR
+  0 _onCallMOUNTDSK                                                00A2 GR
+    _puts                                                          **** GX
+  0 _read_or_write_sector                                          0211 GR
+    _read_write_disk_sectors                                       **** GX
+    _read_write_file_sectors                                       **** GX
+    _usbdisk_autoexec_dsk                                          **** GX
+    _usbdisk_init                                                  **** GX
+    _usbdisk_select_dsk_file                                       **** GX
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
-Hexadecimal [24-Bits]
+Hexadecimal [16-Bits]
 
 Area Table
 
-   0 _CODE                                      size    2AE   flags    0
-   1 _DATA                                      size      0   flags    0
-   2 _INITIALIZED                               size      0   flags    0
-   3 _DABS                                      size      0   flags    8
-   4 _HOME                                      size      0   flags    0
-   5 _GSINIT                                    size      0   flags    0
-   6 _GSFINAL                                   size      0   flags    0
-   7 _INITIALIZER                               size      0   flags    0
-   8 _CABS                                      size      0   flags    8
+   0 _CODE                                      size  285   flags    0
+   1 _DATA                                      size    0   flags    0
+   2 _INITIALIZED                               size    0   flags    0
+   3 _DABS                                      size    0   flags    8
+   4 _HOME                                      size    0   flags    0
+   5 _GSINIT                                    size    0   flags    0
+   6 _GSFINAL                                   size    0   flags    0
+   7 _INITIALIZER                               size    0   flags    0
+   8 _CABS                                      size    0   flags    8
 

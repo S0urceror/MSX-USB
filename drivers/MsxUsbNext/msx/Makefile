@@ -1,5 +1,6 @@
 # tools
 CPP = sdcc
+GCC = gcc #this is to compile mknexrom to the current platform. if you are using macos, you can change to clang --crisag
 ASM = sdasz80
 SJASM = sjasmplus
 HEX2BIN := hex2bin
@@ -25,8 +26,10 @@ KERNEL_DIR := ./kernel
 # distribution
 DIST_OUTPUT_DIR = ./dist
 ROM := $(DIST_OUTPUT_DIR)/nextor.rom
+MKNEXROM := $(KERNEL_DIR)/mknexrom
 
-all: $(ROM)
+# make all
+all: $(MKNEXROM) $(ROM)
 
 $(CPP_OUTPUT_DIR)/driver.rel: driver.c
 	$(CPP) $(CPP_FLAGS) -o $@ $< 
@@ -45,9 +48,11 @@ $(IHX): $(OBJS)
 $(BIN): $(IHX)
 	$(HEX2BIN) -e rom $^
 
+# make clean
 clean:
 	-rm $(CPP_OUTPUT_DIR)/*.*
 	-rm $(LNK_OUTPUT_DIR)/*.*
+	-rm $(KERNEL_DIR)/mknexrom
 
 $(LNK_OUTPUT_DIR)/extra1k.dat: extra1k.asm
 	$(SJASM) $(SJASMFLAGS) $<
@@ -56,7 +61,12 @@ $(LNK_OUTPUT_DIR)/extra1k.dat: extra1k.asm
 $(LNK_OUTPUT_DIR)/chgbnk.bin: chgbnk.asm
 	$(SJASM) $(SJASMFLAGS) $< 
 
-$(ROM): $(LNK_OUTPUT_DIR)/driver.rom $(LNK_OUTPUT_DIR)/chgbnk.bin $(LNK_OUTPUT_DIR)/extra1k.dat
-	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.0.base.dat $(DIST_OUTPUT_DIR)/nextor.rom \
+# generates mknexrom in the current architecture
+$(MKNEXROM): $(KERNEL_DIR)/mknexrom
+	$(GCC) $(KERNEL_DIR)/mknexrom.c -o $(KERNEL_DIR)/mknexrom
+
+$(ROM): $(LNK_OUTPUT_DIR)/driver.rom $(LNK_OUTPUT_DIR)/chgbnk.bin $(LNK_OUTPUT_DIR)/extra1k.dat 
+	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.1-beta2.base.dat $(DIST_OUTPUT_DIR)/nextor.rom \
 							/d:$(LNK_OUTPUT_DIR)/driver.rom /m:$(LNK_OUTPUT_DIR)/chgbnk.bin \
 							/e:$(LNK_OUTPUT_DIR)/extra1k.dat
+							

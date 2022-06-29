@@ -1,6 +1,6 @@
 ;--------------------------------------------------------
 ; File Created by SDCC : free open source ANSI-C Compiler
-; Version 4.1.0 #12072 (Mac OS X ppc)
+; Version 4.0.0 #11528 (Linux)
 ;--------------------------------------------------------
 	.module usbdisk
 	.optsdcc -mz80
@@ -88,7 +88,7 @@ _usbdisk_init::
 ;../generic/usbdisk.c:15: if (!ch376_plugged_in())
 	call	_ch376_plugged_in
 	bit	0, l
-	jr	NZ, 00102$
+	jr	NZ,00102$
 ;../generic/usbdisk.c:16: error ("-CH376 NOT detected");
 	ld	hl, #___str_2
 	push	hl
@@ -104,7 +104,7 @@ _usbdisk_init::
 ;../generic/usbdisk.c:19: if (!ch376_connect_disk ())
 	call	_ch376_connect_disk
 	bit	0, l
-	jr	NZ, 00104$
+	jr	NZ,00104$
 ;../generic/usbdisk.c:20: error ("-Connect USB device");
 	ld	hl, #___str_3
 	push	hl
@@ -148,7 +148,7 @@ _toLower::
 00103$:
 	ld	a, (bc)
 	or	a, a
-	jr	Z, 00101$
+	jr	Z,00101$
 	ld	e, a
 	ld	d, #0x00
 	push	bc
@@ -162,12 +162,10 @@ _toLower::
 	jr	00103$
 00101$:
 ;../generic/usbdisk.c:29: return s;
-	ld	hl, #2
-	add	hl, sp
-	ld	a, (hl)
-	inc	hl
-	ld	h, (hl)
-	ld	l, a
+	pop	bc
+	pop	hl
+	push	hl
+	push	bc
 ;../generic/usbdisk.c:30: }
 	ret
 ;../generic/usbdisk.c:31: char* toUpper(char* s) {
@@ -183,7 +181,7 @@ _toUpper::
 00103$:
 	ld	a, (bc)
 	or	a, a
-	jr	Z, 00101$
+	jr	Z,00101$
 	ld	e, a
 	ld	d, #0x00
 	push	bc
@@ -197,12 +195,10 @@ _toUpper::
 	jr	00103$
 00101$:
 ;../generic/usbdisk.c:33: return s;
-	ld	hl, #2
-	add	hl, sp
-	ld	a, (hl)
-	inc	hl
-	ld	h, (hl)
-	ld	l, a
+	pop	bc
+	pop	hl
+	push	hl
+	push	bc
 ;../generic/usbdisk.c:34: }
 	ret
 ;../generic/usbdisk.c:36: bool usbdisk_autoexec_dsk()
@@ -218,7 +214,7 @@ _usbdisk_autoexec_dsk::
 ;../generic/usbdisk.c:42: if (!ch376_open_directory())
 	call	_ch376_open_directory
 	bit	0, l
-	jr	NZ, 00102$
+	jr	NZ,00102$
 ;../generic/usbdisk.c:44: error ("-Directory not opened");
 	ld	hl, #___str_6
 	push	hl
@@ -233,7 +229,7 @@ _usbdisk_autoexec_dsk::
 ;../generic/usbdisk.c:49: if (ch376_open_file()==true)
 	call	_ch376_open_file
 	bit	0, l
-	jr	Z, 00110$
+	jr	Z,00110$
 ;../generic/usbdisk.c:51: printf ("\r\nStarting AUTOEXEC.DSK or press ESC ");
 	ld	hl, #___str_8
 	push	hl
@@ -251,7 +247,7 @@ _usbdisk_autoexec_dsk::
 	call	_pressed_ESC
 	pop	bc
 	bit	0, l
-	jr	NZ, 00105$
+	jr	NZ,00105$
 ;../generic/usbdisk.c:57: printf (".");
 	push	bc
 	ld	hl, #___str_9
@@ -264,12 +260,12 @@ _usbdisk_autoexec_dsk::
 	ld	b, c
 	ld	a, c
 	or	a, a
-	jr	NZ, 00111$
+	jr	NZ,00111$
 00105$:
 ;../generic/usbdisk.c:59: if (cnt_times==0)
 	ld	a, b
 	or	a, a
-	jr	NZ, 00107$
+	jr	NZ,00107$
 ;../generic/usbdisk.c:61: printf ("\r\n");
 	ld	hl, #___str_11
 	push	hl
@@ -320,7 +316,7 @@ _usbdisk_select_dsk_file::
 ;../generic/usbdisk.c:81: if (supports_80_column_mode())
 	call	_supports_80_column_mode
 	bit	0, l
-	jr	Z, 00102$
+	jr	Z,00102$
 ;../generic/usbdisk.c:82: nr_dsks_per_line = 5;
 	ld	-13 (ix), #0x05
 	jr	00103$
@@ -329,7 +325,8 @@ _usbdisk_select_dsk_file::
 	ld	-13 (ix), #0x02
 00103$:
 ;../generic/usbdisk.c:86: nr_dsk_files_found=0;
-	ld	-2 (ix), #0
+	xor	a, a
+	ld	-2 (ix), a
 ;../generic/usbdisk.c:89: ch376_set_filename (start_directory);
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
@@ -339,7 +336,7 @@ _usbdisk_select_dsk_file::
 ;../generic/usbdisk.c:90: if (!ch376_open_directory())
 	call	_ch376_open_directory
 	bit	0, l
-	jr	NZ, 00105$
+	jr	NZ,00105$
 ;../generic/usbdisk.c:92: error ("-Directory not opened");
 	ld	hl, #___str_12
 	push	hl
@@ -358,7 +355,7 @@ _usbdisk_select_dsk_file::
 ;../generic/usbdisk.c:101: if (!ch376_open_search ())
 	call	_ch376_open_search
 	bit	0, l
-	jr	NZ, 00107$
+	jr	NZ,00107$
 ;../generic/usbdisk.c:102: error ("-No files found");
 	ld	hl, #___str_18
 	push	hl
@@ -409,32 +406,32 @@ _usbdisk_select_dsk_file::
 	jp	NZ,00129$
 ;../generic/usbdisk.c:111: if (info.DIR_Attr&0x20 || info.DIR_Attr==0x00)
 	bit	5, -1 (ix)
-	jr	NZ, 00117$
+	jr	NZ,00117$
 	ld	a, -1 (ix)
 	or	a, a
 	jp	NZ, 00118$
 00117$:
 ;../generic/usbdisk.c:113: if (info.DIR_Name[8]=='D' &&
-	ld	c, -8 (ix)
-	ld	b, -7 (ix)
-	ld	hl, #8
-	add	hl, bc
+	ld	l, -8 (ix)
+	ld	h, -7 (ix)
+	ld	de, #0x0008
+	add	hl, de
 	ld	a, (hl)
 	sub	a, #0x44
 	jp	NZ,00118$
 ;../generic/usbdisk.c:114: info.DIR_Name[9]=='S' &&
-	ld	c, -8 (ix)
-	ld	b, -7 (ix)
-	ld	hl, #9
-	add	hl, bc
+	ld	l, -8 (ix)
+	ld	h, -7 (ix)
+	ld	de, #0x0009
+	add	hl, de
 	ld	a, (hl)
 	sub	a, #0x53
 	jp	NZ,00118$
 ;../generic/usbdisk.c:115: info.DIR_Name[10]=='K')
-	ld	c, -8 (ix)
-	ld	b, -7 (ix)
-	ld	hl, #10
-	add	hl, bc
+	ld	l, -8 (ix)
+	ld	h, -7 (ix)
+	ld	de, #0x000a
+	add	hl, de
 	ld	a, (hl)
 	sub	a, #0x4b
 	jp	NZ,00118$
@@ -477,7 +474,7 @@ _usbdisk_select_dsk_file::
 ;../generic/usbdisk.c:122: if (cnt==8)
 	ld	a, c
 	sub	a, #0x08
-	jr	NZ, 00109$
+	jr	NZ,00109$
 ;../generic/usbdisk.c:123: putchar ('.');
 	push	bc
 	ld	hl, #0x002e
@@ -520,7 +517,7 @@ _usbdisk_select_dsk_file::
 	inc	c
 	ld	a, c
 	sub	a, #0x0b
-	jr	C, 00149$
+	jr	C,00149$
 ;../generic/usbdisk.c:127: putchar (' ');
 	ld	hl, #0x0020
 	push	hl
@@ -536,7 +533,7 @@ _usbdisk_select_dsk_file::
 	pop	af
 	ld	a, l
 	or	a, a
-	jr	NZ, 00118$
+	jr	NZ,00118$
 ;../generic/usbdisk.c:131: putchar ('\r');
 	ld	hl, #0x000d
 	push	hl
@@ -590,7 +587,8 @@ _usbdisk_select_dsk_file::
 ;../generic/usbdisk.c:142: for (cnt=0;cnt<8;cnt++)
 	ld	-4 (ix), c
 	ld	-3 (ix), b
-	ld	-1 (ix), #0
+	xor	a, a
+	ld	-1 (ix), a
 00151$:
 ;../generic/usbdisk.c:144: putchar (tolower(info.DIR_Name[cnt]));
 	ld	a, -8 (ix)
@@ -622,7 +620,7 @@ _usbdisk_select_dsk_file::
 	inc	-1 (ix)
 	ld	a, -1 (ix)
 	sub	a, #0x08
-	jr	C, 00151$
+	jr	C,00151$
 ;../generic/usbdisk.c:147: putchar (' ');
 	ld	hl, #0x0020
 	push	hl
@@ -650,7 +648,7 @@ _usbdisk_select_dsk_file::
 	pop	af
 	ld	a, l
 	or	a, a
-	jr	NZ, 00129$
+	jr	NZ,00129$
 ;../generic/usbdisk.c:154: putchar ('\r');
 	ld	hl, #0x000d
 	push	hl
@@ -664,7 +662,7 @@ _usbdisk_select_dsk_file::
 ;../generic/usbdisk.c:160: while (ch376_next_search () && nr_dsk_files_found<MAX_FILES);
 	call	_ch376_next_search
 	bit	0, l
-	jr	Z, 00130$
+	jr	Z,00130$
 	ld	a, -2 (ix)
 	sub	a, #0x1a
 	jp	C, 00128$
@@ -695,7 +693,7 @@ _usbdisk_select_dsk_file::
 	ld	-1 (ix), l
 	ld	a, l
 	sub	a, #0x41
-	jr	C, 00140$
+	jr	C,00140$
 	ld	c, -2 (ix)
 	ld	b, #0x00
 	ld	hl, #0x0041
@@ -729,9 +727,9 @@ _usbdisk_select_dsk_file::
 	ld	a, -11 (ix)
 	adc	a, d
 	ld	d, a
-	ld	c, e
-	ld	b, d
-	ld	hl, #8
+	ld	l, e
+	ld	h, d
+	ld	bc, #0x0008
 	add	hl, bc
 	ld	a, (hl)
 ;../generic/usbdisk.c:178: return usbdisk_select_dsk_file (files[c]);
@@ -739,11 +737,11 @@ _usbdisk_select_dsk_file::
 	ld	b, d
 ;../generic/usbdisk.c:172: if (files[c][8]=='\0')
 	or	a, a
-	jr	NZ, 00137$
+	jr	NZ,00137$
 ;../generic/usbdisk.c:175: if (files[c][0]=='.')
 	ld	a, (de)
 	sub	a, #0x2e
-	jr	NZ, 00132$
+	jr	NZ,00132$
 ;../generic/usbdisk.c:176: return usbdisk_select_dsk_file ("/");
 	ld	hl, #___str_22
 	push	hl
@@ -764,7 +762,7 @@ _usbdisk_select_dsk_file::
 ;../generic/usbdisk.c:184: if (!ch376_open_file ())
 	call	_ch376_open_file
 	bit	0, l
-	jr	NZ, 00135$
+	jr	NZ,00135$
 ;../generic/usbdisk.c:185: error ("-DSK not opened\r\n");
 	ld	hl, #___str_23
 	push	hl
@@ -779,7 +777,7 @@ _usbdisk_select_dsk_file::
 	ld	a, -1 (ix)
 ;../generic/usbdisk.c:190: return FLOPPY;
 	sub	a,#0x31
-	jr	NZ, 00143$
+	jr	NZ,00143$
 	ld	l,a
 	jr	00153$
 00143$:
@@ -849,7 +847,7 @@ _read_write_file_sectors::
 	pop	af
 	ld	c, l
 	bit	0, c
-	jr	NZ, 00102$
+	jr	NZ,00102$
 ;../generic/usbdisk.c:200: return false;
 	ld	l, #0x00
 	jp	00112$
@@ -857,15 +855,14 @@ _read_write_file_sectors::
 ;../generic/usbdisk.c:201: if (!ch376_get_sector_LBA (nr_sectors,(uint8_t*) &sectors_lba))
 	ld	hl, #0
 	add	hl, sp
-	ld	a, l
 	ld	iy, #8
 	add	iy, sp
-	ld	0 (iy), a
+	ld	0 (iy), l
 	ld	1 (iy), h
 	ld	c, 0 (iy)
 	ld	b, 1 (iy)
 	push	bc
-	ld	hl, #15
+	ld	hl, #15+0
 	add	hl, sp
 	ld	a, (hl)
 	push	af
@@ -874,7 +871,7 @@ _read_write_file_sectors::
 	pop	af
 	inc	sp
 	bit	0, l
-	jr	NZ, 00104$
+	jr	NZ,00104$
 ;../generic/usbdisk.c:202: return false;
 	ld	l, #0x00
 	jr	00112$
@@ -892,10 +889,10 @@ _read_write_file_sectors::
 	ld	d, (hl)
 	ld	b, a
 ;../generic/usbdisk.c:203: if (!writing)
-	ld	hl, #12
+	ld	hl, #12+0
 	add	hl, sp
 	bit	0, (hl)
-	jr	NZ, 00110$
+	jr	NZ,00110$
 ;../generic/usbdisk.c:205: if (!ch376s_disk_read (sectors_lba[0],sectors_lba+4,sector_buffer))
 	ld	hl, #16
 	add	hl, sp
@@ -912,7 +909,7 @@ _read_write_file_sectors::
 	pop	af
 	inc	sp
 	bit	0, l
-	jr	NZ, 00111$
+	jr	NZ,00111$
 ;../generic/usbdisk.c:206: return false;
 	ld	l, #0x00
 	jr	00112$
@@ -936,7 +933,7 @@ _read_write_file_sectors::
 ;../generic/usbdisk.c:211: return false;
 ;../generic/usbdisk.c:214: return true;
 	ld	l, #0x00
-	jr	Z, 00112$
+	jr	Z,00112$
 00111$:
 	ld	l, #0x01
 00112$:
@@ -958,7 +955,7 @@ _read_write_disk_sectors::
 	ld	b, 7 (ix)
 ;../generic/usbdisk.c:219: if (!writing)
 	bit	0, 4 (ix)
-	jr	NZ, 00106$
+	jr	NZ,00106$
 ;../generic/usbdisk.c:221: if (!ch376s_disk_read (nr_sectors,(uint8_t*)sector,sector_buffer))
 	ld	l, 8 (ix)
 	ld	h, 9 (ix)
@@ -972,7 +969,7 @@ _read_write_disk_sectors::
 	pop	af
 	inc	sp
 	bit	0, l
-	jr	NZ, 00107$
+	jr	NZ,00107$
 ;../generic/usbdisk.c:222: return false;
 	ld	l, #0x00
 	jr	00108$
@@ -993,7 +990,7 @@ _read_write_disk_sectors::
 ;../generic/usbdisk.c:227: return false;
 ;../generic/usbdisk.c:230: return true;
 	ld	l, #0x00
-	jr	Z, 00108$
+	jr	Z,00108$
 00107$:
 	ld	l, #0x01
 00108$:

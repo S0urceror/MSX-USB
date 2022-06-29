@@ -1,6 +1,6 @@
 ;--------------------------------------------------------
 ; File Created by SDCC : free open source ANSI-C Compiler
-; Version 4.1.0 #12072 (Mac OS X ppc)
+; Version 4.0.0 #11528 (Linux)
 ;--------------------------------------------------------
 	.module driver
 	.optsdcc -mz80
@@ -99,8 +99,6 @@ _get_workarea_size::
 ; ---------------------------------
 _init_driver::
 	push	ix
-	ld	ix,#0
-	add	ix,sp
 ;driver.c:91: hal_init ();
 	call	_hal_init
 ;driver.c:92: workarea_t* workarea = get_workarea();
@@ -109,30 +107,30 @@ _init_driver::
 	push	hl
 	call	_usbdisk_init
 	call	_usbdisk_autoexec_dsk
-	pop	de
-	bit	0, l
-	jr	Z, 00102$
+	ld	a, l
+	pop	hl
+	bit	0, a
+	jr	Z,00102$
 ;driver.c:95: workarea->mount_mode = 2;
-	ld	a, #0x02
-	ld	(de), a
+	ld	(hl), #0x02
 	jr	00103$
 00102$:
 ;driver.c:97: workarea->mount_mode = usbdisk_select_dsk_file ("/");
-	push	de
-	ld	hl, #___str_0
+	ld	bc, #___str_0+0
 	push	hl
+	push	bc
 	call	_usbdisk_select_dsk_file
 	pop	af
 	ld	a, l
-	pop	de
-	ld	(de), a
+	pop	hl
+	ld	(hl), a
 00103$:
 ;driver.c:98: switch (workarea->mount_mode)
-	ld	a, (de)
+	ld	a, (hl)
 	cp	a, #0x01
-	jr	Z, 00105$
+	jr	Z,00105$
 	sub	a, #0x02
-	jr	NZ, 00106$
+	jr	NZ,00106$
 ;driver.c:101: printf ("+Opened disk image\r\n");
 	ld	hl, #___str_2
 	push	hl
@@ -201,10 +199,10 @@ _onCallMOUNTDSK::
 ;driver.c:118: switch (workarea->mount_mode)
 	ld	c, (hl)
 	dec	a
-	jr	Z, 00102$
+	jr	Z,00102$
 	ld	a, c
 	sub	a, #0x02
-	jr	NZ, 00103$
+	jr	NZ,00103$
 ;driver.c:121: printf ("+Opened disk image\r\n");
 	ld	hl, #___str_9
 	push	hl
@@ -257,7 +255,7 @@ _get_nr_drives_boottime::
 	ld	a, (hl)
 ;driver.c:150: return 0;
 	or	a,a
-	jr	NZ, 00102$
+	jr	NZ,00102$
 	ld	l,a
 	ret
 00102$:
@@ -284,15 +282,15 @@ _get_lun_info::
 	add	iy, sp
 	ld	a, 0 (iy)
 	dec	a
-	jr	NZ, 00102$
-	ld	a, 1 (iy)
+	jr	NZ,00102$
 	inc	iy
+	ld	a, 0 (iy)
 	dec	a
-	jr	NZ, 00102$
+	jr	NZ,00102$
 ;driver.c:218: memset (luninfo,0,sizeof (luninfo_t));
-	ld	l, 1 (iy)
-	ld	h, 2 (iy)
 	inc	iy
+	ld	l, 0 (iy)
+	ld	h, 1 (iy)
 	ld	b, #0x0c
 00120$:
 	ld	(hl), #0x00
@@ -330,7 +328,7 @@ _get_device_info::
 ;driver.c:275: if (nr_device!=1)
 	ld	a, 5 (ix)
 	dec	a
-	jr	Z, 00102$
+	jr	Z,00102$
 ;driver.c:276: return 1;
 	ld	l, #0x01
 	jr	00109$
@@ -338,16 +336,16 @@ _get_device_info::
 ;driver.c:278: switch (nr_info)
 	ld	a, 4 (ix)
 	or	a, a
-	jr	Z, 00103$
+	jr	Z,00103$
 	ld	a, 4 (ix)
 	dec	a
-	jr	Z, 00104$
+	jr	Z,00104$
 	ld	a, 4 (ix)
 	sub	a, #0x02
-	jr	Z, 00105$
+	jr	Z,00105$
 	ld	a, 4 (ix)
 	sub	a, #0x03
-	jr	Z, 00106$
+	jr	Z,00106$
 	jr	00107$
 ;driver.c:280: case 0: // basic information
 00103$:
@@ -429,38 +427,18 @@ ___str_16:
 ; Function get_device_status
 ; ---------------------------------
 _get_device_status::
-;driver.c:335: if (nr_device!=1 || nr_lun!=1)
-	ld	iy, #3
-	add	iy, sp
-	ld	a, 0 (iy)
-	dec	a
-	jr	NZ, 00101$
-	ld	a, -1 (iy)
-	dec	a
-	jr	Z, 00102$
-00101$:
-;driver.c:336: return 0;
-	ld	l, #0x00
-	ret
-00102$:
-;driver.c:338: workarea_t* workarea = get_workarea();
+;driver.c:336: workarea_t* workarea = get_workarea();
 	call	_get_workarea
-;driver.c:339: if (workarea->disk_change)
-	inc	hl
-	bit	0, (hl)
-;driver.c:340: return 2;
-;driver.c:342: return 1;
-	ld	l, #0x02
-	ret	NZ
+;driver.c:346: return ret;
 	ld	l, #0x01
-;driver.c:343: }
+;driver.c:348: }
 	ret
-;driver.c:345: void caps_flash () __z88dk_fastcall __naked
+;driver.c:350: void caps_flash () __z88dk_fastcall __naked
 ;	---------------------------------
 ; Function caps_flash
 ; ---------------------------------
 _caps_flash::
-;driver.c:360: __endasm;
+;driver.c:365: __endasm;
 ;	CAPS FLASH
 	in	a, (0xaa)
 	bit	6,a
@@ -473,8 +451,8 @@ _caps_flash::
 	out	(0xaa),a
 	ret
 ;
-;driver.c:361: }
-;driver.c:388: diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device, uint8_t nr_lun, uint8_t nr_sectors, uint32_t* sector, uint8_t* sector_buffer)
+;driver.c:366: }
+;driver.c:393: diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device, uint8_t nr_lun, uint8_t nr_sectors, uint32_t* sector, uint8_t* sector_buffer)
 ;	---------------------------------
 ; Function read_or_write_sector
 ; ---------------------------------
@@ -482,86 +460,78 @@ _read_or_write_sector::
 	push	ix
 	ld	ix,#0
 	add	ix,sp
-;driver.c:397: workarea_t* workarea = get_workarea();
+;driver.c:402: workarea_t* workarea = get_workarea();
 	call	_get_workarea
-;driver.c:400: if (nr_device!=1 || nr_lun!=1)
+;driver.c:405: if (nr_device!=1 || nr_lun!=1)
 	ld	a, 5 (ix)
 	dec	a
-	jr	NZ, 00101$
+	jr	NZ,00101$
 	ld	a, 6 (ix)
 	dec	a
-	jr	Z, 00102$
+	jr	Z,00102$
 00101$:
-;driver.c:401: return IDEVL;
+;driver.c:406: return IDEVL;
 	ld	l, #0xb5
 	jr	00111$
 00102$:
-;driver.c:403: caps_flash ();
+;driver.c:408: caps_flash ();
 	push	hl
 	call	_caps_flash
 	pop	hl
-;driver.c:405: if (workarea->mount_mode==2)
+;driver.c:410: if (workarea->mount_mode==2)
 	ld	e, (hl)
-;driver.c:409: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+;driver.c:414: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
 	ld	a, 4 (ix)
 	and	a, #0x01
 	ld	c, a
-;driver.c:405: if (workarea->mount_mode==2)
+;driver.c:410: if (workarea->mount_mode==2)
 	ld	a, e
 	sub	a, #0x02
-	jr	NZ, 00109$
-;driver.c:409: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
-	ld	a, c
+	jr	NZ,00109$
+;driver.c:414: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
 	ld	l, 10 (ix)
 	ld	h, 11 (ix)
 	push	hl
 	ld	l, 8 (ix)
 	ld	h, 9 (ix)
 	push	hl
-	ld	h, 7 (ix)
-	push	hl
-	inc	sp
-	push	af
-	inc	sp
+	ld	b, 7 (ix)
+	push	bc
 	call	_read_write_file_sectors
 	pop	af
 	pop	af
 	pop	af
 	bit	0, l
-	jr	NZ, 00110$
-;driver.c:410: return RNF;
+	jr	NZ,00110$
+;driver.c:415: return RNF;
 	ld	l, #0xf9
 	jr	00111$
 00109$:
-;driver.c:415: if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
-	ld	a, c
+;driver.c:420: if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
 	ld	l, 10 (ix)
 	ld	h, 11 (ix)
 	push	hl
 	ld	l, 8 (ix)
 	ld	h, 9 (ix)
 	push	hl
-	ld	h, 7 (ix)
-	push	hl
-	inc	sp
-	push	af
-	inc	sp
+	ld	b, 7 (ix)
+	push	bc
 	call	_read_write_disk_sectors
 	pop	af
 	pop	af
 	pop	af
 	bit	0, l
-	jr	NZ, 00110$
-;driver.c:416: return RNF;
+	jr	NZ,00110$
+;driver.c:421: return RNF;
 	ld	l, #0xf9
 	jr	00111$
 00110$:
-;driver.c:419: caps_flash ();
+;driver.c:424: caps_flash ();
 	call	_caps_flash
-;driver.c:421: return OK;
+;driver.c:426: return OK;
 	ld	l, #0x00
 00111$:
-;driver.c:422: }
+;driver.c:427: }
 	pop	ix
 	ret
 	.area _CODE

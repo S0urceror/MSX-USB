@@ -328,18 +328,23 @@ uint8_t get_device_info (uint8_t nr_info,uint8_t nr_device,uint8_t* info_buffer)
 */
 uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
 {
-    #ifdef DEBUG
-        printf ("get_device_status (%x,%x)\r\n",nr_device,nr_lun);
-    #endif
+    uint8_t ret;
 
     if (nr_device!=1 || nr_lun!=1)
-        return 0;
+        ret = 0;
 
     workarea_t* workarea = get_workarea();
     if (workarea->disk_change)
-        return 2;
+        ret = 2;
 
-    return 1;
+    ret = 1;
+
+    #ifdef DEBUG
+        printf ("get_device_status (%x,%x) = %d\r\n",nr_device,nr_lun,ret);
+    #endif
+
+    return ret;
+    
 }
 
 void caps_flash () __z88dk_fastcall __naked
