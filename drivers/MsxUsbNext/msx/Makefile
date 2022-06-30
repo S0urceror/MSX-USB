@@ -6,7 +6,7 @@ SJASM = sjasmplus
 HEX2BIN := hex2bin
 # compiler flags
 VERBOSE = --verbose
-DEFINES = -DDEBUG
+DEFINES = -DNODEBUG
 PLATFORM = -mz80
 ADDR_CODE = 0x4200
 ADDR_DATA = 0xc800
