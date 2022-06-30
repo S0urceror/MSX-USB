@@ -331,19 +331,26 @@ uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
     uint8_t ret;
 
     if (nr_device!=1 || nr_lun!=1)
-        ret = 0;
+    {
+        #ifdef DEBUG
+        printf ("get_device_status (%x,%x) = %d\r\n",nr_device,nr_lun,0);
+        #endif
+        return 0;
+    }
 
-    workarea_t* workarea = get_workarea();
-    if (workarea->disk_change)
-        ret = 2;
-
-    ret = 1;
+    //workarea_t* workarea = get_workarea();
+    //if (workarea->disk_change)
+    //{
+     //   #ifdef DEBUG
+      //  printf ("get_device_status (%x,%x) = %d\r\n",nr_device,nr_lun,2);
+     //   #endif
+     //   return 2;
+   // }
 
     #ifdef DEBUG
-        printf ("get_device_status (%x,%x) = %d\r\n",nr_device,nr_lun,ret);
+    printf ("get_device_status (%x,%x) = %d\r\n",nr_device,nr_lun,1);
     #endif
-
-    return ret;
+    return 1;
     
 }
 

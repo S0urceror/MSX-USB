@@ -9,33 +9,44 @@ Symbol Table
     .__.H$L.                                                    =  0000 L
     CALBNK                                                      =  4042 
     GWORK                                                       =  4045 
-  0 _CAPS_FLASH                                                    020E R
-  0 _CAPS_FLASH_ON                                                 020C R
-  0 ___str_0                                                       0067 R
-  0 ___str_11                                                      00F3 R
-  0 ___str_13                                                      0104 R
-  0 ___str_14                                                      01E2 R
-  0 ___str_15                                                      01EC R
-  0 ___str_16                                                      01F7 R
-  0 ___str_2                                                       0069 R
-  0 ___str_4                                                       007D R
-  0 ___str_6                                                       008E R
-  0 ___str_7                                                       00DD R
-  0 ___str_9                                                       00DF R
-  0 _caps_flash                                                    0202 GR
-  0 _get_device_info                                               0165 GR
-  0 _get_device_status                                             01FC GR
-  0 _get_drive_config                                              0124 GR
-  0 _get_lun_info                                                  0128 GR
-  0 _get_nr_drives_boottime                                        0118 GR
+  0 _CAPS_FLASH                                                    03DC R
+  0 _CAPS_FLASH_ON                                                 03DA R
+  0 ___str_1                                                       001E R
+  0 ___str_10                                                      0113 R
+  0 ___str_11                                                      0162 R
+  0 ___str_13                                                      0164 R
+  0 ___str_15                                                      0178 R
+  0 ___str_17                                                      0189 R
+  0 ___str_18                                                      01CC R
+  0 ___str_19                                                      0213 R
+  0 ___str_2                                                       004F R
+  0 ___str_20                                                      0284 R
+  0 ___str_21                                                      0330 R
+  0 ___str_22                                                      034A R
+  0 ___str_23                                                      0354 R
+  0 ___str_24                                                      035F R
+  0 ___str_25                                                      03AF R
+  0 ___str_26                                                      04DF R
+  0 ___str_27                                                      04F5 R
+  0 ___str_3                                                       00D6 R
+  0 ___str_4                                                       00EC R
+  0 ___str_6                                                       00EE R
+  0 ___str_8                                                       0102 R
+  0 _caps_flash                                                    03D0 GR
+  0 _get_device_info                                               029B GR
+  0 _get_device_status                                             0364 GR
+  0 _get_drive_config                                              01ED GR
+  0 _get_lun_info                                                  022E GR
+  0 _get_nr_drives_boottime                                        019D GR
   0 _get_workarea                                                  0000 GR
-  0 _get_workarea_size                                             0016 GR
+  0 _get_workarea_size                                             0029 GR
     _hal_init                                                      **** GX
-  0 _init_driver                                                   001A GR
+  0 _init_driver                                                   006B GR
   0 _interrupt                                                     0015 GR
-  0 _onCallMOUNTDSK                                                00A2 GR
+  0 _onCallMOUNTDSK                                                0127 GR
+    _printf                                                        **** GX
     _puts                                                          **** GX
-  0 _read_or_write_sector                                          0211 GR
+  0 _read_or_write_sector                                          03DF GR
     _read_write_disk_sectors                                       **** GX
     _read_write_file_sectors                                       **** GX
     _usbdisk_autoexec_dsk                                          **** GX
@@ -48,7 +59,7 @@ Hexadecimal [16-Bits]
 
 Area Table
 
-   0 _CODE                                      size  285   flags    0
+   0 _CODE                                      size  50A   flags    0
    1 _DATA                                      size    0   flags    0
    2 _INITIALIZED                               size    0   flags    0
    3 _DABS                                      size    0   flags    8
