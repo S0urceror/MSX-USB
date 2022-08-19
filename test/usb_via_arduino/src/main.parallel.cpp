@@ -1965,7 +1965,7 @@ bool do_scsi_command (_storage_info& storage_info,uint8_t lun,bool read,uint8_t*
         cbw.bmCBWFlags = 0b00000000; // Data-Out;
     cbw.bCBWCBLength = command_len;
     memcpy (cbw.data,command,command_len);
-    //print_buffer ((uint8_t*) &cbw,sizeof (command_block_wrapper));
+    print_buffer ((uint8_t*) &cbw,sizeof (command_block_wrapper));
     if ((status=data_out_transfer ((uint8_t*) &cbw,sizeof(command_block_wrapper),storage_info.device_address,storage_info.bulk_out_endpoint_id,storage_info.bulk_out_packetsize,storage_info.bulk_out_toggle))!=CH375_USB_INT_SUCCESS)
     {
         error ("error transferring data to device");

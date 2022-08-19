@@ -90,6 +90,7 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
 
     hal_init ();
     workarea_t* workarea = get_workarea();
+    workarea->disk_change = false;
     usbdisk_init ();
     if (usbdisk_autoexec_dsk()==true)
         workarea->mount_mode = 2;
@@ -113,6 +114,7 @@ void onCallMOUNTDSK ()
 {
     hal_init ();
     workarea_t* workarea = get_workarea();
+    workarea->disk_change = true;
     usbdisk_init ();
     workarea->mount_mode = usbdisk_select_dsk_file ("/");
     switch (workarea->mount_mode)
@@ -337,7 +339,10 @@ uint8_t get_device_status (uint8_t nr_lun,uint8_t nr_device)
 
     workarea_t* workarea = get_workarea();
     if (workarea->disk_change)
+    {
+        workarea->disk_change = false;
         return 2;
+    }
 
     return 1;
 }

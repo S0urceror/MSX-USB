@@ -1,5 +1,5 @@
 Analysis & Synthesis report for MSXUSB
-Thu May 14 16:01:55 2020
+Sun Mar 20 21:02:40 2022
 Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
 
 
@@ -39,12 +39,12 @@ applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +-----------------------------+-------------------------------------------------+
-; Analysis & Synthesis Status ; Successful - Thu May 14 16:01:55 2020           ;
+; Analysis & Synthesis Status ; Successful - Sun Mar 20 21:02:40 2022           ;
 ; Quartus II 64-Bit Version   ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
 ; Revision Name               ; MSXUSB                                          ;
 ; Top-level Entity Name       ; msxusb                                          ;
 ; Family                      ; MAX7000S                                        ;
-; Total macrocells            ; 57                                              ;
+; Total macrocells            ; 33                                              ;
 ; Total pins                  ; 30                                              ;
 +-----------------------------+-------------------------------------------------+
 
@@ -119,7 +119,7 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +----------------------------+--------+
 ; Processors                 ; Number ;
 +----------------------------+--------+
-; Number detected on machine ; 2      ;
+; Number detected on machine ; 4      ;
 ; Maximum allowed            ; 1      ;
 +----------------------------+--------+
 
@@ -129,7 +129,7 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +----------------------------------+-----------------+------------------------+--------------------------------------------------+---------+
 ; File Name with User-Entered Path ; Used in Netlist ; File Type              ; File Name with Absolute Path                     ; Library ;
 +----------------------------------+-----------------+------------------------+--------------------------------------------------+---------+
-; msxusb.v                         ; yes             ; User Verilog HDL File  ; Y:/Development/msx/USB/hardware/quartus/msxusb.v ;         ;
+; msxusb.v                         ; yes             ; User Verilog HDL File  ; Z:/Development/MSX/USB/hardware/quartus/msxusb.v ;         ;
 +----------------------------------+-----------------+------------------------+--------------------------------------------------+---------+
 
 
@@ -138,15 +138,14 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +----------------------+----------------------+
 ; Resource             ; Usage                ;
 +----------------------+----------------------+
-; Logic cells          ; 57                   ;
+; Logic cells          ; 33                   ;
 ; Total registers      ; 30                   ;
 ; I/O pins             ; 30                   ;
-; Shareable expanders  ; 2                    ;
-; Parallel expanders   ; 24                   ;
+; Shareable expanders  ; 6                    ;
 ; Maximum fan-out node ; sltsl_n              ;
-; Maximum fan-out      ; 55                   ;
-; Total fan-out        ; 415                  ;
-; Average fan-out      ; 4.66                 ;
+; Maximum fan-out      ; 35                   ;
+; Total fan-out        ; 559                  ;
+; Average fan-out      ; 8.10                 ;
 +----------------------+----------------------+
 
 
@@ -155,9 +154,9 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +--------------------------------+------------+------+-----------------------------------+--------------+
 ; Compilation Hierarchy Node     ; Macrocells ; Pins ; Full Hierarchy Name               ; Library Name ;
 +--------------------------------+------------+------+-----------------------------------+--------------+
-; |msxusb                        ; 57         ; 30   ; |msxusb                           ; work         ;
+; |msxusb                        ; 33         ; 30   ; |msxusb                           ; work         ;
 ;    |ch376:CH376|               ; 2          ; 0    ; |msxusb|ch376:CH376               ; work         ;
-;    |scc_rom_mapper:ROM_MAPPER| ; 55         ; 0    ; |msxusb|scc_rom_mapper:ROM_MAPPER ; work         ;
+;    |scc_rom_mapper:ROM_MAPPER| ; 31         ; 0    ; |msxusb|scc_rom_mapper:ROM_MAPPER ; work         ;
 +--------------------------------+------------+------+-----------------------------------+--------------+
 
 
@@ -167,7 +166,7 @@ Parallel compilation was disabled, but you have multiple processors available. E
 Info: *******************************************************************
 Info: Running Quartus II 64-Bit Analysis & Synthesis
     Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-    Info: Processing started: Thu May 14 16:01:54 2020
+    Info: Processing started: Sun Mar 20 21:02:38 2022
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off MSXUSB -c MSXUSB
 Warning (20028): Parallel compilation is not licensed and has been disabled
 Info (12021): Found 3 design units, including 3 entities, in source file msxusb.v
@@ -177,17 +176,15 @@ Info (12021): Found 3 design units, including 3 entities, in source file msxusb.
 Info (12127): Elaborating entity "msxusb" for the top level hierarchy
 Info (12128): Elaborating entity "ch376" for hierarchy "ch376:CH376"
 Info (12128): Elaborating entity "scc_rom_mapper" for hierarchy "scc_rom_mapper:ROM_MAPPER"
-Warning (21074): Design contains 1 input pin(s) that do not drive logic
-    Warning (15610): No output dependent on input pin "in_a7_a0[0]"
-Info (21057): Implemented 89 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 69 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 22 input pins
     Info (21059): Implemented 8 output pins
-    Info (21063): Implemented 57 macrocells
-    Info (21073): Implemented 2 shareable expanders
-Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 3 warnings
-    Info: Peak virtual memory: 4570 megabytes
-    Info: Processing ended: Thu May 14 16:01:55 2020
-    Info: Elapsed time: 00:00:01
+    Info (21063): Implemented 33 macrocells
+    Info (21073): Implemented 6 shareable expanders
+Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 1 warning
+    Info: Peak virtual memory: 12903 megabytes
+    Info: Processing ended: Sun Mar 20 21:02:40 2022
+    Info: Elapsed time: 00:00:02
     Info: Total CPU time (on all processors): 00:00:01
 
 

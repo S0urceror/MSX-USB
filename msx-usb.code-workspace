@@ -111,7 +111,8 @@
 			"CH372FRM.C": "cpp",
 			"PARA_HW.C": "cpp",
 			"__bits": "cpp",
-			"string.h": "c"
+			"string.h": "c",
+			"stdint.h": "c"
 		}
 	}
 }

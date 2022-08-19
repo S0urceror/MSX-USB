@@ -21,8 +21,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
-//#include "mystdio.h"
 #include "flash.h"
+#include "bios.h"
 
 #define SEGMENT_SIZE 8*1024
 
@@ -58,13 +58,30 @@ uint8_t bios_chget ()
     __asm
     push ix
     ld iy, #0
-    ld ix, #0x9F ;CHGET
-    call 0x1c ;CALSLT
+    ld ix, #BIOS_CHGET ;CHGET
+    call BIOS_CALSLT ;CALSLT
     pop ix
     ld h, #0
     ld l,a
     ret
     __endasm;
+}
+
+int putchar (int character)
+{
+    __asm
+    ld      hl, #2 
+    add     hl, sp   ;Bypass the return address of the function 
+    ld     a, (hl)
+
+    ld     iy,(#BIOS_EXPTBL-1)       ;BIOS slot in iyh
+    push ix
+    ld     ix,#BIOS_CHPUT       ;address of BIOS routine
+    call   BIOS_CALSLT          ;interslot call
+    pop ix
+    __endasm;
+
+    return character;
 }
 
 int main(char *argv[], int argc)

@@ -1,5 +1,5 @@
 Flow report for MSXUSB
-Thu May 14 16:02:00 2020
+Sun Mar 20 21:02:46 2022
 Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
 
 
@@ -40,14 +40,14 @@ applicable agreement for further details.
 +-----------------------------------------------------------------------------+
 ; Flow Summary                                                                ;
 +---------------------------+-------------------------------------------------+
-; Flow Status               ; Successful - Thu May 14 16:02:00 2020           ;
+; Flow Status               ; Successful - Sun Mar 20 21:02:46 2022           ;
 ; Quartus II 64-Bit Version ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
 ; Revision Name             ; MSXUSB                                          ;
 ; Top-level Entity Name     ; msxusb                                          ;
 ; Family                    ; MAX7000S                                        ;
 ; Device                    ; EPM7064SLC44-10                                 ;
 ; Timing Models             ; Final                                           ;
-; Total macrocells          ; 57 / 64 ( 89 % )                                ;
+; Total macrocells          ; 33 / 64 ( 52 % )                                ;
 ; Total pins                ; 34 / 36 ( 94 % )                                ;
 +---------------------------+-------------------------------------------------+
 
@@ -57,7 +57,7 @@ applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 05/14/2020 16:01:54 ;
+; Start date & time ; 03/20/2022 21:02:39 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; MSXUSB              ;
 +-------------------+---------------------+
@@ -68,7 +68,7 @@ applicable agreement for further details.
 +--------------------------+------------------------------+---------------+-------------+----------------+
 ; Assignment Name          ; Value                        ; Default Value ; Entity Name ; Section Id     ;
 +--------------------------+------------------------------+---------------+-------------+----------------+
-; COMPILER_SIGNATURE_ID    ; 121368240209.158946491402384 ; --            ; --          ; --             ;
+; COMPILER_SIGNATURE_ID    ; 121376536172.164780655805020 ; --            ; --          ; --             ;
 ; EDA_OUTPUT_DATA_FORMAT   ; Verilog Hdl                  ; --            ; --          ; eda_simulation ;
 ; EDA_SIMULATION_TOOL      ; ModelSim-Altera (Verilog)    ; <None>        ; --          ; --             ;
 ; PROJECT_OUTPUT_DIRECTORY ; output_files                 ; --            ; --          ; --             ;
@@ -80,12 +80,12 @@ applicable agreement for further details.
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name               ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis      ; 00:00:01     ; 1.0                     ; 4570 MB             ; 00:00:01                           ;
-; Fitter                    ; 00:00:01     ; 1.0                     ; 4651 MB             ; 00:00:01                           ;
-; Assembler                 ; 00:00:00     ; 1.0                     ; 4514 MB             ; 00:00:00                           ;
-; TimeQuest Timing Analyzer ; 00:00:01     ; 1.0                     ; 4514 MB             ; 00:00:01                           ;
-; EDA Netlist Writer        ; 00:00:00     ; 1.0                     ; 4469 MB             ; 00:00:00                           ;
-; Total                     ; 00:00:03     ; --                      ; --                  ; 00:00:03                           ;
+; Analysis & Synthesis      ; 00:00:02     ; 1.0                     ; 12903 MB            ; 00:00:01                           ;
+; Fitter                    ; 00:00:01     ; 1.0                     ; 13007 MB            ; 00:00:01                           ;
+; Assembler                 ; 00:00:01     ; 1.0                     ; 12846 MB            ; 00:00:00                           ;
+; TimeQuest Timing Analyzer ; 00:00:01     ; 1.0                     ; 12832 MB            ; 00:00:01                           ;
+; EDA Netlist Writer        ; 00:00:01     ; 1.0                     ; 12797 MB            ; 00:00:00                           ;
+; Total                     ; 00:00:06     ; --                      ; --                  ; 00:00:03                           ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -94,11 +94,11 @@ applicable agreement for further details.
 +---------------------------+------------------+-----------+------------+----------------+
 ; Module Name               ; Machine Hostname ; OS Name   ; OS Version ; Processor type ;
 +---------------------------+------------------+-----------+------------+----------------+
-; Analysis & Synthesis      ; MARIOSMITB3D5    ; Windows 7 ; 6.2        ; x86_64         ;
-; Fitter                    ; MARIOSMITB3D5    ; Windows 7 ; 6.2        ; x86_64         ;
-; Assembler                 ; MARIOSMITB3D5    ; Windows 7 ; 6.2        ; x86_64         ;
-; TimeQuest Timing Analyzer ; MARIOSMITB3D5    ; Windows 7 ; 6.2        ; x86_64         ;
-; EDA Netlist Writer        ; MARIOSMITB3D5    ; Windows 7 ; 6.2        ; x86_64         ;
+; Analysis & Synthesis      ; MARIOSMITD509    ; Windows 7 ; 6.2        ; x86_64         ;
+; Fitter                    ; MARIOSMITD509    ; Windows 7 ; 6.2        ; x86_64         ;
+; Assembler                 ; MARIOSMITD509    ; Windows 7 ; 6.2        ; x86_64         ;
+; TimeQuest Timing Analyzer ; MARIOSMITD509    ; Windows 7 ; 6.2        ; x86_64         ;
+; EDA Netlist Writer        ; MARIOSMITD509    ; Windows 7 ; 6.2        ; x86_64         ;
 +---------------------------+------------------+-----------+------------+----------------+
 
 

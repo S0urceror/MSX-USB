@@ -5,7 +5,8 @@ HEXBIN = hex2bin
 
 INCLUDES = -I../../../Libraries/fusion-c/header -I../../../Libraries/fusion-c/include -I../../../Libraries/asmlib
 FUSIONLIB = ../../../Libraries/fusion-c/include
-LIBS = ../../../Libraries/fusion-c/lib/fusion.lib ../../../Libraries/asmlib/asm.lib
+#LIBS = ../../../Libraries/fusion-c/lib/fusion.lib ../../../Libraries/asmlib/asm.lib
+LIBS = ../../../Libraries/fusion-c/lib/fusion_min_printf.lib
 OBJECTSDIR = ../../../Libraries/fusion-c/include
 SRCDIR = src
 BINDIR = dist
@@ -17,7 +18,7 @@ ADDR_DATA = 0
 
 VERBOSE = --verbose
 CCFLAGS = $(VERBOSE) $(PLATFORM) --code-loc $(ADDR_CODE) --data-loc $(ADDR_DATA) --no-std-crt0 --out-fmt-ihx
-OBJECTS = $(FUSIONLIB)/$(CRT0) $(FUSIONLIB)/putchar_msxdos.rel $(FUSIONLIB)/printf.rel
+OBJECTS = $(FUSIONLIB)/$(CRT0)
 SOURCES = flash.c
 OUTFILE = flash.com
 

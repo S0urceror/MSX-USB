@@ -1,5 +1,5 @@
 Assembler report for MSXUSB
-Thu May 14 16:01:57 2020
+Sun Mar 20 21:02:43 2022
 Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
 
 
@@ -10,7 +10,7 @@ Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edit
   2. Assembler Summary
   3. Assembler Settings
   4. Assembler Generated Files
-  5. Assembler Device Options: Y:/Development/msx/USB/hardware/quartus/output_files/MSXUSB.pof
+  5. Assembler Device Options: Z:/Development/MSX/USB/hardware/quartus/output_files/MSXUSB.pof
   6. Assembler Messages
 
 
@@ -37,7 +37,7 @@ applicable agreement for further details.
 +---------------------------------------------------------------+
 ; Assembler Summary                                             ;
 +-----------------------+---------------------------------------+
-; Assembler Status      ; Successful - Thu May 14 16:01:57 2020 ;
+; Assembler Status      ; Successful - Sun Mar 20 21:02:43 2022 ;
 ; Revision Name         ; MSXUSB                                ;
 ; Top-level Entity Name ; msxusb                                ;
 ; Family                ; MAX7000S                              ;
@@ -78,18 +78,18 @@ applicable agreement for further details.
 +-----------------------------------------------------------------+
 ; File Name                                                       ;
 +-----------------------------------------------------------------+
-; Y:/Development/msx/USB/hardware/quartus/output_files/MSXUSB.pof ;
+; Z:/Development/MSX/USB/hardware/quartus/output_files/MSXUSB.pof ;
 +-----------------------------------------------------------------+
 
 
 +-------------------------------------------------------------------------------------------+
-; Assembler Device Options: Y:/Development/msx/USB/hardware/quartus/output_files/MSXUSB.pof ;
+; Assembler Device Options: Z:/Development/MSX/USB/hardware/quartus/output_files/MSXUSB.pof ;
 +----------------+--------------------------------------------------------------------------+
 ; Option         ; Setting                                                                  ;
 +----------------+--------------------------------------------------------------------------+
 ; Device         ; EPM7064SLC44-10                                                          ;
 ; JTAG usercode  ; 0x00000000                                                               ;
-; Checksum       ; 0x000BFB8C                                                               ;
+; Checksum       ; 0x000D2530                                                               ;
 +----------------+--------------------------------------------------------------------------+
 
 
@@ -99,13 +99,13 @@ applicable agreement for further details.
 Info: *******************************************************************
 Info: Running Quartus II 64-Bit Assembler
     Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-    Info: Processing started: Thu May 14 16:01:57 2020
+    Info: Processing started: Sun Mar 20 21:02:42 2022
 Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off MSXUSB -c MSXUSB
 Info (115030): Assembler is generating device programming files
 Info: Quartus II 64-Bit Assembler was successful. 0 errors, 0 warnings
-    Info: Peak virtual memory: 4514 megabytes
-    Info: Processing ended: Thu May 14 16:01:57 2020
-    Info: Elapsed time: 00:00:00
+    Info: Peak virtual memory: 12846 megabytes
+    Info: Processing ended: Sun Mar 20 21:02:43 2022
+    Info: Elapsed time: 00:00:01
     Info: Total CPU time (on all processors): 00:00:00
 
 

@@ -203,7 +203,7 @@ USB_HID_KEYBOARD_START:
     ld b, a
     ld a, (KEYBOARD_INTERFACENR)
     ld e, a ; interface number
-    ld a, 80h ; approximately 500ms
+    ld a, 80h 
     ld c, 0 ; report id
     call CH_SET_IDLE
     ret c

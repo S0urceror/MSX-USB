@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EPM7064SL44) Path("Y:/Development/msx/USB/hardware/quartus/output_files/") File("MSXUSB.pof") MfrSpec(OpMask(3));
+		Device PartName(EPM7064SL44) Path("Z:/Development/MSX/USB/hardware/quartus/output_files/") File("MSXUSB.pof") MfrSpec(OpMask(3));
 
 ChainEnd;
 

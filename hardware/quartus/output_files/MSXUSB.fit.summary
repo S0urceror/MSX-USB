@@ -1,9 +1,9 @@
-Fitter Status : Successful - Thu May 14 16:01:56 2020
+Fitter Status : Successful - Sun Mar 20 21:02:41 2022
 Quartus II 64-Bit Version : 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition
 Revision Name : MSXUSB
 Top-level Entity Name : msxusb
 Family : MAX7000S
 Device : EPM7064SLC44-10
 Timing Models : Final
-Total macrocells : 57 / 64 ( 89 % )
+Total macrocells : 33 / 64 ( 52 % )
 Total pins : 34 / 36 ( 94 % )
