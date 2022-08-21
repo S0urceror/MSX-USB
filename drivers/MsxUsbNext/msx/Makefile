@@ -1,6 +1,6 @@
 # tools
-CPP = sdcc
-ASM = sdasz80
+CPP = ../../../../Compilers/sdcc/bin/sdcc
+ASM = ../../../../Compilers/sdcc/bin/sdasz80
 SJASM = sjasmplus
 HEX2BIN := hex2bin
 # compiler flags
@@ -14,7 +14,7 @@ CPP_OUTPUT_DIR = ./objs
 CRT0_SRC_DIR = .
 SJASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym --lst=$(basename $@).lst
 # link flags
-LNK = sdcc
+LNK = ../../../../Compilers/sdcc/bin/sdcc
 LNK_OUTPUT_DIR = ./build
 LNK_FLAGS = -mz80 --code-loc $(ADDR_CODE) --data-loc $(ADDR_DATA) --no-std-crt0
 OBJS := $(CPP_OUTPUT_DIR)/msxromcrt0.rel $(CPP_OUTPUT_DIR)/driver.rel $(CPP_OUTPUT_DIR)/ch376s.rel $(CPP_OUTPUT_DIR)/hal.rel $(CPP_OUTPUT_DIR)/usbdisk.rel
@@ -48,6 +48,7 @@ $(BIN): $(IHX)
 clean:
 	-rm $(CPP_OUTPUT_DIR)/*.*
 	-rm $(LNK_OUTPUT_DIR)/*.*
+	-rm $(DIST_OUTPUT_DIR)/*.*
 
 $(LNK_OUTPUT_DIR)/extra1k.dat: extra1k.asm
 	$(SJASM) $(SJASMFLAGS) $<

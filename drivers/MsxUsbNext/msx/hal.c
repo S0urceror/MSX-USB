@@ -166,7 +166,7 @@ void  read_data_multiple (uint8_t* buffer,uint8_t len)
     ld h,+1(iy)
     ld l,+0(iy)
     ld c, #DATA_PORT
-    inir 
+    .db 0xED,0xB2 ;inir 
     __endasm;
 }
 void    write_data_multiple (uint8_t* buffer,uint8_t len)
@@ -178,7 +178,7 @@ void    write_data_multiple (uint8_t* buffer,uint8_t len)
     ld h,+1(iy)
     ld l,+0(iy)
     ld c, #DATA_PORT
-    otir 
+    .db 0xED,0xB3 ;otir 
     __endasm;
 }
 

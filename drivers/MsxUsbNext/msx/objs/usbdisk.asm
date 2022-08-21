@@ -1,6 +1,6 @@
 ;--------------------------------------------------------
 ; File Created by SDCC : free open source ANSI-C Compiler
-; Version 4.1.0 #12072 (Mac OS X ppc)
+; Version 4.1.0 #12072 (Mac OS X x86_64)
 ;--------------------------------------------------------
 	.module usbdisk
 	.optsdcc -mz80

@@ -1,6 +1,6 @@
                                       1 ;--------------------------------------------------------
                                       2 ; File Created by SDCC : free open source ANSI-C Compiler
-                                      3 ; Version 4.1.0 #12072 (Mac OS X ppc)
+                                      3 ; Version 4.1.0 #12072 (Mac OS X x86_64)
                                       4 ;--------------------------------------------------------
                                       5 	.module ch376s
                                       6 	.optsdcc -mz80

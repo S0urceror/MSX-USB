@@ -87,7 +87,7 @@ DRV_NAME:
 .if CALL_EXPANSION
 	jp	call_expansion	; BASIC's CALL instruction expansion routine
 .else
-	jp	DRV_BASSTAT				; BASIC's CALL instruction not expanded
+	jp	DRV_BASSTAT		; BASIC's CALL instruction NOT expanded
 .endif
 	jp	DRV_BASDEV
     jp  DRV_EXTBIO

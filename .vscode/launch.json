@@ -151,7 +151,7 @@
             "name": "NXT - Launch MSX 2",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Philips_NMS_8250_MSXUSBNext", "-diska", "${workspaceFolder}/software/dist"],
             "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "NXT - Make MSX"
@@ -160,7 +160,7 @@
             "name": "NXT - Launch MSX 1",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Philips_VG_8020_MSXUSBNext"],
             "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "NXT - Make MSX"

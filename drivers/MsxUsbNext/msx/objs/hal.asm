@@ -1,6 +1,6 @@
 ;--------------------------------------------------------
 ; File Created by SDCC : free open source ANSI-C Compiler
-; Version 4.1.0 #12072 (Mac OS X ppc)
+; Version 4.1.0 #12072 (Mac OS X x86_64)
 ;--------------------------------------------------------
 	.module hal
 	.optsdcc -mz80
@@ -274,7 +274,7 @@ _read_data_multiple::
 	ld	h,+1(iy)
 	ld	l,+0(iy)
 	ld	c, #0x10
-	inir
+	.db	0xED,0xB2 ;inir
 ;hal.c:171: }
 	ret
 ;hal.c:172: void    write_data_multiple (uint8_t* buffer,uint8_t len)
@@ -289,7 +289,7 @@ _write_data_multiple::
 	ld	h,+1(iy)
 	ld	l,+0(iy)
 	ld	c, #0x10
-	otir
+	.db	0xED,0xB3 ;otir
 ;hal.c:183: }
 	ret
 	.area _CODE
