@@ -1,13 +1,13 @@
 # tools
 CPP = ../../../../Compilers/sdcc/bin/sdcc
 ASM = ../../../../Compilers/sdcc/bin/sdasz80
-SJASM = sjasmplus
-HEX2BIN := hex2bin
+SJASM = ../../../../Compilers/sjasmplus/sjasmplus
+HEX2BIN := /usr/local/bin/hex2bin
 # compiler flags
 VERBOSE = --verbose
 DEFINES = -DNODEBUG
 PLATFORM = -mz80
-ADDR_CODE = 0x4200
+ADDR_CODE = 0x4220
 ADDR_DATA = 0xc800
 CPP_FLAGS = $(VERBOSE) $(PLATFORM) -c $(DEFINES)
 CPP_OUTPUT_DIR = ./objs
@@ -43,7 +43,7 @@ $(IHX): $(OBJS)
 	$(LNK) $(LNK_FLAGS) -o $@ $^ 
 
 $(BIN): $(IHX)
-	$(HEX2BIN) -e rom $^
+	$(HEX2BIN) -l 3fd0 -e rom $^
 
 clean:
 	-rm $(CPP_OUTPUT_DIR)/*.*

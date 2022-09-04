@@ -24,7 +24,7 @@ CHGBNK:
 	dw	5000h
 	rlca ; bank number multiplied times 2 to select right 8k segment
 	ld	(5000h),a
-	inc	a ; plus 1
+	inc	a ; plus 1, next 8k segment
 	ld	(7000h),a
 	ret
 ;

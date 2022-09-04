@@ -5,6 +5,14 @@
 #include "../include/hal.h"
 #include "../include/ch376s.h"
 
+#ifdef DEBUG
+    void ASSERT (bool noerror,char* msg)
+    {
+        if (!noerror)
+            printf (msg);
+    }
+#endif
+
 void ch376_reset_all()
 {
     write_command (CMD_RESET_ALL);
@@ -153,6 +161,9 @@ bool ch376_get_sector_LBA (uint8_t nr_sectors,uint8_t* sectors_allowed_lba)
     // READ_BUFFER + 4,5,6,7 = LBA absolute disk sector
     write_command(CMD_RD_USB_DATA);
     uint8_t len = read_data();
+    #ifdef DEBUG
+        ASSERT (len==8,"get_sector_LBA does not return 8 bytes\r\n");
+    #endif
     read_data_multiple (sectors_allowed_lba,len);
 
     return true;
@@ -167,6 +178,10 @@ bool ch376s_disk_read (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer)
     write_data (lba[3]);
     write_data (nr_sectors);
 
+    #ifdef DEBUG
+        uint16_t byte_count = 0;
+    #endif
+
     do
     {
         uint8_t status = ch376_wait_status ();
@@ -177,11 +192,21 @@ bool ch376s_disk_read (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer)
 
         write_command(CMD_RD_USB_DATA);
         uint8_t len = read_data();
+        #ifdef DEBUG
+            ASSERT (len==MAX_PACKET_LENGTH,"disk_read returns more or less then 64 bytes per packet\r\n");
+        #endif
+        #ifdef DEBUG
+            byte_count += len;
+        #endif
         read_data_multiple (sector_buffer,len);
         sector_buffer+=len;
+        
         write_command (CMD_DISK_RD_GO);
     }
     while (true);
+    #ifdef DEBUG
+        ASSERT (byte_count == 512,"disk_read returns more or less then 512 bytes per sector\r\n");
+    #endif
 }
 
 bool ch376s_disk_write (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer)

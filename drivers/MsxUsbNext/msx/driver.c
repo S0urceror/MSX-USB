@@ -7,7 +7,6 @@
 #include "../include/hal.h"
 #include "../include/usbdisk.h"
 
-
 // return the pointer to the allocated workarea
 workarea_t* get_workarea() __z88dk_fastcall __naked
 {
@@ -59,8 +58,10 @@ uint16_t get_workarea_size (uint8_t reduced_drive_count,uint8_t nr_available_dri
         printf ("get_workarea_size (%x,%x)\r\n",nr_available_drives,reduced_drive_count);
     #endif
 
-    return sizeof (workarea_t);
+    return 100;//sizeof (workarea_t);
 }
+
+
 
 /*
     ; 2) Second execution, for work area and hardware initialization.
@@ -91,7 +92,7 @@ void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)
     hal_init ();
     workarea_t* workarea = get_workarea();
     usbdisk_init ();
-    workarea->disk_change = false;
+    workarea->disk_change = true;
     if (usbdisk_autoexec_dsk()==true)
         workarea->mount_mode = 2;
     else
@@ -365,6 +366,17 @@ _CAPS_FLASH:
     __endasm;
 }
 
+#ifdef DEBUG
+void print_hex16 (uint16_t value)
+{
+    uint8_t n1 = (value & 0x0f);
+    uint8_t n2 = ((value >> 4) & 0x0f);
+    uint8_t n3 = ((value >> 8) & 0x0f);
+    uint8_t n4 = ((value >> 12) & 0x0f);
+    printf ("%x%x%x%x",n4,n3,n2,n1);
+}
+#endif
+
 /*
 ;-----------------------------------------------------------------------------
 ;
@@ -390,13 +402,22 @@ _CAPS_FLASH:
 ;              _SEEK: Seek error.
 ;         B = Number of sectors actually read (in case of error only)
 */
+//                                        F                           A                  C               B                     DE               HL
 diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device, uint8_t nr_lun, uint8_t nr_sectors, uint32_t* sector, uint8_t* sector_buffer)
 {
     #ifdef DEBUG
     if (read_or_write_flag & Z80_CARRY_MASK)
-        printf ("write (%x,%x,%x,%x)\r\n",nr_device,nr_lun,nr_sectors,*sector);
+    {
+        printf ("write (%x,%x,%x,%x,",nr_device,nr_lun,nr_sectors,*sector);
+        print_hex16 ((uint16_t) sector_buffer);
+        printf (")\r\n");
+    }
     else
-        printf ("read (%x,%x,%x,%x)\r\n",nr_device,nr_lun,nr_sectors,*sector);
+    {
+        printf ("read (%x,%x,%x,%x,",nr_device,nr_lun,nr_sectors,*sector);
+        print_hex16 ((uint16_t) sector_buffer);
+        printf (")\r\n");
+    }
     #endif
 
     workarea_t* workarea = get_workarea();
@@ -412,13 +433,29 @@ diskerror_t read_or_write_sector (uint8_t read_or_write_flag, uint8_t nr_device,
         // single DSK file mode
         // we assume file has been opened before and has not been closed
         if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+        {
+             #ifdef DEBUG
+                if (read_or_write_flag & Z80_CARRY_MASK)
+                    printf ("error writing file-sector\r\n");
+                else
+                    printf ("error reading file-sector\r\n");
+            #endif
             return RNF;
+        }
     }
     else
     {
         // whole disk mode
         if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
+        {
+            #ifdef DEBUG
+                if (read_or_write_flag & Z80_CARRY_MASK)
+                    printf ("error writing disk-sector\r\n");
+                else
+                    printf ("error reading disk-sector\r\n");
+            #endif
             return RNF;
+        }
     }
 
     caps_flash ();

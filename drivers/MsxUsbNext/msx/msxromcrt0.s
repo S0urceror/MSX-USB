@@ -124,6 +124,7 @@ __init_1st:
     call _get_workarea_size
 	pop bc
 	xor a
+	; HL has workarea size, return 0 drives, no interrupt
 	ret
 __init_2nd:	
 	push bc
@@ -240,7 +241,7 @@ DEV_RW:
 	push af
 	call _read_or_write_sector
 	pop af
-	pop bc
+	pop af
 	pop af
 	pop af
 	ld a,l
@@ -266,8 +267,6 @@ DEV_STATUS:
 	ld a, l
 	ret
 
-
-
 LUN_INFO:
 	push hl
 	ld c, b
@@ -283,39 +282,18 @@ LUN_INFO:
 ;=====  END of DEVICE-BASED specific routines
 ;=====
 
-;----------------------------------------------------------
-;	Step 1: Initialize heap pointer
-init::
-	ld		hl, #_HEAP_start
-	ld		(#_heap_top), hl
 
-;----------------------------------------------------------
-;	Step 2: Initialize globals
-    call    gsinit
 
-;----------------------------------------------------------
-;	Step 5: Run application
-	; halt processor
-	DI
-	HALT
+.if CALL_EXPANSION
+	callStatementIndex:
+	.dw callStatement_MOUNTDSK
+	.dw       #0
+	.globl _onCallMOUNTDSK
+	callStatement_MOUNTDSK::
+	.ascii    'MOUNTDSK\0'
+	.dw _onCallMOUNTDSK
+.endif
 
-;----------------------------------------------------------
-;	Segments order
-;----------------------------------------------------------
-	.area _CODE
-	.area _HOME
-	.area _GSINIT
-	.area _GSFINAL
-	.area _INITIALIZER
-	.area _ROMDATA
-	.area _DATA
-	.area _INITIALIZED
-	.area _HEAP
-
-;   ==================================
-;   ========== HOME SEGMENT ==========
-;   ==================================
-	.area _HOME
 .if CALL_EXPANSION
 STR_COMPARE = 1
 call_expansion:
@@ -387,50 +365,48 @@ compareString::
 	jr		compareString
 .endif
 
+;----------------------------------------------------------
+;	Segments order
+;----------------------------------------------------------
+	.area _CODE
+	.area _HOME
+	.area _GSINIT
+	.area _GSFINAL
+	.area _INITIALIZER
+	.area _ROMDATA
+	.area _DATA
+	.area _INITIALIZED
+	.area _HEAP
+
+;   ==================================
+;   ========== HOME SEGMENT ==========
+;   ==================================
+	.area _HOME
+
+
 ;   =====================================
 ;   ========== GSINIT SEGMENTS ==========
 ;   =====================================
 	.area	_GSINIT
-gsinit::
-.if GLOBALS_INITIALIZER
-    ld      bc,#l__INITIALIZER
-    ld      a,b
-    or      a,c
-    jp	z,  gsinit_next
-    ld	    de,#s__INITIALIZED
-    ld      hl,#s__INITIALIZER
-    ldir
-.endif
 
-	.area	_GSFINAL
-gsinit_next:
-    ret
 	
 ;   ======================================
 ;   ========== ROM_DATA SEGMENT ==========
 ;   ======================================
 	.area	_ROMDATA
-.if CALL_EXPANSION
-	callStatementIndex:
-	.dw callStatement_MOUNTDSK
-	.dw       #0
-	.globl _onCallMOUNTDSK
-	callStatement_MOUNTDSK::
-	.ascii    'MOUNTDSK\0'
-	.dw _onCallMOUNTDSK
-.endif
+
 	
 ;   ==================================
 ;   ========== DATA SEGMENT ==========
 ;   ==================================
 	.area	_DATA
 
-_heap_top::
-	.blkw	1
 
 ;   ==================================
 ;   ========== HEAP SEGMENT ==========
 ;   ==================================
 	.area	_HEAP
-_HEAP_start::
+
+
+
 

@@ -41,19 +41,19 @@
             "preLaunchTask": "Test - Device USB via Arduino C++"
         },
         {
-            "name": "(lldb) Launch MSXUSB",
+            "name": "(lldb) Launch MSXUSB NMS8250",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Philips_NMS_8250_MSXUSB", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
         },
         {
-            "name": "(lldb) Launch MSXUSB Issalig",
+            "name": "(lldb) Launch MSXUSB VG8020",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Philips_VG_8020_USB", "-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
@@ -62,7 +62,7 @@
             "name": "(lldb) Launch MSXUSB RD",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Philips_NMS_8250_ROOKIE", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/openMSX/share",
             "preLaunchTask": "Driver - Nextor+UsbHost"
@@ -71,7 +71,7 @@
             "name": "(lldb) Launch Rookie FD",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Goldstar_FC-200 MSM", "-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "../Emulators/openMSX/share"
         },
@@ -79,7 +79,7 @@
             "name": "(lldb) Launch MSXUSB MiSTer",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Philips_NMS_8250_MiSTer", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             "cwd": "${workspaceFolder}/../Emulators/openMSX/share",
             "MIMode": "lldb",
@@ -89,7 +89,7 @@
             "name": "(lldb) Launch Rookiedrive",
             "type": "lldb",
             "request": "launch",
-            "program": "../Emulators/openMSX/derived/openmsx",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
             "args": ["-machine", "Philips_NMS_8250_NXT", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             //"args": ["-machine", "Philips_NMS_8250_MSM", "-diska", "${workspaceFolder}/software/dist","-setting", "${workspaceFolder}/openmsx.xml","-script","openmsx.tcl"],
             //"args": ["-machine", "Panasonic_FS-A1GT", "-diska", "${workspaceFolder}/drivers/UsbEthernet/dist","-setting", "${workspaceFolder}/drivers/UsbEthernet/dist/fullspeed.xml"],
@@ -148,7 +148,7 @@
             "preLaunchTask": "NXT - Make MacOS"
         },
         {
-            "name": "NXT - Launch MSX 2",
+            "name": "NXT - Launch NMS8250",
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
@@ -157,7 +157,16 @@
             "preLaunchTask": "NXT - Make MSX"
         },
         {
-            "name": "NXT - Launch MSX 1",
+            "name": "NXT - Launch HB-F1XD",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
+            "args": ["-machine", "Sony_HB-F1XD_USBNext", "-diska", "${workspaceFolder}/software/dist"],
+            "cwd": "../Emulators/openMSX/share",
+            "preLaunchTask": "NXT - Make MSX"
+        },
+        {
+            "name": "NXT - Launch VG8020",
             "type": "lldb",
             "request": "launch",
             "program": "../Emulators/openMSX/derived/aarch64-darwin-opt-3rd/bindist/openMSX.app/Contents/MacOS/openmsx",
