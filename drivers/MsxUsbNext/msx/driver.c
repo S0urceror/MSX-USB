@@ -58,7 +58,7 @@ uint16_t get_workarea_size (uint8_t reduced_drive_count,uint8_t nr_available_dri
         printf ("get_workarea_size (%x,%x)\r\n",nr_available_drives,reduced_drive_count);
     #endif
 
-    return 100;//sizeof (workarea_t);
+    return sizeof (workarea_t);
 }
 
 
