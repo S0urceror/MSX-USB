@@ -245,6 +245,9 @@ DEV_RW:
 	pop af
 	pop af
 	ld a,l
+;	and a ; clear carry when okay
+;	ret z
+;	scf ; set carry on error, not according to manual but expected when reading in page 1
 	ret
 
 DEV_INFO:

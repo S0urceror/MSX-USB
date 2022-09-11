@@ -89,8 +89,8 @@ _interrupt::
 ; Function get_workarea_size
 ; ---------------------------------
 _get_workarea_size::
-;driver.c:61: return 100;//sizeof (workarea_t);
-	ld	hl, #0x0064
+;driver.c:61: return sizeof (workarea_t);
+	ld	hl, #0x0002
 ;driver.c:62: }
 	ret
 ;driver.c:86: void init_driver (uint8_t reduced_drive_count,uint8_t nr_allocated_drives)

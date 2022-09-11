@@ -162,7 +162,7 @@ bool ch376_get_sector_LBA (uint8_t nr_sectors,uint8_t* sectors_allowed_lba)
     write_command(CMD_RD_USB_DATA);
     uint8_t len = read_data();
     #ifdef DEBUG
-        ASSERT (len==8,"get_sector_LBA does not return 8 bytes\r\n");
+        ASSERT (len==8,"get_sector_LBA needs to return 8 bytes\r\n");
     #endif
     read_data_multiple (sectors_allowed_lba,len);
 
@@ -193,7 +193,7 @@ bool ch376s_disk_read (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer)
         write_command(CMD_RD_USB_DATA);
         uint8_t len = read_data();
         #ifdef DEBUG
-            ASSERT (len==MAX_PACKET_LENGTH,"disk_read returns more or less then 64 bytes per packet\r\n");
+            ASSERT (len==MAX_PACKET_LENGTH,"disk_read needs to return 64 bytes per packet\r\n");
         #endif
         #ifdef DEBUG
             byte_count += len;
@@ -205,7 +205,7 @@ bool ch376s_disk_read (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer)
     }
     while (true);
     #ifdef DEBUG
-        ASSERT (byte_count == 512,"disk_read returns more or less then 512 bytes per sector\r\n");
+        ASSERT (byte_count == 512,"disk_read needs to return 512 bytes per sector\r\n");
     #endif
 }
 
