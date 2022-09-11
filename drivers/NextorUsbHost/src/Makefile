@@ -5,7 +5,7 @@
 # ROOKIEDRIVE	- ASCII16 mapper cartridge with ports 0x20 and 0x21
 # MISTERSPI		- CH376s module connected via SPI to MiSTerFPGA
 
-ASM = sjasmplus
+ASM = ../../../../Compilers/sjasmplus/sjasmplus
 ASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym --lst=$(basename $@).lst -D__MSXUSBCARTv1
 RDASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym --lst=$(basename $@).lst -D__ROOKIEDRIVE
 MSTRASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym --lst=$(basename $@).lst -D__MISTERSPI #-D__NOWAIT
