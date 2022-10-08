@@ -1,0 +1,477 @@
+Fitter report for MSXUSB
+Fri Oct 07 21:37:36 2022
+Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Fitter Summary
+  3. Fitter Settings
+  4. Parallel Compilation
+  5. Pin-Out File
+  6. Fitter Resource Usage Summary
+  7. Input Pins
+  8. Output Pins
+  9. All Package Pins
+ 10. I/O Standard
+ 11. Dedicated Inputs I/O
+ 12. Output Pin Default Load For Reported TCO
+ 13. Fitter Resource Utilization by Entity
+ 14. Control Signals
+ 15. Non-Global High Fan-Out Signals
+ 16. Other Routing Usage Summary
+ 17. LAB Macrocells
+ 18. Shareable Expander
+ 19. Logic Cell Interconnection
+ 20. Fitter Device Options
+ 21. Fitter Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 1991-2013 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+
+
+
++-----------------------------------------------------------------------------+
+; Fitter Summary                                                              ;
++---------------------------+-------------------------------------------------+
+; Fitter Status             ; Successful - Fri Oct 07 21:37:36 2022           ;
+; Quartus II 64-Bit Version ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
+; Revision Name             ; MSXUSB                                          ;
+; Top-level Entity Name     ; msxusb                                          ;
+; Family                    ; MAX7000S                                        ;
+; Device                    ; EPM7064SLC44-10                                 ;
+; Timing Models             ; Final                                           ;
+; Total macrocells          ; 33 / 64 ( 52 % )                                ;
+; Total pins                ; 35 / 36 ( 97 % )                                ;
++---------------------------+-------------------------------------------------+
+
+
++--------------------------------------------------------------------------------------------------------------+
+; Fitter Settings                                                                                              ;
++----------------------------------------------------------------------------+-----------------+---------------+
+; Option                                                                     ; Setting         ; Default Value ;
++----------------------------------------------------------------------------+-----------------+---------------+
+; Device                                                                     ; EPM7064SLC44-10 ;               ;
+; Use smart compilation                                                      ; Off             ; Off           ;
+; Enable parallel Assembler and TimeQuest Timing Analyzer during compilation ; On              ; On            ;
+; Enable compact report table                                                ; Off             ; Off           ;
+; Optimize Multi-Corner Timing                                               ; Off             ; Off           ;
+; Optimize Timing for ECOs                                                   ; Off             ; Off           ;
+; Regenerate full fit report during ECO compiles                             ; Off             ; Off           ;
+; Optimize IOC Register Placement for Timing                                 ; Normal          ; Normal        ;
+; Fitter Initial Placement Seed                                              ; 1               ; 1             ;
+; Slow Slew Rate                                                             ; Off             ; Off           ;
+; Fitter Effort                                                              ; Auto Fit        ; Auto Fit      ;
+; Force Fitter to Avoid Periphery Placement Warnings                         ; Off             ; Off           ;
++----------------------------------------------------------------------------+-----------------+---------------+
+
+
+Parallel compilation was disabled, but you have multiple processors available. Enable parallel compilation to reduce compilation time.
++-------------------------------------+
+; Parallel Compilation                ;
++----------------------------+--------+
+; Processors                 ; Number ;
++----------------------------+--------+
+; Number detected on machine ; 8      ;
+; Maximum allowed            ; 1      ;
++----------------------------+--------+
+
+
++--------------+
+; Pin-Out File ;
++--------------+
+The pin-out file can be found in C:/Users/crisag/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pin.
+
+
++-------------------------------------------------+
+; Fitter Resource Usage Summary                   ;
++------------------------------+------------------+
+; Resource                     ; Usage            ;
++------------------------------+------------------+
+; Logic cells                  ; 33 / 64 ( 52 % ) ;
+; Registers                    ; 30 / 64 ( 47 % ) ;
+; Number of pterms used        ; 129              ;
+; I/O pins                     ; 35 / 36 ( 97 % ) ;
+;     -- Clock pins            ; 1 / 2 ( 50 % )   ;
+;     -- Dedicated input pins  ; 2 / 2 ( 100 % )  ;
+;                              ;                  ;
+; Global signals               ; 0                ;
+; Shareable expanders          ; 18 / 64 ( 28 % ) ;
+; Parallel expanders           ; 0 / 60 ( 0 % )   ;
+; Cells using turbo bit        ; 33 / 64 ( 52 % ) ;
+; Maximum fan-out              ; 45               ;
+; Highest non-global fan-out   ; 45               ;
+; Total fan-out                ; 663              ;
+; Average fan-out              ; 7.71             ;
++------------------------------+------------------+
+
+
++---------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Input Pins                                                                                                                                              ;
++-------------------+-------+----------+-----+-----------------------+--------------------+--------+----------------+--------------+----------------------+
+; Name              ; Pin # ; I/O Bank ; LAB ; Combinational Fan-Out ; Registered Fan-Out ; Global ; Input Register ; I/O Standard ; Location assigned by ;
++-------------------+-------+----------+-----+-----------------------+--------------------+--------+----------------+--------------+----------------------+
+; data[0]           ; 16    ; --       ; 2   ; 4                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; data[1]           ; 14    ; --       ; 2   ; 4                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; data[2]           ; 12    ; --       ; 1   ; 4                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; data[3]           ; 11    ; --       ; 1   ; 4                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; data[4]           ; 9     ; --       ; 1   ; 0                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; data[5]           ; 8     ; --       ; 1   ; 4                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a15_a13_a12[0] ; 17    ; --       ; 2   ; 36                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a15_a13_a12[1] ; 29    ; --       ; 3   ; 42                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a15_a13_a12[2] ; 28    ; --       ; 3   ; 42                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[0]       ; 27    ; --       ; 3   ; 36                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[1]       ; 26    ; --       ; 3   ; 38                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[2]       ; 25    ; --       ; 3   ; 38                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[3]       ; 24    ; --       ; 3   ; 38                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[4]       ; 21    ; --       ; 2   ; 38                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[5]       ; 20    ; --       ; 2   ; 38                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[6]       ; 19    ; --       ; 2   ; 38                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; in_a7_a0[7]       ; 18    ; --       ; 2   ; 38                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; iorq_n            ; 4     ; --       ; 1   ; 2                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; rd_n              ; 1     ; --       ; --  ; 2                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; reset_n           ; 44    ; --       ; --  ; 30                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; rom_sl            ; 2     ; --       ; --  ; 4                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; sltsl_n           ; 41    ; --       ; 4   ; 45                    ; 0                  ; no     ; no             ; TTL          ; User                 ;
+; wr_n              ; 40    ; --       ; 4   ; 4                     ; 0                  ; no     ; no             ; TTL          ; User                 ;
++-------------------+-------+----------+-----+-----------------------+--------------------+--------+----------------+--------------+----------------------+
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Output Pins                                                                                                                                                                                        ;
++----------------+-------+----------+-----+-----------------+----------------+------------+---------------+--------------+----------------------+-------+----------------------+---------------------+
+; Name           ; Pin # ; I/O Bank ; LAB ; Output Register ; Slow Slew Rate ; Open Drain ; TRI Primitive ; I/O Standard ; Location assigned by ; Load  ; Output Enable Source ; Output Enable Group ;
++----------------+-------+----------+-----+-----------------+----------------+------------+---------------+--------------+----------------------+-------+----------------------+---------------------+
+; busdir         ; 6     ; --       ; 1   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
+; cs_ch376s_n    ; 5     ; --       ; 1   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
+; out_a13_a18[0] ; 39    ; --       ; 4   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
+; out_a13_a18[1] ; 37    ; --       ; 4   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
+; out_a13_a18[2] ; 36    ; --       ; 4   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
+; out_a13_a18[3] ; 34    ; --       ; 4   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
+; out_a13_a18[4] ; 33    ; --       ; 4   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
+; out_a13_a18[5] ; 31    ; --       ; 3   ; no              ; no             ; no         ; no            ; TTL          ; User                 ; 10 pF ; -                    ; -                   ;
++----------------+-------+----------+-----+-----------------+----------------+------------+---------------+--------------+----------------------+-------+----------------------+---------------------+
+
+
++----------------------------------------------------------------------------------------------------------+
+; All Package Pins                                                                                         ;
++----------+------------+----------+-------------------+--------+--------------+---------+-----------------+
+; Location ; Pad Number ; I/O Bank ; Pin Name/Usage    ; Dir.   ; I/O Standard ; Voltage ; User Assignment ;
++----------+------------+----------+-------------------+--------+--------------+---------+-----------------+
+; 1        ; 0          ; --       ; rd_n              ; input  ; TTL          ;         ; Y               ;
+; 2        ; 1          ; --       ; rom_sl            ; input  ; TTL          ;         ; Y               ;
+; 3        ; 2          ; --       ; VCC               ; power  ;              ;         ;                 ;
+; 4        ; 3          ; --       ; iorq_n            ; input  ; TTL          ;         ; Y               ;
+; 5        ; 4          ; --       ; cs_ch376s_n       ; output ; TTL          ;         ; Y               ;
+; 6        ; 5          ; --       ; busdir            ; output ; TTL          ;         ; Y               ;
+; 7        ; 6          ; --       ; TDI               ; input  ; TTL          ;         ; N               ;
+; 8        ; 7          ; --       ; data[5]           ; input  ; TTL          ;         ; Y               ;
+; 9        ; 8          ; --       ; data[4]           ; input  ; TTL          ;         ; Y               ;
+; 10       ; 9          ; --       ; GND               ; gnd    ;              ;         ;                 ;
+; 11       ; 10         ; --       ; data[3]           ; input  ; TTL          ;         ; Y               ;
+; 12       ; 11         ; --       ; data[2]           ; input  ; TTL          ;         ; Y               ;
+; 13       ; 12         ; --       ; TMS               ; input  ; TTL          ;         ; N               ;
+; 14       ; 13         ; --       ; data[1]           ; input  ; TTL          ;         ; Y               ;
+; 15       ; 14         ; --       ; VCC               ; power  ;              ;         ;                 ;
+; 16       ; 15         ; --       ; data[0]           ; input  ; TTL          ;         ; Y               ;
+; 17       ; 16         ; --       ; in_a15_a13_a12[0] ; input  ; TTL          ;         ; Y               ;
+; 18       ; 17         ; --       ; in_a7_a0[7]       ; input  ; TTL          ;         ; Y               ;
+; 19       ; 18         ; --       ; in_a7_a0[6]       ; input  ; TTL          ;         ; Y               ;
+; 20       ; 19         ; --       ; in_a7_a0[5]       ; input  ; TTL          ;         ; Y               ;
+; 21       ; 20         ; --       ; in_a7_a0[4]       ; input  ; TTL          ;         ; Y               ;
+; 22       ; 21         ; --       ; GND               ; gnd    ;              ;         ;                 ;
+; 23       ; 22         ; --       ; VCC               ; power  ;              ;         ;                 ;
+; 24       ; 23         ; --       ; in_a7_a0[3]       ; input  ; TTL          ;         ; Y               ;
+; 25       ; 24         ; --       ; in_a7_a0[2]       ; input  ; TTL          ;         ; Y               ;
+; 26       ; 25         ; --       ; in_a7_a0[1]       ; input  ; TTL          ;         ; Y               ;
+; 27       ; 26         ; --       ; in_a7_a0[0]       ; input  ; TTL          ;         ; Y               ;
+; 28       ; 27         ; --       ; in_a15_a13_a12[2] ; input  ; TTL          ;         ; Y               ;
+; 29       ; 28         ; --       ; in_a15_a13_a12[1] ; input  ; TTL          ;         ; Y               ;
+; 30       ; 29         ; --       ; GND               ; gnd    ;              ;         ;                 ;
+; 31       ; 30         ; --       ; out_a13_a18[5]    ; output ; TTL          ;         ; Y               ;
+; 32       ; 31         ; --       ; TCK               ; input  ; TTL          ;         ; N               ;
+; 33       ; 32         ; --       ; out_a13_a18[4]    ; output ; TTL          ;         ; Y               ;
+; 34       ; 33         ; --       ; out_a13_a18[3]    ; output ; TTL          ;         ; Y               ;
+; 35       ; 34         ; --       ; VCC               ; power  ;              ;         ;                 ;
+; 36       ; 35         ; --       ; out_a13_a18[2]    ; output ; TTL          ;         ; Y               ;
+; 37       ; 36         ; --       ; out_a13_a18[1]    ; output ; TTL          ;         ; Y               ;
+; 38       ; 37         ; --       ; TDO               ; output ; TTL          ;         ; N               ;
+; 39       ; 38         ; --       ; out_a13_a18[0]    ; output ; TTL          ;         ; Y               ;
+; 40       ; 39         ; --       ; wr_n              ; input  ; TTL          ;         ; Y               ;
+; 41       ; 40         ; --       ; sltsl_n           ; input  ; TTL          ;         ; Y               ;
+; 42       ; 41         ; --       ; GND               ; gnd    ;              ;         ;                 ;
+; 43       ; 42         ; --       ; GND+              ;        ;              ;         ;                 ;
+; 44       ; 43         ; --       ; reset_n           ; input  ; TTL          ;         ; Y               ;
++----------+------------+----------+-------------------+--------+--------------+---------+-----------------+
+Note: Pin directions (input, output or bidir) are based on device operating in user mode.
+
+
++--------------------------------------------------------------------------------------------------+
+; I/O Standard                                                                                     ;
++--------------+------------+----------------------+-------------------+-------------------+-------+
+; I/O Standard ; Input Vref ; Dedicated Input Pins ; Pins in I/O Bank1 ; Pins in I/O Bank2 ; Total ;
++--------------+------------+----------------------+-------------------+-------------------+-------+
+; TTL          ; -          ; 3                    ; 0                 ; 0                 ; 3     ;
++--------------+------------+----------------------+-------------------+-------------------+-------+
+
+
++-----------------------------------------------------------------------+
+; Dedicated Inputs I/O                                                  ;
++---------+-------+-------+-------+--------------+------------+---------+
+; Name    ; Pin # ; Type  ; VCCIO ; I/O Standard ; Input Vref ; Current ;
++---------+-------+-------+-------+--------------+------------+---------+
+; rd_n    ; 1     ; Input ; --    ; TTL          ; -          ; 0 mA    ;
+; reset_n ; 44    ; Input ; --    ; TTL          ; -          ; 0 mA    ;
+; rom_sl  ; 2     ; Input ; --    ; TTL          ; -          ; 0 mA    ;
++---------+-------+-------+-------+--------------+------------+---------+
+
+
++-----------------------------------------------+
+; Output Pin Default Load For Reported TCO      ;
++--------------+-------+------------------------+
+; I/O Standard ; Load  ; Termination Resistance ;
++--------------+-------+------------------------+
+; TTL          ; 10 pF ; Not Available          ;
++--------------+-------+------------------------+
+Note: User assignments will override these defaults. The user specified values are listed in the Output Pins and Bidir Pins tables.
+
+
++-------------------------------------------------------------------------------------------------------+
+; Fitter Resource Utilization by Entity                                                                 ;
++--------------------------------+------------+------+-----------------------------------+--------------+
+; Compilation Hierarchy Node     ; Macrocells ; Pins ; Full Hierarchy Name               ; Library Name ;
++--------------------------------+------------+------+-----------------------------------+--------------+
+; |msxusb                        ; 33         ; 35   ; |msxusb                           ; work         ;
+;    |ch376:CH376|               ; 2          ; 0    ; |msxusb|ch376:CH376               ; work         ;
+;    |scc_rom_mapper:ROM_MAPPER| ; 31         ; 0    ; |msxusb|scc_rom_mapper:ROM_MAPPER ; work         ;
++--------------------------------+------------+------+-----------------------------------+--------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------+
+; Control Signals                                                                                                          ;
++------------------------------------------+----------+---------+-------+--------+----------------------+------------------+
+; Name                                     ; Location ; Fan-Out ; Usage ; Global ; Global Resource Used ; Global Line Name ;
++------------------------------------------+----------+---------+-------+--------+----------------------+------------------+
+; scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal ; LC15     ; 6       ; Clock ; no     ; --                   ; --               ;
+; scc_rom_mapper:ROM_MAPPER|WE~146         ; SEXP2    ; 8       ; Clock ; no     ; --                   ; --               ;
+; scc_rom_mapper:ROM_MAPPER|WE~147         ; SEXP4    ; 8       ; Clock ; no     ; --                   ; --               ;
+; scc_rom_mapper:ROM_MAPPER|WE~148         ; SEXP34   ; 8       ; Clock ; no     ; --                   ; --               ;
+; scc_rom_mapper:ROM_MAPPER|WE~149         ; SEXP35   ; 8       ; Clock ; no     ; --                   ; --               ;
+; scc_rom_mapper:ROM_MAPPER|WE~94          ; SEXP20   ; 8       ; Clock ; no     ; --                   ; --               ;
+; scc_rom_mapper:ROM_MAPPER|WE~95          ; SEXP19   ; 8       ; Clock ; no     ; --                   ; --               ;
+; sltsl_n                                  ; PIN_41   ; 45      ; Clock ; no     ; --                   ; --               ;
++------------------------------------------+----------+---------+-------+--------+----------------------+------------------+
+
+
++------------------------------------------------------+
+; Non-Global High Fan-Out Signals                      ;
++--------------------------------------------+---------+
+; Name                                       ; Fan-Out ;
++--------------------------------------------+---------+
+; sltsl_n                                    ; 45      ;
+; in_a15_a13_a12[2]                          ; 42      ;
+; in_a15_a13_a12[1]                          ; 42      ;
+; in_a7_a0[5]                                ; 38      ;
+; in_a7_a0[4]                                ; 38      ;
+; in_a7_a0[7]                                ; 38      ;
+; in_a7_a0[6]                                ; 38      ;
+; in_a7_a0[3]                                ; 38      ;
+; in_a7_a0[2]                                ; 38      ;
+; in_a7_a0[1]                                ; 38      ;
+; in_a15_a13_a12[0]                          ; 36      ;
+; in_a7_a0[0]                                ; 36      ;
+; reset_n                                    ; 30      ;
+; scc_rom_mapper:ROM_MAPPER|WE~149           ; 8       ;
+; scc_rom_mapper:ROM_MAPPER|WE~148           ; 8       ;
+; scc_rom_mapper:ROM_MAPPER|WE~147           ; 8       ;
+; scc_rom_mapper:ROM_MAPPER|WE~146           ; 8       ;
+; scc_rom_mapper:ROM_MAPPER|WE~95            ; 8       ;
+; scc_rom_mapper:ROM_MAPPER|WE~94            ; 8       ;
+; scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal   ; 6       ;
+; data[5]                                    ; 4       ;
+; rom_sl                                     ; 4       ;
+; data[3]                                    ; 4       ;
+; data[2]                                    ; 4       ;
+; data[1]                                    ; 4       ;
+; data[0]                                    ; 4       ;
+; wr_n                                       ; 4       ;
+; scc_rom_mapper:ROM_MAPPER|mem1~160         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3~163         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2~159         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0~161         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1~159         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0~160         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2~158         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3~162         ; 2       ;
+; rd_n                                       ; 2       ;
+; iorq_n                                     ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1[5]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3[5]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2[5]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0[5]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1[4]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3[4]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2[4]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0[4]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1[3]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3[3]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2[3]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0[3]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1[2]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3[2]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2[2]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0[2]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1[1]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0[1]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2[0]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0[0]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem0~128         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3[1]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2[1]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem2~124         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1[0]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem1~125         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3[0]          ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|mem3~126         ; 2       ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[5] ; 1       ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[4] ; 1       ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[3] ; 1       ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[2] ; 1       ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[1] ; 1       ;
+; scc_rom_mapper:ROM_MAPPER|address_upper[0] ; 1       ;
+; ch376:CH376|busdir~6                       ; 1       ;
+; ch376:CH376|cs_ch376s_n~11                 ; 1       ;
++--------------------------------------------+---------+
+
+
++-------------------------------------------------+
+; Other Routing Usage Summary                     ;
++-----------------------------+-------------------+
+; Other Routing Resource Type ; Usage             ;
++-----------------------------+-------------------+
+; Output enables              ; 0 / 6 ( 0 % )     ;
+; PIA buffers                 ; 99 / 144 ( 69 % ) ;
++-----------------------------+-------------------+
+
+
++----------------------------------------------------------------------+
+; LAB Macrocells                                                       ;
++----------------------------------------+-----------------------------+
+; Number of Macrocells  (Average = 8.25) ; Number of LABs  (Total = 4) ;
++----------------------------------------+-----------------------------+
+; 0                                      ; 0                           ;
+; 1                                      ; 0                           ;
+; 2                                      ; 0                           ;
+; 3                                      ; 0                           ;
+; 4                                      ; 0                           ;
+; 5                                      ; 1                           ;
+; 6                                      ; 0                           ;
+; 7                                      ; 0                           ;
+; 8                                      ; 1                           ;
+; 9                                      ; 1                           ;
+; 10                                     ; 0                           ;
+; 11                                     ; 1                           ;
++----------------------------------------+-----------------------------+
+
+
++-------------------------------------------------------------------------------+
+; Shareable Expander                                                            ;
++-------------------------------------------------+-----------------------------+
+; Number of shareable expanders  (Average = 4.50) ; Number of LABs  (Total = 3) ;
++-------------------------------------------------+-----------------------------+
+; 0                                               ; 1                           ;
+; 1                                               ; 0                           ;
+; 2                                               ; 0                           ;
+; 3                                               ; 0                           ;
+; 4                                               ; 0                           ;
+; 5                                               ; 0                           ;
+; 6                                               ; 3                           ;
++-------------------------------------------------+-----------------------------+
+
+
++-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Logic Cell Interconnection                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
++-----+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; LAB ; Logic Cell ; Input                                                                                                                                                                                                                                                                                                                                 ; Output                                                                                                                                                                                                                                                                 ;
++-----+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+;  A  ; LC14       ; in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], iorq_n, in_a7_a0[4], in_a7_a0[5]                                                                                                                                                                                                                                     ; cs_ch376s_n                                                                                                                                                                                                                                                            ;
+;  A  ; LC11       ; in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], iorq_n, in_a7_a0[4], in_a7_a0[5], rd_n                                                                                                                                                                                                                               ; busdir                                                                                                                                                                                                                                                                 ;
+;  A  ; LC5        ; data[2], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem2~124, scc_rom_mapper:ROM_MAPPER|mem2[2], reset_n, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147 ; scc_rom_mapper:ROM_MAPPER|mem2[2], scc_rom_mapper:ROM_MAPPER|address_upper[2]                                                                                                                                                                                          ;
+;  A  ; LC6        ; data[2], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem3~162, scc_rom_mapper:ROM_MAPPER|mem3[2], reset_n, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147 ; scc_rom_mapper:ROM_MAPPER|mem3[2], scc_rom_mapper:ROM_MAPPER|address_upper[2]                                                                                                                                                                                          ;
+;  A  ; LC1        ; data[1], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem2[1], scc_rom_mapper:ROM_MAPPER|mem2~124, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147, reset_n ; scc_rom_mapper:ROM_MAPPER|address_upper[1], scc_rom_mapper:ROM_MAPPER|mem2[1]                                                                                                                                                                                          ;
+;  A  ; LC8        ; data[1], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem3[1], scc_rom_mapper:ROM_MAPPER|mem3~162, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147, reset_n ; scc_rom_mapper:ROM_MAPPER|address_upper[1], scc_rom_mapper:ROM_MAPPER|mem3[1]                                                                                                                                                                                          ;
+;  A  ; LC13       ; data[2], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem1~159, scc_rom_mapper:ROM_MAPPER|mem1[2], reset_n, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147 ; scc_rom_mapper:ROM_MAPPER|mem1[2], scc_rom_mapper:ROM_MAPPER|address_upper[2]                                                                                                                                                                                          ;
+;  A  ; LC15       ; rd_n, wr_n                                                                                                                                                                                                                                                                                                                            ; scc_rom_mapper:ROM_MAPPER|address_upper[0], scc_rom_mapper:ROM_MAPPER|address_upper[1], scc_rom_mapper:ROM_MAPPER|address_upper[2], scc_rom_mapper:ROM_MAPPER|address_upper[3], scc_rom_mapper:ROM_MAPPER|address_upper[4], scc_rom_mapper:ROM_MAPPER|address_upper[5] ;
+;  A  ; LC2        ; data[1], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem0~160, scc_rom_mapper:ROM_MAPPER|mem0[1], reset_n, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147 ; scc_rom_mapper:ROM_MAPPER|mem0[1], scc_rom_mapper:ROM_MAPPER|address_upper[1]                                                                                                                                                                                          ;
+;  A  ; LC4        ; data[1], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem1~159, scc_rom_mapper:ROM_MAPPER|mem1[1], reset_n, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147 ; scc_rom_mapper:ROM_MAPPER|mem1[1], scc_rom_mapper:ROM_MAPPER|address_upper[1]                                                                                                                                                                                          ;
+;  A  ; LC10       ; data[2], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem0~160, scc_rom_mapper:ROM_MAPPER|mem0[2], reset_n, scc_rom_mapper:ROM_MAPPER|WE~146, scc_rom_mapper:ROM_MAPPER|WE~147 ; scc_rom_mapper:ROM_MAPPER|mem0[2], scc_rom_mapper:ROM_MAPPER|address_upper[2]                                                                                                                                                                                          ;
+;  B  ; LC17       ; data[0], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem3[0], scc_rom_mapper:ROM_MAPPER|mem3~126, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95, reset_n   ; scc_rom_mapper:ROM_MAPPER|address_upper[0], scc_rom_mapper:ROM_MAPPER|mem3[0]                                                                                                                                                                                          ;
+;  B  ; LC18       ; data[0], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem1[0], scc_rom_mapper:ROM_MAPPER|mem1~125, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95, reset_n   ; scc_rom_mapper:ROM_MAPPER|address_upper[0], scc_rom_mapper:ROM_MAPPER|mem1[0]                                                                                                                                                                                          ;
+;  B  ; LC19       ; data[0], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem0~128, scc_rom_mapper:ROM_MAPPER|mem0[0], reset_n, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95   ; scc_rom_mapper:ROM_MAPPER|mem0[0], scc_rom_mapper:ROM_MAPPER|address_upper[0]                                                                                                                                                                                          ;
+;  B  ; LC20       ; data[0], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem2~158, scc_rom_mapper:ROM_MAPPER|mem2[0], reset_n, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95   ; scc_rom_mapper:ROM_MAPPER|mem2[0], scc_rom_mapper:ROM_MAPPER|address_upper[0]                                                                                                                                                                                          ;
+;  B  ; LC21       ; data[3], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem0~128, scc_rom_mapper:ROM_MAPPER|mem0[3], reset_n, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95   ; scc_rom_mapper:ROM_MAPPER|mem0[3], scc_rom_mapper:ROM_MAPPER|address_upper[3]                                                                                                                                                                                          ;
+;  B  ; LC23       ; data[3], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem2~158, scc_rom_mapper:ROM_MAPPER|mem2[3], reset_n, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95   ; scc_rom_mapper:ROM_MAPPER|mem2[3], scc_rom_mapper:ROM_MAPPER|address_upper[3]                                                                                                                                                                                          ;
+;  B  ; LC26       ; data[3], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem1~125, scc_rom_mapper:ROM_MAPPER|mem1[3], reset_n, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95   ; scc_rom_mapper:ROM_MAPPER|mem1[3], scc_rom_mapper:ROM_MAPPER|address_upper[3]                                                                                                                                                                                          ;
+;  B  ; LC25       ; data[3], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem3~126, scc_rom_mapper:ROM_MAPPER|mem3[3], reset_n, scc_rom_mapper:ROM_MAPPER|WE~94, scc_rom_mapper:ROM_MAPPER|WE~95   ; scc_rom_mapper:ROM_MAPPER|mem3[3], scc_rom_mapper:ROM_MAPPER|address_upper[3]                                                                                                                                                                                          ;
+;  C  ; LC38       ; rom_sl, in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem0~161, scc_rom_mapper:ROM_MAPPER|mem0[4], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149  ; scc_rom_mapper:ROM_MAPPER|mem0[4], scc_rom_mapper:ROM_MAPPER|address_upper[4]                                                                                                                                                                                          ;
+;  C  ; LC44       ; rom_sl, in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem2~159, scc_rom_mapper:ROM_MAPPER|mem2[4], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149  ; scc_rom_mapper:ROM_MAPPER|mem2[4], scc_rom_mapper:ROM_MAPPER|address_upper[4]                                                                                                                                                                                          ;
+;  C  ; LC47       ; rom_sl, in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem3~163, scc_rom_mapper:ROM_MAPPER|mem3[4], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149  ; scc_rom_mapper:ROM_MAPPER|mem3[4], scc_rom_mapper:ROM_MAPPER|address_upper[4]                                                                                                                                                                                          ;
+;  C  ; LC48       ; rom_sl, in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem1~160, scc_rom_mapper:ROM_MAPPER|mem1[4], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149  ; scc_rom_mapper:ROM_MAPPER|mem1[4], scc_rom_mapper:ROM_MAPPER|address_upper[4]                                                                                                                                                                                          ;
+;  C  ; LC36       ; data[5], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem0~161, scc_rom_mapper:ROM_MAPPER|mem0[5], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149 ; scc_rom_mapper:ROM_MAPPER|mem0[5], scc_rom_mapper:ROM_MAPPER|address_upper[5]                                                                                                                                                                                          ;
+;  C  ; LC34       ; data[5], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem2~159, scc_rom_mapper:ROM_MAPPER|mem2[5], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149 ; scc_rom_mapper:ROM_MAPPER|mem2[5], scc_rom_mapper:ROM_MAPPER|address_upper[5]                                                                                                                                                                                          ;
+;  C  ; LC35       ; data[5], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem3~163, scc_rom_mapper:ROM_MAPPER|mem3[5], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149 ; scc_rom_mapper:ROM_MAPPER|mem3[5], scc_rom_mapper:ROM_MAPPER|address_upper[5]                                                                                                                                                                                          ;
+;  C  ; LC33       ; data[5], in_a15_a13_a12[2], in_a15_a13_a12[1], in_a7_a0[2], in_a7_a0[6], in_a7_a0[7], in_a7_a0[3], in_a7_a0[1], in_a7_a0[0], sltsl_n, in_a7_a0[4], in_a15_a13_a12[0], in_a7_a0[5], scc_rom_mapper:ROM_MAPPER|mem1~160, scc_rom_mapper:ROM_MAPPER|mem1[5], reset_n, scc_rom_mapper:ROM_MAPPER|WE~148, scc_rom_mapper:ROM_MAPPER|WE~149 ; scc_rom_mapper:ROM_MAPPER|mem1[5], scc_rom_mapper:ROM_MAPPER|address_upper[5]                                                                                                                                                                                          ;
+;  C  ; LC46       ; scc_rom_mapper:ROM_MAPPER|mem0[5], in_a15_a13_a12[1], in_a15_a13_a12[2], scc_rom_mapper:ROM_MAPPER|mem2[5], scc_rom_mapper:ROM_MAPPER|mem3[5], scc_rom_mapper:ROM_MAPPER|mem1[5], sltsl_n, scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal                                                                                                   ; out_a13_a18[5]                                                                                                                                                                                                                                                         ;
+;  D  ; LC57       ; scc_rom_mapper:ROM_MAPPER|mem0[0], in_a15_a13_a12[1], in_a15_a13_a12[2], scc_rom_mapper:ROM_MAPPER|mem2[0], scc_rom_mapper:ROM_MAPPER|mem3[0], scc_rom_mapper:ROM_MAPPER|mem1[0], sltsl_n, scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal                                                                                                   ; out_a13_a18[0]                                                                                                                                                                                                                                                         ;
+;  D  ; LC53       ; scc_rom_mapper:ROM_MAPPER|mem0[1], in_a15_a13_a12[1], in_a15_a13_a12[2], scc_rom_mapper:ROM_MAPPER|mem2[1], scc_rom_mapper:ROM_MAPPER|mem3[1], scc_rom_mapper:ROM_MAPPER|mem1[1], sltsl_n, scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal                                                                                                   ; out_a13_a18[1]                                                                                                                                                                                                                                                         ;
+;  D  ; LC52       ; scc_rom_mapper:ROM_MAPPER|mem0[2], in_a15_a13_a12[1], in_a15_a13_a12[2], scc_rom_mapper:ROM_MAPPER|mem2[2], scc_rom_mapper:ROM_MAPPER|mem3[2], scc_rom_mapper:ROM_MAPPER|mem1[2], sltsl_n, scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal                                                                                                   ; out_a13_a18[2]                                                                                                                                                                                                                                                         ;
+;  D  ; LC51       ; scc_rom_mapper:ROM_MAPPER|mem0[3], in_a15_a13_a12[1], in_a15_a13_a12[2], scc_rom_mapper:ROM_MAPPER|mem2[3], scc_rom_mapper:ROM_MAPPER|mem3[3], scc_rom_mapper:ROM_MAPPER|mem1[3], sltsl_n, scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal                                                                                                   ; out_a13_a18[3]                                                                                                                                                                                                                                                         ;
+;  D  ; LC49       ; scc_rom_mapper:ROM_MAPPER|mem0[4], in_a15_a13_a12[1], in_a15_a13_a12[2], scc_rom_mapper:ROM_MAPPER|mem2[4], scc_rom_mapper:ROM_MAPPER|mem3[4], scc_rom_mapper:ROM_MAPPER|mem1[4], sltsl_n, scc_rom_mapper:ROM_MAPPER|ADDR_SEL~18bal                                                                                                   ; out_a13_a18[4]                                                                                                                                                                                                                                                         ;
++-----+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+
++---------------------------------------------------------------+
+; Fitter Device Options                                         ;
++----------------------------------------------+----------------+
+; Option                                       ; Setting        ;
++----------------------------------------------+----------------+
+; Enable user-supplied start-up clock (CLKUSR) ; Off            ;
+; Enable device-wide reset (DEV_CLRn)          ; Off            ;
+; Enable device-wide output enable (DEV_OE)    ; Off            ;
+; Enable INIT_DONE output                      ; Off            ;
+; Configuration scheme                         ; Passive Serial ;
+; Security bit                                 ; Off            ;
+; Base pin-out file on sameframe device        ; Off            ;
++----------------------------------------------+----------------+
+
+
++-----------------+
+; Fitter Messages ;
++-----------------+
+Warning (20028): Parallel compilation is not licensed and has been disabled
+Info (119006): Selected device EPM7064SLC44-10 for design "MSXUSB"
+Info: Quartus II 64-Bit Fitter was successful. 0 errors, 1 warning
+    Info: Peak virtual memory: 4678 megabytes
+    Info: Processing ended: Fri Oct 07 21:37:36 2022
+    Info: Elapsed time: 00:00:02
+    Info: Total CPU time (on all processors): 00:00:00
+
+
