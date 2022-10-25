@@ -80,10 +80,10 @@ module scc_rom_mapper (rom_sl,rd_n,wr_n,sltsl_n,reset_n,a7_a0,a15_a13_a12,data,a
 			// store only when upper 4k is selected
 			// changing ma17 memX[4] to control the use of first 128K or second 128k stored on the flash memory (crisag)
 			case(a15_a13_a12)
-				3'b001: begin mem0 = data; mem0[4] = !rom_sl; end
-				3'b011: begin mem1 = data; mem1[4] = !rom_sl; end
-				3'b101: begin mem2 = data; mem2[4] = !rom_sl; end
-				3'b111: begin mem3 = data; mem3[4] = !rom_sl; end
+				3'b001: begin mem0 = data; mem0[4] = rom_sl; end
+				3'b011: begin mem1 = data; mem1[4] = rom_sl; end
+				3'b101: begin mem2 = data; mem2[4] = rom_sl; end
+				3'b111: begin mem3 = data; mem3[4] = rom_sl; end
 				// memory not updated when addressing lower 4k
 				default: ;
 			endcase   
