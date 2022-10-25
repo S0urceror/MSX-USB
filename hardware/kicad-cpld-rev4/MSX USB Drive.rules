@@ -1,0 +1,118 @@
+
+(rules PCB MSX USB Drive
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 4047)
+    (layer_rule F.Cu
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.5)
+    )
+    (layer_rule B.Cu
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 1.6)
+    )
+  )
+  (rule
+    (width 250.0)
+    (clear 200.2)
+    (clear 125.0 (type smd_to_turn_gap))
+    (clear 50.0 (type smd_smd))
+  )
+  (padstack "Via[0-1]_800:400_um"
+    (shape
+      (circle F.Cu 800.0 0.0 0.0)
+    )
+    (shape
+      (circle B.Cu 800.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (padstack "Via[0-1]_1000:400_um"
+    (shape
+      (circle F.Cu 1000.0 0.0 0.0)
+    )
+    (shape
+      (circle B.Cu 1000.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    "Via[0-1]_800:400_um" "Via[0-1]_800:400_um" default
+  )
+  (via 
+    "Via[0-1]_1000:400_um" "Via[0-1]_1000:400_um" default
+  )
+  (via 
+    "Via[0-1]_800:400_um-kicad_default" "Via[0-1]_800:400_um" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_1000:400_um-kicad_default" "Via[0-1]_1000:400_um" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_800:400_um-Power" "Via[0-1]_800:400_um" Power
+  )
+  (via 
+    "Via[0-1]_1000:400_um-Power" "Via[0-1]_1000:400_um" Power
+  )
+  (via_rule
+    default "Via[0-1]_800:400_um"
+  )
+  (via_rule
+    "kicad_default" "Via[0-1]_800:400_um-kicad_default"
+  )
+  (via_rule
+    Power "Via[0-1]_1000:400_um-Power"
+  )
+  (class default
+    "IORQ_" "WR_" A9 A11 A7 A12 A1 A3
+    A5 D1 D3 D5 D7 D6 D4 D2
+    D0 A4 A2 A0 A13 A8 A6 A10
+    A15 "RD_" "BUSDIR_" "SLTSL_" "CS_" "unconnected-(EDG1-Pad/RESV2)" "unconnected-(EDG1-Pad/RESV1)" "unconnected-(J1-Pad8)"
+    TCK TDO TMS "unconnected-(J1-Pad7)" "unconnected-(J1-Pad6)" TDI MA17 MA18
+    MA15 MA16 MA14 MA13 "RESET_" "unconnected-(J2-Pad10)" "SEL_F1F2" "unconnected-(U1-Pad43)"
+    CS1 CS2 CS12 INT M1 RFSH WAIT A14
+    CLOCK SOUNDIN SW1 MREQ "unconnected-(SW1-Pad1)"
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 250.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class "kicad_default"
+    (clearance_class "kicad_default")
+    (via_rule kicad_default)
+    (rule
+      (width 250.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class Power
+    VCC GND +12V "-12V"
+    (clearance_class Power)
+    (via_rule Power)
+    (rule
+      (width 400.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+)
