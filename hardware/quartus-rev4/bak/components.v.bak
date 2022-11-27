@@ -1,0 +1,38 @@
+module CH376s_IO_Address_Selector (address_bus,iorq_n,cs_ch376s_n);
+	input iorq_n;
+	input [7:0] address_bus;
+	output cs_ch376s_n;
+
+	assign cs_ch376s_n = (address_bus == 8'h10) & iorq_n;
+endmodule
+
+module IO_Busdir (rd_n,cs_ch376s_n,busdir);
+	input rd_n,cs_ch376s_n;
+	output busdir;
+	
+	assign busdir = cs_ch376s_n & rd_n;
+endmodule
+
+// Testbench Code Goes here
+module test;
+	reg [7:0] address;
+	reg iorq_n, rd_n;
+	reg i;
+	
+	msxusb TST (address,iorq_n,rd_n);
+	
+	initial
+	begin
+		address = 0;
+		iorq_n = 1;
+		rd_n = 1;
+		for (i = 0; i < 16; i = i +1) begin
+			#5 address = i;
+		end
+		iorq_n = 0;
+		for (i = 0; i < 16; i = i +1) begin
+			#5 address = i;
+		end
+	end
+
+endmodule

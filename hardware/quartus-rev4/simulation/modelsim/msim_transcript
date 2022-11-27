@@ -1,0 +1,53 @@
+# Reading C:/altera/13.0sp1/modelsim_ase/tcl/vsim/pref.tcl 
+# do MSXUSB_run_msim_rtl_verilog.do 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Copying C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini
+# Modifying modelsim.ini
+# ** Warning: Copied C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini.
+#          Updated modelsim.ini.
+# 
+# vlog -vlog01compat -work work +incdir+Y:/Development/msx/USB/hardware/quartus {Y:/Development/msx/USB/hardware/quartus/msxusb.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module msxusb
+# -- Compiling module ch376
+# -- Compiling module t_ch376
+# -- Compiling module scc_rom_mapper
+# -- Compiling module t_scc_rom_mapper
+# 
+# Top level modules:
+# 	msxusb
+# 	t_ch376
+# 	t_scc_rom_mapper
+# 
+vsim rtl_work.t_scc_rom_mapper
+# vsim rtl_work.t_scc_rom_mapper 
+# Loading rtl_work.t_scc_rom_mapper
+# Loading rtl_work.scc_rom_mapper
+run
+# sltsl:1, wr:1, range: xxxx, in:  x, out:  0
+# sltsl:0, wr:0, range: 0x01, in:  7, out:  0
+# sltsl:0, wr:1, range: 0x00, in:  7, out:  7
+# 
+# reset
+# sltsl:0, wr:1, range: 0x00, in:  7, out:  0
+# 
+# show init state
+# sltsl:0, wr:1, range: 0x01, in:  7, out:  0
+# sltsl:0, wr:1, range: 0x10, in:  7, out:  1
+# sltsl:0, wr:1, range: 0x11, in:  7, out:  1
+# sltsl:0, wr:1, range: 1x00, in:  7, out:  2
+# sltsl:0, wr:1, range: 1x01, in:  7, out:  2
+# sltsl:0, wr:1, range: 1x10, in:  7, out:  3
+# sltsl:0, wr:1, range: 1x11, in:  7, out:  3
+# sltsl:1, wr:1, range: 1x11, in:  7, out:  3
+# 
+# write new data in register
+# sltsl:0, wr:0, range: 0x00, in:  0, out:  0
+# sltsl:0, wr:1, range: 0x00, in:  0, out:  0
+# sltsl:0, wr:0, range: 0x01, in:  1, out:  0
+# sltsl:0, wr:1, range: 0x00, in:  1, out:  1
+# sltsl:0, wr:1, range: 0x01, in:  1, out:  1

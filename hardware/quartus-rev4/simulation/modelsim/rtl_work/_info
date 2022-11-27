@@ -1,0 +1,105 @@
+m255
+K3
+13
+cModel Technology
+Z0 dY:\Development\msx\USB\hardware\quartus\simulation\modelsim
+vch376
+!i10b 1
+!s100 TIG:2RQ3L;AJBdVgJliWA0
+IgBU30YcZ30IKg;gF12[ii2
+Vba^Qm1`]B4VMFLh0fGbhm3
+Z1 dY:\Development\msx\USB\hardware\quartus\simulation\modelsim
+Z2 w1589224429
+Z3 8Y:/Development/msx/USB/hardware/quartus/msxusb.v
+Z4 FY:/Development/msx/USB/hardware/quartus/msxusb.v
+L0 15
+Z5 OV;L;10.1d;51
+r1
+!s85 0
+31
+Z6 !s108 1589224520.609000
+Z7 !s107 Y:/Development/msx/USB/hardware/quartus/msxusb.v|
+Z8 !s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+Y:/Development/msx/USB/hardware/quartus|Y:/Development/msx/USB/hardware/quartus/msxusb.v|
+!s101 -O0
+Z9 o-vlog01compat -work work -O0
+Z10 !s92 -vlog01compat -work work +incdir+Y:/Development/msx/USB/hardware/quartus -O0
+vmsxusb
+!i10b 1
+!s100 @FNOO@MBdf9h00[j^RdQ91
+I_@2V?`AX7g9e3I<17VzJJ3
+VD8PefMQ:1kSzi1LlXPEZ73
+R1
+R2
+R3
+R4
+L0 1
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!s101 -O0
+R9
+R10
+vscc_rom_mapper
+!i10b 1
+!s100 85bZ0;ZNdQmWUDmaoGn3g1
+I9J?>N3VCSlR4iR5`6::7M2
+VASG8oh[UQOU96K[^Ti6i;2
+R1
+R2
+R3
+R4
+L0 63
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!s101 -O0
+R9
+R10
+vt_ch376
+!i10b 1
+!s100 RCbBheXI:2L=^AIoi<>nQ0
+ICo^>J1WaH;nf8PoCD;F0>3
+Va4dNbzATGc9L^3FSd[ETo3
+R1
+R2
+R3
+R4
+L0 26
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!s101 -O0
+R9
+R10
+vt_scc_rom_mapper
+!i10b 1
+!s100 j78NPQQV5eH48V9=ag@;B0
+IkWC_;>4>9IBb7L6gE`><l2
+VaIQH8`:[^^K:3K4=PSfDC0
+R1
+R2
+R3
+R4
+L0 119
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!s101 -O0
+R9
+R10
