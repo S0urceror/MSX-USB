@@ -1066,6 +1066,12 @@ std::string get_string2 (uint8_t target_device_address,uint8_t string_id)
 
 // USB HID COMMANDS
 ///////////////////////////////////////////////////////////////////////////
+bool set_report2 (uint8_t target_device_address,uint8_t report_type,uint8_t report_id,uint8_t interface,uint8_t* report,uint8_t report_size)
+{
+    uint8_t cmd[] = {0x21,0x09,report_id,report_type,interface,0,report_size,0};
+    bool result = execute_control_transfer(target_device_address,cmd,report,report_size);
+    return result;
+}
 bool set_protocol2 (uint8_t target_device_address,uint8_t protocol_id,uint8_t interface)
 {
     uint8_t cmd[] = {0x21,0x0B,protocol_id,0,interface,0,0,0};
@@ -1296,14 +1302,106 @@ bool read_boot_mouse (uint8_t target_device_address,uint8_t mouse_endpoint_id,ui
     }
     return true;
 }
-bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8_t millis,uint16_t in_packetsize)
+
+void add_a_not_in_b_to_c (uint8_t (&c)[7],uint8_t (&a)[7],uint8_t (&b)[7])
 {
-    uint8_t endpoint_toggle = 0;
-    int count=5;
-    while (true)//count--)
+  int idx=0;
+
+  for (int i=0;i<sizeof (a);i++)
+  {
+    int j;
+    for (j=0;j<sizeof(b);j++)
+    {
+      if (a[i]==b[j])
+        break;
+    }
+    if (j==sizeof(b))
+    {
+      // a element not found in b, add to c
+      c[idx++]=a[i];
+    }
+    else
+    {
+      // nothing to do
+    }
+  }
+}
+uint8_t old_key_buffer[7];
+uint8_t key_downs[7];
+uint8_t key_ups[7];
+bool caps_lock = false;
+bool num_lock = false;  
+///////////////////////////////////////////////////////////////////////////////////
+// converts a scancode into the appropriate bits L of the corresponding MSX key row
+// we do the heavy lifting here so that the loop() function is simple and can react
+// fast to the pulses on the keyboard connector
+void write_msx_keyboard (uint8_t (&key_buffer)[7],uint8_t target_device_address,uint8_t interface_id)
+{
+  uint8_t ku_idx=0;
+  uint8_t kd_idx=0;
+
+  // make a list of key down's
+  memset (key_downs,0,sizeof(key_downs));
+  memset (key_ups,0,sizeof(key_ups));
+
+  add_a_not_in_b_to_c (key_downs,key_buffer,old_key_buffer);
+  add_a_not_in_b_to_c (key_ups,old_key_buffer,key_buffer);
+  
+  //print_buffer (key_buffer,sizeof(key_buffer));
+  //print_buffer (key_downs,sizeof(key_downs));
+  //print_buffer (key_ups,sizeof(key_ups));
+  for (int i=0;i<sizeof(key_downs);i++)
+  {
+    if (key_downs[i]==0)
+      break;
+    //msx_key_matrix (key_downs[i],true);
+    //Serial.print (" D:");
+    //Serial.println (key_downs[i],HEX);
+    printf ("D: %0X\n",key_downs[i]);
+
+    if (key_downs[i]==0x39) // CAPS-LOCK
+    {
+        caps_lock = !caps_lock;
+        uint8_t out_report = 0b00000000;
+        if (caps_lock)
+            out_report |= 0b00000010;
+        else
+            out_report &= 0b11111101;
+        //data_out_transfer (&out_report,sizeof (out_report),1,1,max_packet_size,endpoint_out_toggle);
+        set_report2 (target_device_address,2,0,interface_id,&out_report,sizeof(out_report));
+    }
+    if (key_downs[i]==0x53) // NUM-LOCK
+    {
+        num_lock = !num_lock;
+        uint8_t out_report = 0b00000000;
+        if (num_lock)
+            out_report |= 0b00000001;
+        else
+            out_report &= 0b11111110;
+        //data_out_transfer (&out_report,sizeof (out_report),1,1,max_packet_size,endpoint_out_toggle);
+        set_report2 (target_device_address,2,0,interface_id,&out_report,sizeof(out_report));
+    }
+  }
+  for (int i=0;i<sizeof(key_ups);i++)
+  {
+    if (key_ups[i]==0)
+      break;
+    //msx_key_matrix (key_ups[i],false);
+    //Serial.print (" U:");
+    //Serial.println (key_ups[i],HEX);
+    printf ("U: %0X\n",key_ups[i]);
+  }
+  // use previous state to figure out key up/downs
+  memcpy (old_key_buffer,key_buffer,sizeof (old_key_buffer));
+}
+uint8_t key_buffer[7];
+bool read_boot_keyboard (uint8_t target_device_address,uint8_t interface_id, uint8_t endpoint_id,uint8_t millis,uint16_t in_packetsize)
+{
+    uint8_t endpoint_in_toggle = 0;
+    while (true)
     {
         uint8_t* buffer = (uint8_t* )malloc (in_packetsize);
-        uint8_t status = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_toggle,buffer);
+        uint8_t status = data_in_transfer(in_packetsize, target_device_address,endpoint_id, max_packet_size, endpoint_in_toggle,buffer);
         if (status != CH375_USB_INT_SUCCESS)
             return false;
         uint8_t modifier_keys = buffer[0];
@@ -1314,7 +1412,15 @@ bool read_boot_keyboard (uint8_t target_device_address,uint8_t endpoint_id,uint8
         uint8_t keycode4 = buffer[5];
         uint8_t keycode5 = buffer[6];
         uint8_t keycode6 = buffer[7];
-        printf ("modifier_keys: %02X, keycode1:%02X, keycode2:%02X, keycode3:%02X, keycode4:%02X, keycode5:%02X, keycode6:%02X\n",modifier_keys,keycode1,keycode2,keycode3,keycode4,keycode5,keycode6);
+        //printf ("modifier_keys: %02X, keycode1:%02X, keycode2:%02X, keycode3:%02X, keycode4:%02X, keycode5:%02X, keycode6:%02X\n",modifier_keys,keycode1,keycode2,keycode3,keycode4,keycode5,keycode6);
+        //////////////////////////////////////
+        if (buffer[0])
+            buffer[1] = buffer[0] | 0b10000000; // set high bit to 1
+        else
+            buffer[1] = 0;
+        memcpy (key_buffer,buffer+1,sizeof(key_buffer));
+        write_msx_keyboard (key_buffer,target_device_address,interface_id);
+        //////////////////////////////////////
         free (buffer);
         //std::this_thread::sleep_for(std::chrono::milliseconds(millis));
         if (keycode1==0x14) // Q for quit
@@ -2230,9 +2336,9 @@ void do_hid (_hid_info& hid_info)
             if (!set_protocol2 (hid_info.device_address,BOOT_PROTOCOL,hid_info.keyboard_interface)) // select boot protocol for our device
                 error ("error setting boot protocol for keyboard");
             //set_idle2(hid_info.device_address, 0x80, 0,hid_info.keyboard_interface); // scan every ~500ms
-            set_idle2(hid_info.device_address, 0xff, 0,hid_info.keyboard_interface); // maximum wait
+            set_idle2(hid_info.device_address, 0x01, 0,hid_info.keyboard_interface); // minimum wait
             
-            read_boot_keyboard (hid_info.device_address,hid_info.keyboard_endpoint,hid_info.keyboard_millis,hid_info.keyboard_packetsize); 
+            read_boot_keyboard (hid_info.device_address,hid_info.keyboard_interface,hid_info.keyboard_endpoint,hid_info.keyboard_millis,hid_info.keyboard_packetsize); 
             //read_boot_mouse (device_address,mouse_endpoint,mouse_millis,mouse_packetsize);
         }
     }

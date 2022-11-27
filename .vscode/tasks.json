@@ -7,10 +7,7 @@
             "label": "Driver - Nextor+UsbHost",
             "type": "shell",
             "command": "make -C ./drivers/NextorUsbHost/src/",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {
@@ -38,7 +35,10 @@
             "label": "Test - Parallel USB via Arduino C++",
             "type": "shell",
             "command": "make parallel -C ./test/usb_via_arduino/src/",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {

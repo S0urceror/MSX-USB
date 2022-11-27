@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name "msx-con")(type "KiCad")(uri "${KIPRJMOD}/msx-con.kicad_sym")(options "")(descr ""))
+  (lib (name "EPM7064_(44-PLCC)")(type "KiCad")(uri "${KIPRJMOD}/EPM7064 (44-PLCC).kicad_sym")(options "")(descr ""))
+  (lib (name "SK12D07VG4")(type "KiCad")(uri "${KIPRJMOD}/SK12D07VG4.kicad_sym")(options "")(descr ""))
+)

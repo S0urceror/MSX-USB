@@ -1,5 +1,6 @@
+#CPP_DIRECTIVES = -D_VERBOSE_DEBUG
 CPP = c++
-CPP_FLAGS = -stdlib=libc++ -g -c -D_VERBOSE_DEBUG
+CPP_FLAGS = -stdlib=libc++ -g -c $(CPP_DIRECTIVES)
 CPP_OUTPUT_DIR = 
 LNK = c++
 LNK_OUTPUT_DIR = ../dist
