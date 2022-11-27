@@ -38,6 +38,9 @@ If you want to use other USB devices you have to go low-level. As it turns out K
 * http://www.usbmadesimple.co.uk/index.html
 * https://www.beyondlogic.org/usbnutshell/usb1.shtml
 
+## PCB
+Please use the rev4 PCB by @cristianoag. This fits in a Konami style cartridge case and has a switch to select between two ROM images. Also use the rev4 FPGA code to enable this feature.
+
 ## UNAPI USB
 I wrote a UNAPI USB specification and implemented the Usb Host driver according to this. The next version of this Host driver will also implement the Usb Hub specification and enumerate and initialise all devices connected.
 
