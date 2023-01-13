@@ -1,6 +1,6 @@
 Assembler report for MSXUSB
-Fri Oct 07 21:37:38 2022
-Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+Tue Nov 22 02:08:47 2022
+Quartus II Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
 
 
 ---------------------
@@ -10,7 +10,7 @@ Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edit
   2. Assembler Summary
   3. Assembler Settings
   4. Assembler Generated Files
-  5. Assembler Device Options: C:/Users/crisag/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pof
+  5. Assembler Device Options: C:/Users/crist/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pof
   6. Assembler Messages
 
 
@@ -18,7 +18,7 @@ Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edit
 ----------------
 ; Legal Notice ;
 ----------------
-Copyright (C) 1991-2013 Altera Corporation
+Copyright (C) 1991-2011 Altera Corporation
 Your use of Altera Corporation's design tools, logic functions 
 and other software and tools, and its AMPP partner logic 
 functions, and any output files from any of the foregoing 
@@ -37,7 +37,7 @@ applicable agreement for further details.
 +---------------------------------------------------------------+
 ; Assembler Summary                                             ;
 +-----------------------+---------------------------------------+
-; Assembler Status      ; Successful - Fri Oct 07 21:37:38 2022 ;
+; Assembler Status      ; Successful - Tue Nov 22 02:08:47 2022 ;
 ; Revision Name         ; MSXUSB                                ;
 ; Top-level Entity Name ; msxusb                                ;
 ; Family                ; MAX7000S                              ;
@@ -73,39 +73,39 @@ applicable agreement for further details.
 +-----------------------------------------------------------------------------+----------+---------------+
 
 
-+------------------------------------------------------------------------------------------------------------------------------+
-; Assembler Generated Files                                                                                                    ;
-+------------------------------------------------------------------------------------------------------------------------------+
-; File Name                                                                                                                    ;
-+------------------------------------------------------------------------------------------------------------------------------+
-; C:/Users/crisag/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pof ;
-+------------------------------------------------------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------------------------------------------+
+; Assembler Generated Files                                                                                                   ;
++-----------------------------------------------------------------------------------------------------------------------------+
+; File Name                                                                                                                   ;
++-----------------------------------------------------------------------------------------------------------------------------+
+; C:/Users/crist/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pof ;
++-----------------------------------------------------------------------------------------------------------------------------+
 
 
-+--------------------------------------------------------------------------------------------------------------------------------------------------------+
-; Assembler Device Options: C:/Users/crisag/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pof ;
-+----------------+---------------------------------------------------------------------------------------------------------------------------------------+
-; Option         ; Setting                                                                                                                               ;
-+----------------+---------------------------------------------------------------------------------------------------------------------------------------+
-; Device         ; EPM7064SLC44-10                                                                                                                       ;
-; JTAG usercode  ; 0x00000000                                                                                                                            ;
-; Checksum       ; 0x000D258F                                                                                                                            ;
-+----------------+---------------------------------------------------------------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Assembler Device Options: C:/Users/crist/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pof ;
++----------------+--------------------------------------------------------------------------------------------------------------------------------------+
+; Option         ; Setting                                                                                                                              ;
++----------------+--------------------------------------------------------------------------------------------------------------------------------------+
+; Device         ; EPM7064SLC44-10                                                                                                                      ;
+; JTAG usercode  ; 0x00000000                                                                                                                           ;
+; Checksum       ; 0x000D2593                                                                                                                           ;
++----------------+--------------------------------------------------------------------------------------------------------------------------------------+
 
 
 +--------------------+
 ; Assembler Messages ;
 +--------------------+
 Info: *******************************************************************
-Info: Running Quartus II 64-Bit Assembler
-    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-    Info: Processing started: Fri Oct 07 21:37:37 2022
+Info: Running Quartus II Assembler
+    Info: Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
+    Info: Processing started: Tue Nov 22 02:08:47 2022
 Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off MSXUSB -c MSXUSB
-Info (115030): Assembler is generating device programming files
-Info: Quartus II 64-Bit Assembler was successful. 0 errors, 0 warnings
-    Info: Peak virtual memory: 4513 megabytes
-    Info: Processing ended: Fri Oct 07 21:37:38 2022
-    Info: Elapsed time: 00:00:01
+Info: Assembler is generating device programming files
+Info: Quartus II Assembler was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 237 megabytes
+    Info: Processing ended: Tue Nov 22 02:08:47 2022
+    Info: Elapsed time: 00:00:00
     Info: Total CPU time (on all processors): 00:00:00
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 1991-2013 Altera Corporation
+// Copyright (C) 1991-2011 Altera Corporation
 // Your use of Altera Corporation's design tools, logic functions 
 // and other software and tools, and its AMPP partner logic 
 // functions, and any output files from any of the foregoing 
@@ -13,10 +13,10 @@
 // applicable agreement for further details.
 
 // VENDOR "Altera"
-// PROGRAM "Quartus II 64-Bit"
-// VERSION "Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition"
+// PROGRAM "Quartus II"
+// VERSION "Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition"
 
-// DATE "10/07/2022 21:37:40"
+// DATE "11/22/2022 02:08:50"
 
 // 
 // Device: Altera EPM7064SLC44-10 Package PLCC44
@@ -29,6 +29,9 @@
 `timescale 1 ps/ 1 ps
 
 module msxusb (
+	cs_ch376s_n,
+	busdir,
+	out_a13_a18,
 	rom_sl,
 	in_a7_a0,
 	in_a15_a13_a12,
@@ -37,10 +40,10 @@ module msxusb (
 	rd_n,
 	wr_n,
 	sltsl_n,
-	reset_n,
-	cs_ch376s_n,
-	busdir,
-	out_a13_a18);
+	reset_n);
+output 	cs_ch376s_n;
+output 	busdir;
+output 	[5:0] out_a13_a18;
 input 	rom_sl;
 input 	[7:0] in_a7_a0;
 input 	[2:0] in_a15_a13_a12;
@@ -50,9 +53,6 @@ input 	rd_n;
 input 	wr_n;
 input 	sltsl_n;
 input 	reset_n;
-output 	cs_ch376s_n;
-output 	busdir;
-output 	[5:0] out_a13_a18;
 
 // Design Ports Information
 // data[4]	=>  Location: PIN_9
@@ -127,14 +127,14 @@ wire \ROM_MAPPER|WE~149_dataout ;
 wire \ROM_MAPPER|mem2~159_dataout ;
 wire \ROM_MAPPER|mem3~163_dataout ;
 wire \ROM_MAPPER|mem1~160_dataout ;
-wire [7:0] \in_a7_a0~dataout ;
-wire [2:0] \in_a15_a13_a12~dataout ;
-wire [5:0] \data~dataout ;
-wire [5:0] \ROM_MAPPER|mem3 ;
-wire [5:0] \ROM_MAPPER|mem2 ;
-wire [5:0] \ROM_MAPPER|mem1 ;
-wire [5:0] \ROM_MAPPER|mem0 ;
 wire [5:0] \ROM_MAPPER|address_upper ;
+wire [5:0] \ROM_MAPPER|mem0 ;
+wire [5:0] \ROM_MAPPER|mem1 ;
+wire [5:0] \ROM_MAPPER|mem2 ;
+wire [5:0] \ROM_MAPPER|mem3 ;
+wire [5:0] \data~dataout ;
+wire [2:0] \in_a15_a13_a12~dataout ;
+wire [7:0] \in_a7_a0~dataout ;
 
 
 // Location: PIN_25
@@ -1137,7 +1137,7 @@ max_mcell \ROM_MAPPER|mem0[4] (
 	.fpin(vcc),
 	.pterm0({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm1({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,!\in_a7_a0~dataout [5],\in_a15_a13_a12~dataout [0],!\in_a7_a0~dataout [4],!\sltsl_n~dataout ,!\in_a7_a0~dataout [0],!\in_a7_a0~dataout [1],!\in_a7_a0~dataout [3],!
-\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],!\in_a15_a13_a12~dataout [1],!\in_a15_a13_a12~dataout [2],!\rom_sl~dataout }),
+\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],!\in_a15_a13_a12~dataout [1],!\in_a15_a13_a12~dataout [2],\rom_sl~dataout }),
 	.pterm2({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,\reset_n~dataout ,\ROM_MAPPER|mem0 [4],\ROM_MAPPER|mem0~161_dataout }),
 	.pterm3({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm4({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
@@ -1171,7 +1171,7 @@ max_mcell \ROM_MAPPER|mem2[4] (
 	.fpin(vcc),
 	.pterm0({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm1({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,!\in_a7_a0~dataout [5],\in_a15_a13_a12~dataout [0],!\in_a7_a0~dataout [4],!\sltsl_n~dataout ,!\in_a7_a0~dataout [0],!\in_a7_a0~dataout [1],!\in_a7_a0~dataout [3],!
-\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],!\in_a15_a13_a12~dataout [1],\in_a15_a13_a12~dataout [2],!\rom_sl~dataout }),
+\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],!\in_a15_a13_a12~dataout [1],\in_a15_a13_a12~dataout [2],\rom_sl~dataout }),
 	.pterm2({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,\reset_n~dataout ,\ROM_MAPPER|mem2 [4],\ROM_MAPPER|mem2~159_dataout }),
 	.pterm3({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm4({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
@@ -1205,7 +1205,7 @@ max_mcell \ROM_MAPPER|mem3[4] (
 	.fpin(vcc),
 	.pterm0({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm1({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,!\in_a7_a0~dataout [5],\in_a15_a13_a12~dataout [0],!\in_a7_a0~dataout [4],!\sltsl_n~dataout ,!\in_a7_a0~dataout [0],!\in_a7_a0~dataout [1],!\in_a7_a0~dataout [3],!
-\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],\in_a15_a13_a12~dataout [1],\in_a15_a13_a12~dataout [2],!\rom_sl~dataout }),
+\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],\in_a15_a13_a12~dataout [1],\in_a15_a13_a12~dataout [2],\rom_sl~dataout }),
 	.pterm2({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,\reset_n~dataout ,\ROM_MAPPER|mem3 [4],\ROM_MAPPER|mem3~163_dataout }),
 	.pterm3({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm4({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
@@ -1239,7 +1239,7 @@ max_mcell \ROM_MAPPER|mem1[4] (
 	.fpin(vcc),
 	.pterm0({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm1({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,!\in_a7_a0~dataout [5],\in_a15_a13_a12~dataout [0],!\in_a7_a0~dataout [4],!\sltsl_n~dataout ,!\in_a7_a0~dataout [0],!\in_a7_a0~dataout [1],!\in_a7_a0~dataout [3],!
-\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],\in_a15_a13_a12~dataout [1],!\in_a15_a13_a12~dataout [2],!\rom_sl~dataout }),
+\in_a7_a0~dataout [7],!\in_a7_a0~dataout [6],!\in_a7_a0~dataout [2],\in_a15_a13_a12~dataout [1],!\in_a15_a13_a12~dataout [2],\rom_sl~dataout }),
 	.pterm2({vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,vcc,\reset_n~dataout ,\ROM_MAPPER|mem1 [4],\ROM_MAPPER|mem1~160_dataout }),
 	.pterm3({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),
 	.pterm4({gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd,gnd}),

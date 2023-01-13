@@ -1,0 +1,11 @@
+Designator,Footprint,Quantity,Value,LCSC Part #
+C1,CP_Radial_D5.0mm_P2.50mm,1,100 uF,
+"C2, C3, C4",C_0805_2012Metric_Pad1.18x1.45mm_HandSolder,3,0.1 uF,
+EDG1,msx-con-MSXCART,1,MSX_CON,
+J1,PinHeader_2x05_P2.54mm_Vertical,1,AVR-JTAG-10,
+J2,PinHeader_2x08_P2.54mm_Vertical,1,Conn_02x08_Odd_Even,
+LOGO_MSX,LOGO_MSX,1,,
+R1,R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,1,4K7,
+SW1,SK12D07VG4,1,SK12D07VG4,
+U1,PLCC44,1,EPM7032_7064,
+U2,PLCC-32_THT-Socket,1,AM29f040,

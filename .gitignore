@@ -11,3 +11,5 @@
 /**/*.vhd
 /openmsx.xml
 /.vscode/*
+hardware/kicad-cpld-rev4/MSX USB Drive-backups/*
+hardware/kicad-cpld/MSX USB Drive-backups/*

@@ -22,14 +22,6 @@ rd_n => rd_n.IN2
 wr_n => wr_n.IN1
 sltsl_n => sltsl_n.IN1
 reset_n => reset_n.IN1
-cs_ch376s_n <= ch376:CH376.port3
-busdir <= ch376:CH376.port4
-out_a13_a18[0] <= scc_rom_mapper:ROM_MAPPER.port8
-out_a13_a18[1] <= scc_rom_mapper:ROM_MAPPER.port8
-out_a13_a18[2] <= scc_rom_mapper:ROM_MAPPER.port8
-out_a13_a18[3] <= scc_rom_mapper:ROM_MAPPER.port8
-out_a13_a18[4] <= scc_rom_mapper:ROM_MAPPER.port8
-out_a13_a18[5] <= scc_rom_mapper:ROM_MAPPER.port8
 
 
 |msxusb|ch376:CH376
@@ -67,12 +59,13 @@ io_address[7] => Equal2.IN8
 io_address[7] => Equal3.IN8
 iorq_n => cs_ch376s_n.IN0
 rd_n => busdir.IN0
-cs_ch376s_n <= cs_ch376s_n.DB_MAX_OUTPUT_PORT_TYPE
-busdir <= busdir.DB_MAX_OUTPUT_PORT_TYPE
 
 
 |msxusb|scc_rom_mapper:ROM_MAPPER
-rom_sl => mem3.IN0
+rom_sl => mem3.DATAB
+rom_sl => mem2.DATAB
+rom_sl => mem1.DATAB
+rom_sl => mem0.DATAB
 rd_n => comb.IN0
 wr_n => comb.IN0
 sltsl_n => comb.IN0
@@ -121,11 +114,5 @@ data[5] => mem3.DATAB
 data[5] => mem2.DATAB
 data[5] => mem1.DATAB
 data[5] => mem0.DATAB
-address_upper[0] <= address_upper[0]~reg0.DB_MAX_OUTPUT_PORT_TYPE
-address_upper[1] <= address_upper[1]~reg0.DB_MAX_OUTPUT_PORT_TYPE
-address_upper[2] <= address_upper[2]~reg0.DB_MAX_OUTPUT_PORT_TYPE
-address_upper[3] <= address_upper[3]~reg0.DB_MAX_OUTPUT_PORT_TYPE
-address_upper[4] <= address_upper[4]~reg0.DB_MAX_OUTPUT_PORT_TYPE
-address_upper[5] <= address_upper[5]~reg0.DB_MAX_OUTPUT_PORT_TYPE
 
 
