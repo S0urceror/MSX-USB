@@ -1,0 +1,12 @@
+make MacOS --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/mario/Development/MSX/USB/drivers/MsxUsbNext'
+make -C macos all
+make[1]: Entering directory `/Users/mario/Development/MSX/USB/drivers/MsxUsbNext/macos'
+clang -g -c -DDEBUG -o build/main.o main.c 
+clang -g -c -DDEBUG -o build/hal.o hal.c 
+clang -g -c -DDEBUG -o build/ch376s.o ../generic/ch376s.c 
+clang -g -c -DDEBUG -o build/usbdisk.o ../generic/usbdisk.c 
+clang -g -o build/main build/main.o build/hal.o build/ch376s.o build/usbdisk.o 
+make[1]: Leaving directory `/Users/mario/Development/MSX/USB/drivers/MsxUsbNext/macos'
+make: Leaving directory `/Users/mario/Development/MSX/USB/drivers/MsxUsbNext'
+ 

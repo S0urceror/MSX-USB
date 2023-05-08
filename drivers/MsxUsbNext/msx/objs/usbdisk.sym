@@ -1,83 +1,82 @@
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
-Hexadecimal [24-Bits]
+Hexadecimal [16-Bits]
 
 Symbol Table
 
-    .__.$$$.                                                    =  002710 L
-    .__.ABS.                                                    =  000000 G
-    .__.CPU.                                                    =  000000 L
-    .__.H$L.                                                    =  000000 L
-  0 ___str_1                                                       000040 R
-  0 ___str_11                                                      00018C R
-  0 ___str_12                                                      00049E R
-  0 ___str_17                                                      0004B4 R
-  0 ___str_18                                                      0004B6 R
-  0 ___str_19                                                      0004C6 R
-  0 ___str_2                                                       00005E R
-  0 ___str_21                                                      0004E3 R
-  0 ___str_22                                                      0004E5 R
-  0 ___str_23                                                      0004E7 R
-  0 ___str_24                                                      0004F9 R
-  0 ___str_3                                                       000072 R
-  0 ___str_4                                                       000086 R
-  0 ___str_5                                                       00013F R
-  0 ___str_6                                                       000141 R
-  0 ___str_7                                                       000157 R
-  0 ___str_8                                                       000164 R
-  0 ___str_9                                                       00018A R
-    __moduchar                                                     ****** GX
-    _ch376_close_file                                              ****** GX
-    _ch376_connect_disk                                            ****** GX
-    _ch376_get_fat_info                                            ****** GX
-    _ch376_get_sector_LBA                                          ****** GX
-    _ch376_locate_sector                                           ****** GX
-    _ch376_mount_disk                                              ****** GX
-    _ch376_next_search                                             ****** GX
-    _ch376_open_directory                                          ****** GX
-    _ch376_open_file                                               ****** GX
-    _ch376_open_search                                             ****** GX
-    _ch376_plugged_in                                              ****** GX
-    _ch376_reset_all                                               ****** GX
-    _ch376_set_filename                                            ****** GX
-    _ch376_set_usb_host_mode                                       ****** GX
-    _ch376s_disk_read                                              ****** GX
-    _ch376s_disk_write                                             ****** GX
-    _delay_ms                                                      ****** GX
-    _error                                                         ****** GX
-    _getchar                                                       ****** GX
-    _pressed_ESC                                                   ****** GX
-    _printf                                                        ****** GX
-    _putchar                                                       ****** GX
-    _puts                                                          ****** GX
-  0 _read_write_disk_sectors                                       0005CD GR
-  0 _read_write_file_sectors                                       000528 GR
-    _supports_80_column_mode                                       ****** GX
-  0 _toLower                                                       000098 GR
-  0 _toUpper                                                       0000B8 GR
-    _tolower                                                       ****** GX
-    _toupper                                                       ****** GX
-  0 _usbdisk_autoexec_dsk                                          0000D8 GR
-  0 _usbdisk_close_dsk_file                                        00061A GR
+    .__.$$$.                                                    =  2710 L
+    .__.ABS.                                                    =  0000 G
+    .__.CPU.                                                    =  0000 L
+    .__.H$L.                                                    =  0000 L
+  0 ___str_10                                                      0180 R
+  0 ___str_11                                                      01A6 R
+  0 ___str_13                                                      01A8 R
+  0 ___str_14                                                      04BA R
+  0 ___str_19                                                      04D0 R
+  0 ___str_20                                                      04D2 R
+  0 ___str_21                                                      04E2 R
+  0 ___str_23                                                      04FF R
+  0 ___str_24                                                      0501 R
+  0 ___str_25                                                      0503 R
+  0 ___str_26                                                      0515 R
+  0 ___str_4                                                       0034 R
+  0 ___str_5                                                       0048 R
+  0 ___str_6                                                       0068 R
+  0 ___str_7                                                       015B R
+  0 ___str_8                                                       015D R
+  0 ___str_9                                                       0173 R
+    __moduchar                                                     **** GX
+    _ch376_close_file                                              **** GX
+    _ch376_get_fat_info                                            **** GX
+    _ch376_get_ic_version                                          **** GX
+    _ch376_get_sector_LBA                                          **** GX
+    _ch376_locate_sector                                           **** GX
+    _ch376_next_search                                             **** GX
+    _ch376_open_directory                                          **** GX
+    _ch376_open_file                                               **** GX
+    _ch376_open_search                                             **** GX
+    _ch376_plugged_in                                              **** GX
+    _ch376_reset_all                                               **** GX
+    _ch376_set_filename                                            **** GX
+    _ch376_set_usb_host_mode                                       **** GX
+    _ch376s_disk_read                                              **** GX
+    _ch376s_disk_write                                             **** GX
+    _delay_ms                                                      **** GX
+    _error                                                         **** GX
+    _getchar                                                       **** GX
+    _pressed_ESC                                                   **** GX
+    _printf                                                        **** GX
+    _putchar                                                       **** GX
+    _puts                                                          **** GX
+  0 _read_write_disk_sectors                                       05E8 GR
+  0 _read_write_file_sectors                                       0544 GR
+    _supports_80_column_mode                                       **** GX
+  0 _toLower                                                       00BC GR
+  0 _toUpper                                                       00D8 GR
+    _tolower                                                       **** GX
+    _toupper                                                       **** GX
+  0 _usbdisk_autoexec_dsk                                          00F4 GR
+  0 _usbdisk_close_dsk_file                                        0635 GR
+  0 _usbdisk_init                                                  0000 GR
+  0 _usbdisk_select_dsk_file                                       01AA GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
-Hexadecimal [24-Bits]
+Hexadecimal [16-Bits]
 
 Symbol Table
 
-  0 _usbdisk_init                                                  000000 GR
-  0 _usbdisk_select_dsk_file                                       00018E GR
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
-Hexadecimal [24-Bits]
+Hexadecimal [16-Bits]
 
 Area Table
 
-   0 _CODE                                      size    61D   flags    0
-   1 _DATA                                      size      0   flags    0
-   2 _INITIALIZED                               size      0   flags    0
-   3 _DABS                                      size      0   flags    8
-   4 _HOME                                      size      0   flags    0
-   5 _GSINIT                                    size      0   flags    0
-   6 _GSFINAL                                   size      0   flags    0
-   7 _INITIALIZER                               size      0   flags    0
-   8 _CABS                                      size      0   flags    8
+   0 _CODE                                      size  638   flags    0
+   1 _DATA                                      size    0   flags    0
+   2 _INITIALIZED                               size    0   flags    0
+   3 _DABS                                      size    0   flags    8
+   4 _HOME                                      size    0   flags    0
+   5 _GSINIT                                    size    0   flags    0
+   6 _GSFINAL                                   size    0   flags    0
+   7 _INITIALIZER                               size    0   flags    0
+   8 _CABS                                      size    0   flags    8
 

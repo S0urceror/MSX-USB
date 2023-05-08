@@ -18,6 +18,7 @@ void ch376_reset_all()
     write_command (CMD_RESET_ALL);
     delay_ms (100);
 }
+
 bool ch376_plugged_in()
 {
     uint8_t value = 190;
@@ -236,3 +237,12 @@ bool ch376s_disk_write (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer)
     }
     return true;
 }
+
+//crisag
+uint8_t ch376_get_ic_version()
+{
+    write_command(CMD_GET_IC_VER);
+    delay_ms (100);
+    return read_data() & 0x1f;
+}
+

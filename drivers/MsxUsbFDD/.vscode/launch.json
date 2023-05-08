@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "NXT - Launch MacOS",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/macos/build/main",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/macos/build",
+            "preLaunchTask": "Make MacOS"
+        },
+        {
+            "name": "NXT - Launch MSX 2",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../../../Emulators/openMSX/derived/openmsx",
+            "args": ["-machine", "Philips_NMS_8250_MSXUSBNext", "-diska", "${workspaceFolder}/msx/dist"],
+            "cwd": "../../../Emulators/openMSX/share",
+            "preLaunchTask": "Make MSX"
+        },
+        {
+            "name": "NXT - Launch MSX 1",
+            "type": "lldb",
+            "request": "launch",
+            "program": "../../../Emulators/openMSX/derived/openmsx",
+            "args": ["-machine", "Philips_VG_8020_MSXUSBNext"],
+            "cwd": "../../../Emulators/openMSX/share",
+            "preLaunchTask": "Make MSX"
+        }
+    ]
+}
