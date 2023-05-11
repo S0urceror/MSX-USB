@@ -1,0 +1,56 @@
+# Copyright (C) 1991-2011 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+
+# Quartus II Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
+# File: C:/Users/crist/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.csv
+# Generated on: Wed Nov 23 20:26:52 2022
+
+# Note: The column header names should not be changed if you wish to import this .csv file into the Quartus II software.
+
+To,Direction,Location,Reserved
+TCK,Input,,
+TDI,Input,,
+TDO,Output,,
+TMS,Input,,
+busdir,Output,PIN_6,
+cs_ch376s_n,Output,PIN_5,
+data[5],Input,PIN_8,
+data[4],Input,PIN_9,
+data[3],Input,PIN_11,
+data[2],Input,PIN_12,
+data[1],Input,PIN_14,
+data[0],Input,PIN_16,
+in_a7_a0[7],Input,PIN_18,
+in_a7_a0[6],Input,PIN_19,
+in_a7_a0[5],Input,PIN_20,
+in_a7_a0[4],Input,PIN_21,
+in_a7_a0[3],Input,PIN_24,
+in_a7_a0[2],Input,PIN_25,
+in_a7_a0[1],Input,PIN_26,
+in_a7_a0[0],Input,PIN_27,
+in_a15_a13_a12[2],Input,PIN_28,
+in_a15_a13_a12[1],Input,PIN_29,
+in_a15_a13_a12[0],Input,PIN_17,
+iorq_n,Input,PIN_4,
+out_a13_a18[5],Output,PIN_31,
+out_a13_a18[4],Output,PIN_33,
+out_a13_a18[3],Output,PIN_34,
+out_a13_a18[2],Output,PIN_36,
+out_a13_a18[1],Output,PIN_37,
+out_a13_a18[0],Output,PIN_39,
+rd_n,Input,PIN_1,
+reset_n,Input,PIN_44,
+rom_sl,Input,PIN_2,
+sltsl_n,Input,PIN_41,
+wr_n,Input,PIN_40,

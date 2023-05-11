@@ -1594,6 +1594,7 @@
 
   (no_connect (at 76.2 153.67) (uuid 0fd35a3e-b394-4aae-875a-fac843f9cbb7))
   (no_connect (at 121.539 43.942) (uuid 3326423d-8df7-4a7e-a354-349430b8fbd7))
+  (no_connect (at 114.3 166.37) (uuid 3eadc1f4-a43f-416f-914b-6612fa671c6a))
   (no_connect (at 88.9 163.83) (uuid 477892a1-722e-4cda-bb6c-fcdb8ba5f93e))
   (no_connect (at 88.9 161.29) (uuid 4d586a18-26c5-441e-a9ff-8125ee516126))
   (no_connect (at 256.54 45.466) (uuid 4fa10683-33cd-4dcd-8acc-2415cd63c62a))

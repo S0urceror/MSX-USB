@@ -1,6 +1,6 @@
 ;--------------------------------------------------------
 ; File Created by SDCC : free open source ANSI-C Compiler
-; Version 4.1.0 #12072 (Mac OS X x86_64)
+; Version 4.0.0 #11528 (Linux)
 ;--------------------------------------------------------
 	.module driver
 	.optsdcc -mz80
@@ -99,8 +99,6 @@ _get_workarea_size::
 ; ---------------------------------
 _init_driver::
 	push	ix
-	ld	ix,#0
-	add	ix,sp
 ;driver.c:92: hal_init ();
 	call	_hal_init
 ;driver.c:93: workarea_t* workarea = get_workarea();
@@ -108,39 +106,39 @@ _init_driver::
 ;driver.c:94: usbdisk_init ();
 	push	hl
 	call	_usbdisk_init
-	pop	de
+	pop	bc
 ;driver.c:95: workarea->disk_change = true;
-	ld	l, e
-	ld	h, d
+	ld	l, c
+	ld	h, b
 	inc	hl
 	ld	(hl), #0x01
 ;driver.c:96: if (usbdisk_autoexec_dsk()==true)
-	push	de
+	push	bc
 	call	_usbdisk_autoexec_dsk
-	pop	de
+	pop	bc
 	bit	0, l
-	jr	Z, 00102$
+	jr	Z,00102$
 ;driver.c:97: workarea->mount_mode = 2;
 	ld	a, #0x02
-	ld	(de), a
+	ld	(bc), a
 	jr	00103$
 00102$:
 ;driver.c:99: workarea->mount_mode = usbdisk_select_dsk_file ("/");
-	push	de
+	push	bc
 	ld	hl, #___str_0
 	push	hl
 	call	_usbdisk_select_dsk_file
 	pop	af
 	ld	a, l
-	pop	de
-	ld	(de), a
+	pop	bc
+	ld	(bc), a
 00103$:
 ;driver.c:100: switch (workarea->mount_mode)
-	ld	a, (de)
+	ld	a, (bc)
 	cp	a, #0x01
-	jr	Z, 00105$
+	jr	Z,00105$
 	sub	a, #0x02
-	jr	NZ, 00106$
+	jr	NZ,00106$
 ;driver.c:103: printf ("+Opened disk image\r\n");
 	ld	hl, #___str_2
 	push	hl
@@ -194,30 +192,30 @@ _onCallMOUNTDSK::
 ;driver.c:117: workarea_t* workarea = get_workarea();
 	call	_get_workarea
 ;driver.c:118: workarea->disk_change = true;
-	ld	e, l
-	ld	d, h
+	ld	c,l
+	ld	b,h
 	inc	hl
 	ld	(hl), #0x01
 ;driver.c:119: usbdisk_init ();
-	push	de
+	push	bc
 	call	_usbdisk_init
 	ld	hl, #___str_7
 	push	hl
 	call	_usbdisk_select_dsk_file
 	pop	af
 	ld	a, l
-	pop	de
-	ld	(de), a
+	pop	bc
+	ld	(bc), a
 ;driver.c:121: switch (workarea->mount_mode)
 	push	af
-	ld	a, (de)
+	ld	a, (bc)
 	ld	c, a
 	pop	af
 	dec	a
-	jr	Z, 00102$
+	jr	Z,00102$
 	ld	a, c
 	sub	a, #0x02
-	jr	NZ, 00103$
+	jr	NZ,00103$
 ;driver.c:124: printf ("+Opened disk image\r\n");
 	ld	hl, #___str_9
 	push	hl
@@ -270,7 +268,7 @@ _get_nr_drives_boottime::
 	ld	a, (hl)
 ;driver.c:153: return 0;
 	or	a,a
-	jr	NZ, 00102$
+	jr	NZ,00102$
 	ld	l,a
 	ret
 00102$:
@@ -297,15 +295,15 @@ _get_lun_info::
 	add	iy, sp
 	ld	a, 0 (iy)
 	dec	a
-	jr	NZ, 00102$
-	ld	a, 1 (iy)
+	jr	NZ,00102$
 	inc	iy
+	ld	a, 0 (iy)
 	dec	a
-	jr	NZ, 00102$
+	jr	NZ,00102$
 ;driver.c:221: memset (luninfo,0,sizeof (luninfo_t));
-	ld	l, 1 (iy)
-	ld	h, 2 (iy)
 	inc	iy
+	ld	l, 0 (iy)
+	ld	h, 1 (iy)
 	ld	b, #0x0c
 00120$:
 	ld	(hl), #0x00
@@ -343,7 +341,7 @@ _get_device_info::
 ;driver.c:278: if (nr_device!=1)
 	ld	a, 5 (ix)
 	dec	a
-	jr	Z, 00102$
+	jr	Z,00102$
 ;driver.c:279: return 1;
 	ld	l, #0x01
 	jr	00109$
@@ -351,16 +349,16 @@ _get_device_info::
 ;driver.c:281: switch (nr_info)
 	ld	a, 4 (ix)
 	or	a, a
-	jr	Z, 00103$
+	jr	Z,00103$
 	ld	a, 4 (ix)
 	dec	a
-	jr	Z, 00104$
+	jr	Z,00104$
 	ld	a, 4 (ix)
 	sub	a, #0x02
-	jr	Z, 00105$
+	jr	Z,00105$
 	ld	a, 4 (ix)
 	sub	a, #0x03
-	jr	Z, 00106$
+	jr	Z,00106$
 	jr	00107$
 ;driver.c:283: case 0: // basic information
 00103$:
@@ -447,10 +445,11 @@ _get_device_status::
 	add	iy, sp
 	ld	a, 0 (iy)
 	dec	a
-	jr	NZ, 00101$
-	ld	a, -1 (iy)
+	jr	NZ,00101$
+	dec	iy
+	ld	a, 0 (iy)
 	dec	a
-	jr	Z, 00102$
+	jr	Z,00102$
 00101$:
 ;driver.c:339: return 0;
 	ld	l, #0x00
@@ -461,7 +460,7 @@ _get_device_status::
 ;driver.c:342: if (workarea->disk_change)
 	inc	hl
 	bit	0, (hl)
-	jr	Z, 00105$
+	jr	Z,00105$
 ;driver.c:344: workarea->disk_change = false;
 	ld	(hl), #0x00
 ;driver.c:345: return 2;
@@ -504,10 +503,10 @@ _read_or_write_sector::
 ;driver.c:426: if (nr_device!=1 || nr_lun!=1)
 	ld	a, 5 (ix)
 	dec	a
-	jr	NZ, 00101$
+	jr	NZ,00101$
 	ld	a, 6 (ix)
 	dec	a
-	jr	Z, 00102$
+	jr	Z,00102$
 00101$:
 ;driver.c:427: return IDEVL;
 	ld	l, #0xb5
@@ -526,49 +525,41 @@ _read_or_write_sector::
 ;driver.c:431: if (workarea->mount_mode==2)
 	ld	a, e
 	sub	a, #0x02
-	jr	NZ, 00109$
+	jr	NZ,00109$
 ;driver.c:435: if (!read_write_file_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
-	ld	a, c
 	ld	l, 10 (ix)
 	ld	h, 11 (ix)
 	push	hl
 	ld	l, 8 (ix)
 	ld	h, 9 (ix)
 	push	hl
-	ld	h, 7 (ix)
-	push	hl
-	inc	sp
-	push	af
-	inc	sp
+	ld	b, 7 (ix)
+	push	bc
 	call	_read_write_file_sectors
 	pop	af
 	pop	af
 	pop	af
 	bit	0, l
-	jr	NZ, 00110$
+	jr	NZ,00110$
 ;driver.c:443: return RNF;
 	ld	l, #0xf9
 	jr	00111$
 00109$:
 ;driver.c:449: if (!read_write_disk_sectors (read_or_write_flag & Z80_CARRY_MASK,nr_sectors,sector,sector_buffer))
-	ld	a, c
 	ld	l, 10 (ix)
 	ld	h, 11 (ix)
 	push	hl
 	ld	l, 8 (ix)
 	ld	h, 9 (ix)
 	push	hl
-	ld	h, 7 (ix)
-	push	hl
-	inc	sp
-	push	af
-	inc	sp
+	ld	b, 7 (ix)
+	push	bc
 	call	_read_write_disk_sectors
 	pop	af
 	pop	af
 	pop	af
 	bit	0, l
-	jr	NZ, 00110$
+	jr	NZ,00110$
 ;driver.c:457: return RNF;
 	ld	l, #0xf9
 	jr	00111$

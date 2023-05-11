@@ -10,17 +10,28 @@
 
 void usbdisk_init ()
 {
-    printf ("MSXUSB-NXT v0.4 (c)Sourceror\r\n");
+    printf ("MSXUSB-NXT v0.5 (c)Sourceror\r\n");
     ch376_reset_all();
     if (!ch376_plugged_in())
+    {
         error ("-CH376 NOT detected");
-    //printf ("+CH376 detected\r\n");
+    }
+    else 
+    {
+        const uint8_t ver = ch376_get_ic_version();
+        printf ("\n+CH376 detected (version %d)\r\n",ver);
+    }
+
+
     ch376_set_usb_host_mode(USB_MODE_HOST);
-    if (!ch376_connect_disk ())
-        error ("-Connect USB device");
-    //printf ("+USB device connected\r\n");
-    if (!ch376_mount_disk ())
-        error ("-Not a valid disk");
+
+
+    //if (!ch376_connect_disk ())
+    //   error ("-Connect USB device");
+    //else
+    //    printf ("+USB device connected\r\n");
+    //if (!ch376_mount_disk ())
+    //    error ("-Not a valid disk");
     //printf ("+USB disk mounted\r\n");
 }
 

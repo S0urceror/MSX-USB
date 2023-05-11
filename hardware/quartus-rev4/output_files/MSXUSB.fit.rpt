@@ -1,6 +1,6 @@
 Fitter report for MSXUSB
-Fri Oct 07 21:37:36 2022
-Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+Tue Nov 22 02:08:46 2022
+Quartus II Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
 
 
 ---------------------
@@ -21,7 +21,7 @@ Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edit
  13. Fitter Resource Utilization by Entity
  14. Control Signals
  15. Non-Global High Fan-Out Signals
- 16. Other Routing Usage Summary
+ 16. Interconnect Usage Summary
  17. LAB Macrocells
  18. Shareable Expander
  19. Logic Cell Interconnection
@@ -33,7 +33,7 @@ Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edit
 ----------------
 ; Legal Notice ;
 ----------------
-Copyright (C) 1991-2013 Altera Corporation
+Copyright (C) 1991-2011 Altera Corporation
 Your use of Altera Corporation's design tools, logic functions 
 and other software and tools, and its AMPP partner logic 
 functions, and any output files from any of the foregoing 
@@ -49,19 +49,19 @@ applicable agreement for further details.
 
 
 
-+-----------------------------------------------------------------------------+
-; Fitter Summary                                                              ;
-+---------------------------+-------------------------------------------------+
-; Fitter Status             ; Successful - Fri Oct 07 21:37:36 2022           ;
-; Quartus II 64-Bit Version ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
-; Revision Name             ; MSXUSB                                          ;
-; Top-level Entity Name     ; msxusb                                          ;
-; Family                    ; MAX7000S                                        ;
-; Device                    ; EPM7064SLC44-10                                 ;
-; Timing Models             ; Final                                           ;
-; Total macrocells          ; 33 / 64 ( 52 % )                                ;
-; Total pins                ; 35 / 36 ( 97 % )                                ;
-+---------------------------+-------------------------------------------------+
++-----------------------------------------------------------------------+
+; Fitter Summary                                                        ;
++-----------------------+-----------------------------------------------+
+; Fitter Status         ; Successful - Tue Nov 22 02:08:46 2022         ;
+; Quartus II Version    ; 11.0 Build 208 07/03/2011 SP 1 SJ Web Edition ;
+; Revision Name         ; MSXUSB                                        ;
+; Top-level Entity Name ; msxusb                                        ;
+; Family                ; MAX7000S                                      ;
+; Device                ; EPM7064SLC44-10                               ;
+; Timing Models         ; Final                                         ;
+; Total macrocells      ; 33 / 64 ( 52 % )                              ;
+; Total pins            ; 35 / 36 ( 97 % )                              ;
++-----------------------+-----------------------------------------------+
 
 
 +--------------------------------------------------------------------------------------------------------------+
@@ -73,10 +73,11 @@ applicable agreement for further details.
 ; Use smart compilation                                                      ; Off             ; Off           ;
 ; Enable parallel Assembler and TimeQuest Timing Analyzer during compilation ; On              ; On            ;
 ; Enable compact report table                                                ; Off             ; Off           ;
-; Optimize Multi-Corner Timing                                               ; Off             ; Off           ;
+; Use TimeQuest Timing Analyzer                                              ; Off             ; Off           ;
 ; Optimize Timing for ECOs                                                   ; Off             ; Off           ;
 ; Regenerate full fit report during ECO compiles                             ; Off             ; Off           ;
 ; Optimize IOC Register Placement for Timing                                 ; Normal          ; Normal        ;
+; Limit to One Fitting Attempt                                               ; Off             ; Off           ;
 ; Fitter Initial Placement Seed                                              ; 1               ; 1             ;
 ; Slow Slew Rate                                                             ; Off             ; Off           ;
 ; Fitter Effort                                                              ; Auto Fit        ; Auto Fit      ;
@@ -98,30 +99,32 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +--------------+
 ; Pin-Out File ;
 +--------------+
-The pin-out file can be found in C:/Users/crisag/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pin.
+The pin-out file can be found in C:/Users/crist/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/output_files/MSXUSB.pin.
 
 
-+-------------------------------------------------+
-; Fitter Resource Usage Summary                   ;
-+------------------------------+------------------+
-; Resource                     ; Usage            ;
-+------------------------------+------------------+
-; Logic cells                  ; 33 / 64 ( 52 % ) ;
-; Registers                    ; 30 / 64 ( 47 % ) ;
-; Number of pterms used        ; 129              ;
-; I/O pins                     ; 35 / 36 ( 97 % ) ;
-;     -- Clock pins            ; 1 / 2 ( 50 % )   ;
-;     -- Dedicated input pins  ; 2 / 2 ( 100 % )  ;
-;                              ;                  ;
-; Global signals               ; 0                ;
-; Shareable expanders          ; 18 / 64 ( 28 % ) ;
-; Parallel expanders           ; 0 / 60 ( 0 % )   ;
-; Cells using turbo bit        ; 33 / 64 ( 52 % ) ;
-; Maximum fan-out              ; 45               ;
-; Highest non-global fan-out   ; 45               ;
-; Total fan-out                ; 663              ;
-; Average fan-out              ; 7.71             ;
-+------------------------------+------------------+
++------------------------------------------------------+
+; Fitter Resource Usage Summary                        ;
++-----------------------------------+------------------+
+; Resource                          ; Usage            ;
++-----------------------------------+------------------+
+; Logic cells                       ; 33 / 64 ( 52 % ) ;
+; Registers                         ; 30 / 64 ( 47 % ) ;
+; Number of pterms used             ; 129              ;
+; User inserted logic elements      ; 0                ;
+; I/O pins                          ; 35 / 36 ( 97 % ) ;
+;     -- Clock pins                 ; 1 / 2 ( 50 % )   ;
+;     -- Dedicated input pins       ; 2 / 2 ( 100 % )  ;
+; Global signals                    ; 0                ;
+; Shareable expanders               ; 18 / 64 ( 28 % ) ;
+; Parallel expanders                ; 0 / 60 ( 0 % )   ;
+; Cells using turbo bit             ; 33 / 64 ( 52 % ) ;
+; Maximum fan-out node              ; sltsl_n          ;
+; Maximum fan-out                   ; 45               ;
+; Highest non-global fan-out signal ; sltsl_n          ;
+; Highest non-global fan-out        ; 45               ;
+; Total fan-out                     ; 663              ;
+; Average fan-out                   ; 7.71             ;
++-----------------------------------+------------------+
 
 
 +---------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -362,14 +365,14 @@ Note: User assignments will override these defaults. The user specified values a
 +--------------------------------------------+---------+
 
 
-+-------------------------------------------------+
-; Other Routing Usage Summary                     ;
-+-----------------------------+-------------------+
-; Other Routing Resource Type ; Usage             ;
-+-----------------------------+-------------------+
-; Output enables              ; 0 / 6 ( 0 % )     ;
-; PIA buffers                 ; 99 / 144 ( 69 % ) ;
-+-----------------------------+-------------------+
++------------------------------------------------+
+; Interconnect Usage Summary                     ;
++----------------------------+-------------------+
+; Interconnect Resource Type ; Usage             ;
++----------------------------+-------------------+
+; Output enables             ; 0 / 6 ( 0 % )     ;
+; PIA buffers                ; 99 / 144 ( 69 % ) ;
++----------------------------+-------------------+
 
 
 +----------------------------------------------------------------------+
@@ -466,12 +469,17 @@ Note: User assignments will override these defaults. The user specified values a
 +-----------------+
 ; Fitter Messages ;
 +-----------------+
-Warning (20028): Parallel compilation is not licensed and has been disabled
-Info (119006): Selected device EPM7064SLC44-10 for design "MSXUSB"
-Info: Quartus II 64-Bit Fitter was successful. 0 errors, 1 warning
-    Info: Peak virtual memory: 4678 megabytes
-    Info: Processing ended: Fri Oct 07 21:37:36 2022
-    Info: Elapsed time: 00:00:02
+Info: *******************************************************************
+Info: Running Quartus II Fitter
+    Info: Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
+    Info: Processing started: Tue Nov 22 02:08:46 2022
+Info: Command: quartus_fit --read_settings_files=off --write_settings_files=off MSXUSB -c MSXUSB
+Warning: Parallel compilation is not licensed and has been disabled
+Info: Selected device EPM7064SLC44-10 for design "MSXUSB"
+Info: Quartus II Fitter was successful. 0 errors, 1 warning
+    Info: Peak virtual memory: 258 megabytes
+    Info: Processing ended: Tue Nov 22 02:08:46 2022
+    Info: Elapsed time: 00:00:00
     Info: Total CPU time (on all processors): 00:00:00
 
 

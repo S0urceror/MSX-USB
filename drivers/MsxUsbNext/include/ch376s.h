@@ -102,4 +102,7 @@ bool ch376_get_sector_LBA (uint8_t nr_sectors,uint8_t* sectors_allowed_lba);
 bool ch376s_disk_read (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer);
 bool ch376s_disk_write (uint8_t nr_sectors,uint8_t* lba,uint8_t* sector_buffer);
 
+//crisag
+uint8_t ch376_get_ic_version();
+
 #endif //__CH376S_H

@@ -1,6 +1,6 @@
 Flow report for MSXUSB
-Fri Oct 07 21:37:40 2022
-Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+Tue Nov 22 02:08:50 2022
+Quartus II Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
 
 
 ---------------------
@@ -13,15 +13,13 @@ Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edit
   5. Flow Elapsed Time
   6. Flow OS Summary
   7. Flow Log
-  8. Flow Messages
-  9. Flow Suppressed Messages
 
 
 
 ----------------
 ; Legal Notice ;
 ----------------
-Copyright (C) 1991-2013 Altera Corporation
+Copyright (C) 1991-2011 Altera Corporation
 Your use of Altera Corporation's design tools, logic functions 
 and other software and tools, and its AMPP partner logic 
 functions, and any output files from any of the foregoing 
@@ -37,19 +35,19 @@ applicable agreement for further details.
 
 
 
-+-----------------------------------------------------------------------------+
-; Flow Summary                                                                ;
-+---------------------------+-------------------------------------------------+
-; Flow Status               ; Successful - Fri Oct 07 21:37:40 2022           ;
-; Quartus II 64-Bit Version ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
-; Revision Name             ; MSXUSB                                          ;
-; Top-level Entity Name     ; msxusb                                          ;
-; Family                    ; MAX7000S                                        ;
-; Device                    ; EPM7064SLC44-10                                 ;
-; Timing Models             ; Final                                           ;
-; Total macrocells          ; 33 / 64 ( 52 % )                                ;
-; Total pins                ; 35 / 36 ( 97 % )                                ;
-+---------------------------+-------------------------------------------------+
++-----------------------------------------------------------------------+
+; Flow Summary                                                          ;
++-----------------------+-----------------------------------------------+
+; Flow Status           ; Successful - Tue Nov 22 02:08:50 2022         ;
+; Quartus II Version    ; 11.0 Build 208 07/03/2011 SP 1 SJ Web Edition ;
+; Revision Name         ; MSXUSB                                        ;
+; Top-level Entity Name ; msxusb                                        ;
+; Family                ; MAX7000S                                      ;
+; Device                ; EPM7064SLC44-10                               ;
+; Timing Models         ; Final                                         ;
+; Total macrocells      ; 33 / 64 ( 52 % )                              ;
+; Total pins            ; 35 / 36 ( 97 % )                              ;
++-----------------------+-----------------------------------------------+
 
 
 +-----------------------------------------+
@@ -57,22 +55,22 @@ applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 10/07/2022 21:37:31 ;
+; Start date & time ; 11/22/2022 02:08:44 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; MSXUSB              ;
 +-------------------+---------------------+
 
 
-+-----------------------------------------------------------------------------------------------------------+
-; Flow Non-Default Global Settings                                                                          ;
-+--------------------------+---------------------------------+---------------+-------------+----------------+
-; Assignment Name          ; Value                           ; Default Value ; Entity Name ; Section Id     ;
-+--------------------------+---------------------------------+---------------+-------------+----------------+
-; COMPILER_SIGNATURE_ID    ; 211375653572068.166518945107912 ; --            ; --          ; --             ;
-; EDA_OUTPUT_DATA_FORMAT   ; Verilog Hdl                     ; --            ; --          ; eda_simulation ;
-; EDA_SIMULATION_TOOL      ; ModelSim-Altera (Verilog)       ; <None>        ; --          ; --             ;
-; PROJECT_OUTPUT_DIRECTORY ; output_files                    ; --            ; --          ; --             ;
-+--------------------------+---------------------------------+---------------+-------------+----------------+
++--------------------------------------------------------------------------------------------------------+
+; Flow Non-Default Global Settings                                                                       ;
++--------------------------+------------------------------+---------------+-------------+----------------+
+; Assignment Name          ; Value                        ; Default Value ; Entity Name ; Section Id     ;
++--------------------------+------------------------------+---------------+-------------+----------------+
+; COMPILER_SIGNATURE_ID    ; 963355345413.166909372421248 ; --            ; --          ; --             ;
+; EDA_OUTPUT_DATA_FORMAT   ; Verilog Hdl                  ; --            ; --          ; eda_simulation ;
+; EDA_SIMULATION_TOOL      ; ModelSim-Altera (Verilog)    ; <None>        ; --          ; --             ;
+; PROJECT_OUTPUT_DIRECTORY ; output_files                 ; --            ; --          ; --             ;
++--------------------------+------------------------------+---------------+-------------+----------------+
 
 
 +-------------------------------------------------------------------------------------------------------------------------------+
@@ -80,12 +78,12 @@ applicable agreement for further details.
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name               ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis      ; 00:00:03     ; 1.0                     ; 4565 MB             ; 00:00:01                           ;
-; Fitter                    ; 00:00:02     ; 1.0                     ; 4678 MB             ; 00:00:00                           ;
-; Assembler                 ; 00:00:01     ; 1.0                     ; 4513 MB             ; 00:00:00                           ;
-; TimeQuest Timing Analyzer ; 00:00:01     ; 1.0                     ; 4506 MB             ; 00:00:00                           ;
-; EDA Netlist Writer        ; 00:00:00     ; 1.0                     ; 4469 MB             ; 00:00:00                           ;
-; Total                     ; 00:00:07     ; --                      ; --                  ; 00:00:01                           ;
+; Analysis & Synthesis      ; 00:00:01     ; 1.0                     ; 266 MB              ; 00:00:01                           ;
+; Fitter                    ; 00:00:00     ; 1.0                     ; 234 MB              ; 00:00:00                           ;
+; Assembler                 ; 00:00:00     ; 1.0                     ; 235 MB              ; 00:00:00                           ;
+; TimeQuest Timing Analyzer ; 00:00:01     ; 1.0                     ; 223 MB              ; 00:00:00                           ;
+; EDA Netlist Writer        ; 00:00:01     ; 1.0                     ; 212 MB              ; 00:00:00                           ;
+; Total                     ; 00:00:03     ; --                      ; --                  ; 00:00:01                           ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -94,11 +92,11 @@ applicable agreement for further details.
 +---------------------------+------------------+-----------+------------+----------------+
 ; Module Name               ; Machine Hostname ; OS Name   ; OS Version ; Processor type ;
 +---------------------------+------------------+-----------+------------+----------------+
-; Analysis & Synthesis      ; crisagpcw11      ; Windows 7 ; 6.2        ; x86_64         ;
-; Fitter                    ; crisagpcw11      ; Windows 7 ; 6.2        ; x86_64         ;
-; Assembler                 ; crisagpcw11      ; Windows 7 ; 6.2        ; x86_64         ;
-; TimeQuest Timing Analyzer ; crisagpcw11      ; Windows 7 ; 6.2        ; x86_64         ;
-; EDA Netlist Writer        ; crisagpcw11      ; Windows 7 ; 6.2        ; x86_64         ;
+; Analysis & Synthesis      ; crisaghomepc     ; Windows 7 ; 6.2        ; x86_64         ;
+; Fitter                    ; crisaghomepc     ; Windows 7 ; 6.2        ; x86_64         ;
+; Assembler                 ; crisaghomepc     ; Windows 7 ; 6.2        ; x86_64         ;
+; TimeQuest Timing Analyzer ; crisaghomepc     ; Windows 7 ; 6.2        ; x86_64         ;
+; EDA Netlist Writer        ; crisaghomepc     ; Windows 7 ; 6.2        ; x86_64         ;
 +---------------------------+------------------+-----------+------------+----------------+
 
 

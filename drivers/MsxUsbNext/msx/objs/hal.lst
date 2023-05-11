@@ -1,297 +1,295 @@
-                                      1 ;--------------------------------------------------------
-                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
-                                      3 ; Version 4.1.0 #12072 (Mac OS X x86_64)
-                                      4 ;--------------------------------------------------------
-                                      5 	.module hal
-                                      6 	.optsdcc -mz80
-                                      7 	
-                                      8 ;--------------------------------------------------------
-                                      9 ; Public variables in this module
-                                     10 ;--------------------------------------------------------
-                                     11 	.globl _msx_wait
-                                     12 	.globl _printf
-                                     13 	.globl _text_columns
-                                     14 	.globl _msx_version
-                                     15 	.globl _supports_80_column_mode
-                                     16 	.globl _hal_init
-                                     17 	.globl _hal_deinit
-                                     18 	.globl _delay_ms
-                                     19 	.globl _write_command
-                                     20 	.globl _write_data
-                                     21 	.globl _read_data
-                                     22 	.globl _read_status
-                                     23 	.globl _error
-                                     24 	.globl _putchar
-                                     25 	.globl _getchar
-                                     26 	.globl _pressed_ESC
-                                     27 	.globl _read_data_multiple
-                                     28 	.globl _write_data_multiple
-                                     29 ;--------------------------------------------------------
-                                     30 ; special function registers
-                                     31 ;--------------------------------------------------------
-                                     32 ;--------------------------------------------------------
-                                     33 ; ram data
-                                     34 ;--------------------------------------------------------
-                                     35 	.area _DATA
-                           00002D    36 _msx_version	=	0x002d
-                           00F3AE    37 _text_columns	=	0xf3ae
-                                     38 ;--------------------------------------------------------
-                                     39 ; ram data
-                                     40 ;--------------------------------------------------------
-                                     41 	.area _INITIALIZED
-                                     42 ;--------------------------------------------------------
-                                     43 ; absolute external ram data
-                                     44 ;--------------------------------------------------------
-                                     45 	.area _DABS (ABS)
-                                     46 ;--------------------------------------------------------
-                                     47 ; global & static initialisations
-                                     48 ;--------------------------------------------------------
-                                     49 	.area _HOME
-                                     50 	.area _GSINIT
-                                     51 	.area _GSFINAL
-                                     52 	.area _GSINIT
-                                     53 ;--------------------------------------------------------
-                                     54 ; Home
-                                     55 ;--------------------------------------------------------
-                                     56 	.area _HOME
-                                     57 	.area _HOME
-                                     58 ;--------------------------------------------------------
-                                     59 ; code
-                                     60 ;--------------------------------------------------------
-                                     61 	.area _CODE
-                                     62 ;hal.c:10: bool supports_80_column_mode()
-                                     63 ;	---------------------------------
-                                     64 ; Function supports_80_column_mode
-                                     65 ; ---------------------------------
-      000000                         66 _supports_80_column_mode::
-                                     67 ;hal.c:12: return msx_version>=1;
-      000000 3A 2D 00         [13]   68 	ld	a,(#_msx_version + 0)
-      000003 D6 01            [ 7]   69 	sub	a, #0x01
-      000005 3E 00            [ 7]   70 	ld	a, #0x00
-      000007 17               [ 4]   71 	rla
-      000008 EE 01            [ 7]   72 	xor	a, #0x01
-      00000A 6F               [ 4]   73 	ld	l, a
-                                     74 ;hal.c:13: }
-      00000B C9               [10]   75 	ret
-                                     76 ;hal.c:15: void hal_init ()
-                                     77 ;	---------------------------------
-                                     78 ; Function hal_init
-                                     79 ; ---------------------------------
-      00000C                         80 _hal_init::
-                                     81 ;hal.c:17: text_columns = 40;
-      00000C 21 AE F3         [10]   82 	ld	hl, #_text_columns
-      00000F 36 28            [10]   83 	ld	(hl), #0x28
-                                     84 ;hal.c:19: if (supports_80_column_mode())
-      000011 CDr00r00         [17]   85 	call	_supports_80_column_mode
-      000014 CB 45            [ 8]   86 	bit	0, l
-      000016 28 08            [12]   87 	jr	Z, 00102$
-                                     88 ;hal.c:20: text_columns = 80;
-      000018 FD 21 AE F3      [14]   89 	ld	iy, #_text_columns
-      00001C FD 36 00 50      [19]   90 	ld	0 (iy), #0x50
-      000020                         91 00102$:
-                                     92 ;hal.c:28: __endasm;    
-      000020 FD 2A C0 FC      [20]   93 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
-      000024 DD E5            [15]   94 	push	ix
-      000026 DD 21 6C 00      [14]   95 	ld	ix,#0x006c ;address of BIOS routine
-      00002A CD 1C 00         [17]   96 	call	0x001c ;interslot call
-      00002D DD E1            [14]   97 	pop	ix
-                                     98 ;hal.c:29: }
-      00002F C9               [10]   99 	ret
-                                    100 ;hal.c:30: void hal_deinit ()
-                                    101 ;	---------------------------------
-                                    102 ; Function hal_deinit
-                                    103 ; ---------------------------------
-      000030                        104 _hal_deinit::
-                                    105 ;hal.c:33: }
-      000030 C9               [10]  106 	ret
-                                    107 ;hal.c:37: void msx_wait (uint16_t times_jiffy)  __z88dk_fastcall __naked
-                                    108 ;	---------------------------------
-                                    109 ; Function msx_wait
-                                    110 ; ---------------------------------
-      000031                        111 _msx_wait::
-                                    112 ;hal.c:52: __endasm; 
-      000031 FB               [ 4]  113 	ei
-                                    114 ;	Wait a determined number of interrupts
-                                    115 ;	Input: BC = number of 1/framerate interrupts to wait
-                                    116 ;	Output: (none)
-      000032                        117 	    WAIT:
-      000032 76               [ 4]  118 	halt	; waits 1/50th or 1/60th of a second till next interrupt
-      000033 2B               [ 6]  119 	dec	hl
-      000034 7C               [ 4]  120 	ld	a,h
-      000035 B5               [ 4]  121 	or	l
-      000036 20 FA            [12]  122 	jr	nz, WAIT
-      000038 C9               [10]  123 	ret
-                                    124 ;hal.c:53: }
-                                    125 ;hal.c:55: void delay_ms (uint16_t milliseconds)
-                                    126 ;	---------------------------------
-                                    127 ; Function delay_ms
-                                    128 ; ---------------------------------
-      000039                        129 _delay_ms::
-                                    130 ;hal.c:57: msx_wait (milliseconds/20);
-      000039 D1               [10]  131 	pop	de
-      00003A C1               [10]  132 	pop	bc
-      00003B C5               [11]  133 	push	bc
-      00003C D5               [11]  134 	push	de
-      00003D 21 14 00         [10]  135 	ld	hl, #0x0014
-      000040 E5               [11]  136 	push	hl
-      000041 C5               [11]  137 	push	bc
-      000042 CDr00r00         [17]  138 	call	__divuint
-      000045 F1               [10]  139 	pop	af
-      000046 F1               [10]  140 	pop	af
-                                    141 ;hal.c:58: }
-      000047 C3r31r00         [10]  142 	jp	_msx_wait
-                                    143 ;hal.c:60: void write_command (uint8_t command)  __z88dk_fastcall __naked
-                                    144 ;	---------------------------------
-                                    145 ; Function write_command
-                                    146 ; ---------------------------------
-      00004A                        147 _write_command::
-                                    148 ;hal.c:66: __endasm;
-      00004A 7D               [ 4]  149 	ld	a,l
-      00004B D3 11            [11]  150 	out	(#0x11),a
-      00004D C9               [10]  151 	ret
-                                    152 ;hal.c:67: }
-                                    153 ;hal.c:68: void write_data (uint8_t data)  __z88dk_fastcall __naked
-                                    154 ;	---------------------------------
-                                    155 ; Function write_data
-                                    156 ; ---------------------------------
-      00004E                        157 _write_data::
-                                    158 ;hal.c:74: __endasm;
-      00004E 7D               [ 4]  159 	ld	a,l
-      00004F D3 10            [11]  160 	out	(#0x10),a
-      000051 C9               [10]  161 	ret
-                                    162 ;hal.c:75: }
-                                    163 ;hal.c:76: uint8_t read_data ()  __z88dk_fastcall __naked
-                                    164 ;	---------------------------------
-                                    165 ; Function read_data
-                                    166 ; ---------------------------------
-      000052                        167 _read_data::
-                                    168 ;hal.c:82: __endasm;
-      000052 DB 10            [11]  169 	in	a,(#0x10)
-      000054 6F               [ 4]  170 	ld	l,a
-      000055 C9               [10]  171 	ret
-                                    172 ;hal.c:83: }
-                                    173 ;hal.c:84: uint8_t read_status ()  __z88dk_fastcall __naked
-                                    174 ;	---------------------------------
-                                    175 ; Function read_status
-                                    176 ; ---------------------------------
-      000056                        177 _read_status::
-                                    178 ;hal.c:90: __endasm;
-      000056 DB 11            [11]  179 	in	a,(#0x11)
-      000058 6F               [ 4]  180 	ld	l,a
-      000059 C9               [10]  181 	ret
-                                    182 ;hal.c:91: }
-                                    183 ;hal.c:93: void error (char* txt)
-                                    184 ;	---------------------------------
-                                    185 ; Function error
-                                    186 ; ---------------------------------
-      00005A                        187 _error::
-                                    188 ;hal.c:95: printf (txt);
-      00005A C1               [10]  189 	pop	bc
-      00005B E1               [10]  190 	pop	hl
-      00005C E5               [11]  191 	push	hl
-      00005D C5               [11]  192 	push	bc
-      00005E E5               [11]  193 	push	hl
-      00005F CDr00r00         [17]  194 	call	_printf
-      000062 F1               [10]  195 	pop	af
-                                    196 ;hal.c:99: __endasm;
-      000063 F3               [ 4]  197 	di
-      000064 76               [ 4]  198 	halt
-                                    199 ;hal.c:100: }
-      000065 C9               [10]  200 	ret
-                                    201 ;hal.c:102: int putchar (int character)
-                                    202 ;	---------------------------------
-                                    203 ; Function putchar
-                                    204 ; ---------------------------------
-      000066                        205 _putchar::
-                                    206 ;hal.c:114: __endasm;
-      000066 21 02 00         [10]  207 	ld	hl, #2
-      000069 39               [11]  208 	add	hl, sp ;Bypass the return address of the function
-      00006A 7E               [ 7]  209 	ld	a, (hl)
-      00006B FD 2A C0 FC      [20]  210 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
-      00006F DD E5            [15]  211 	push	ix
-      000071 DD 21 A2 00      [14]  212 	ld	ix,#0x00a2 ;address of BIOS routine
-      000075 CD 1C 00         [17]  213 	call	0x001c ;interslot call
-      000078 DD E1            [14]  214 	pop	ix
-                                    215 ;hal.c:116: return character;
-      00007A 21 02 00         [10]  216 	ld	hl, #2
-      00007D 39               [11]  217 	add	hl, sp
-      00007E 7E               [ 7]  218 	ld	a, (hl)
-      00007F 23               [ 6]  219 	inc	hl
-      000080 66               [ 7]  220 	ld	h, (hl)
-      000081 6F               [ 4]  221 	ld	l, a
-                                    222 ;hal.c:117: }
-      000082 C9               [10]  223 	ret
-                                    224 ;hal.c:120: int getchar ()
-                                    225 ;	---------------------------------
-                                    226 ; Function getchar
-                                    227 ; ---------------------------------
-      000083                        228 _getchar::
-                                    229 ;hal.c:131: __endasm;
-      000083 FD 2A C0 FC      [20]  230 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
-      000087 DD E5            [15]  231 	push	ix
-      000089 DD 21 9F 00      [14]  232 	ld	ix,#0x009f ;address of BIOS routine
-      00008D CD 1C 00         [17]  233 	call	0x001c ;interslot call
-      000090 DD E1            [14]  234 	pop	ix
-      000092 26 00            [ 7]  235 	ld	h,#0
-      000094 6F               [ 4]  236 	ld	l,a
-                                    237 ;hal.c:132: }
-      000095 C9               [10]  238 	ret
-                                    239 ;hal.c:134: bool pressed_ESC() __z88dk_fastcall __naked
-                                    240 ;	---------------------------------
-                                    241 ; Function pressed_ESC
-                                    242 ; ---------------------------------
-      000096                        243 _pressed_ESC::
-                                    244 ;hal.c:157: __endasm;
-                                    245 ;	character in keybuffer?
-      000096 FD 2A C0 FC      [20]  246 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
-      00009A DD E5            [15]  247 	push	ix
-      00009C DD 21 9C 00      [14]  248 	ld	ix,#0x009c ;address of BIOS routine
-      0000A0 CD 1C 00         [17]  249 	call	0x001c ;interslot call
-      0000A3 DD E1            [14]  250 	pop	ix
-      0000A5 2E 00            [ 7]  251 	ld	l,#0
-      0000A7 C8               [11]  252 	ret	z
-                                    253 ;	yes? lets check if its ESCape
-      0000A8 FD 2A C0 FC      [20]  254 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
-      0000AC DD E5            [15]  255 	push	ix
-      0000AE DD 21 9F 00      [14]  256 	ld	ix,#0x009f ;address of BIOS routine
-      0000B2 CD 1C 00         [17]  257 	call	0x001c ;interslot call
-      0000B5 DD E1            [14]  258 	pop	ix
-      0000B7 FE 1B            [ 7]  259 	cp	#27
-      0000B9 2E 01            [ 7]  260 	ld	l,#1
-      0000BB C8               [11]  261 	ret	z
-      0000BC 2E 00            [ 7]  262 	ld	l,#0
-      0000BE C9               [10]  263 	ret
-                                    264 ;hal.c:158: }
-                                    265 ;hal.c:160: void  read_data_multiple (uint8_t* buffer,uint8_t len)
-                                    266 ;	---------------------------------
-                                    267 ; Function read_data_multiple
-                                    268 ; ---------------------------------
-      0000BF                        269 _read_data_multiple::
-                                    270 ;hal.c:170: __endasm;
-      0000BF FD 21 02 00      [14]  271 	ld	iy, #2
-      0000C3 FD 39            [15]  272 	add	iy,sp
-      0000C5 FD 46 02         [19]  273 	ld	b,+2(iy)
-      0000C8 FD 66 01         [19]  274 	ld	h,+1(iy)
-      0000CB FD 6E 00         [19]  275 	ld	l,+0(iy)
-      0000CE 0E 10            [ 7]  276 	ld	c, #0x10
-      0000D0 ED B2                  277 	.db	0xED,0xB2 ;inir
-                                    278 ;hal.c:171: }
-      0000D2 C9               [10]  279 	ret
-                                    280 ;hal.c:172: void    write_data_multiple (uint8_t* buffer,uint8_t len)
-                                    281 ;	---------------------------------
-                                    282 ; Function write_data_multiple
-                                    283 ; ---------------------------------
-      0000D3                        284 _write_data_multiple::
-                                    285 ;hal.c:182: __endasm;
-      0000D3 FD 21 02 00      [14]  286 	ld	iy, #2
-      0000D7 FD 39            [15]  287 	add	iy,sp
-      0000D9 FD 46 02         [19]  288 	ld	b,+2(iy)
-      0000DC FD 66 01         [19]  289 	ld	h,+1(iy)
-      0000DF FD 6E 00         [19]  290 	ld	l,+0(iy)
-      0000E2 0E 10            [ 7]  291 	ld	c, #0x10
-      0000E4 ED B3                  292 	.db	0xED,0xB3 ;otir
-                                    293 ;hal.c:183: }
-      0000E6 C9               [10]  294 	ret
-                                    295 	.area _CODE
-                                    296 	.area _INITIALIZER
-                                    297 	.area _CABS (ABS)
+                              1 ;--------------------------------------------------------
+                              2 ; File Created by SDCC : free open source ANSI-C Compiler
+                              3 ; Version 4.0.0 #11528 (Linux)
+                              4 ;--------------------------------------------------------
+                              5 	.module hal
+                              6 	.optsdcc -mz80
+                              7 	
+                              8 ;--------------------------------------------------------
+                              9 ; Public variables in this module
+                             10 ;--------------------------------------------------------
+                             11 	.globl _msx_wait
+                             12 	.globl _printf
+                             13 	.globl _text_columns
+                             14 	.globl _msx_version
+                             15 	.globl _supports_80_column_mode
+                             16 	.globl _hal_init
+                             17 	.globl _hal_deinit
+                             18 	.globl _delay_ms
+                             19 	.globl _write_command
+                             20 	.globl _write_data
+                             21 	.globl _read_data
+                             22 	.globl _read_status
+                             23 	.globl _error
+                             24 	.globl _putchar
+                             25 	.globl _getchar
+                             26 	.globl _pressed_ESC
+                             27 	.globl _read_data_multiple
+                             28 	.globl _write_data_multiple
+                             29 ;--------------------------------------------------------
+                             30 ; special function registers
+                             31 ;--------------------------------------------------------
+                             32 ;--------------------------------------------------------
+                             33 ; ram data
+                             34 ;--------------------------------------------------------
+                             35 	.area _DATA
+                     002D    36 _msx_version	=	0x002d
+                     F3AE    37 _text_columns	=	0xf3ae
+                             38 ;--------------------------------------------------------
+                             39 ; ram data
+                             40 ;--------------------------------------------------------
+                             41 	.area _INITIALIZED
+                             42 ;--------------------------------------------------------
+                             43 ; absolute external ram data
+                             44 ;--------------------------------------------------------
+                             45 	.area _DABS (ABS)
+                             46 ;--------------------------------------------------------
+                             47 ; global & static initialisations
+                             48 ;--------------------------------------------------------
+                             49 	.area _HOME
+                             50 	.area _GSINIT
+                             51 	.area _GSFINAL
+                             52 	.area _GSINIT
+                             53 ;--------------------------------------------------------
+                             54 ; Home
+                             55 ;--------------------------------------------------------
+                             56 	.area _HOME
+                             57 	.area _HOME
+                             58 ;--------------------------------------------------------
+                             59 ; code
+                             60 ;--------------------------------------------------------
+                             61 	.area _CODE
+                             62 ;hal.c:10: bool supports_80_column_mode()
+                             63 ;	---------------------------------
+                             64 ; Function supports_80_column_mode
+                             65 ; ---------------------------------
+   0000                      66 _supports_80_column_mode::
+                             67 ;hal.c:12: return msx_version>=1;
+   0000 3A 2D 00      [13]   68 	ld	a,(#_msx_version + 0)
+   0003 D6 01         [ 7]   69 	sub	a, #0x01
+   0005 3E 00         [ 7]   70 	ld	a, #0x00
+   0007 17            [ 4]   71 	rla
+   0008 EE 01         [ 7]   72 	xor	a, #0x01
+   000A 6F            [ 4]   73 	ld	l, a
+                             74 ;hal.c:13: }
+   000B C9            [10]   75 	ret
+                             76 ;hal.c:15: void hal_init ()
+                             77 ;	---------------------------------
+                             78 ; Function hal_init
+                             79 ; ---------------------------------
+   000C                      80 _hal_init::
+                             81 ;hal.c:17: text_columns = 40;
+   000C 21 AE F3      [10]   82 	ld	hl,#_text_columns + 0
+   000F 36 28         [10]   83 	ld	(hl), #0x28
+                             84 ;hal.c:19: if (supports_80_column_mode())
+   0011 CDr00r00      [17]   85 	call	_supports_80_column_mode
+   0014 CB 45         [ 8]   86 	bit	0, l
+   0016 28 08         [12]   87 	jr	Z,00102$
+                             88 ;hal.c:20: text_columns = 80;
+   0018 FD 21 AE F3   [14]   89 	ld	iy, #_text_columns
+   001C FD 36 00 50   [19]   90 	ld	0 (iy), #0x50
+   0020                      91 00102$:
+                             92 ;hal.c:28: __endasm;    
+   0020 FD 2A C0 FC   [20]   93 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
+   0024 DD E5         [15]   94 	push	ix
+   0026 DD 21 6C 00   [14]   95 	ld	ix,#0x006c ;address of BIOS routine
+   002A CD 1C 00      [17]   96 	call	0x001c ;interslot call
+   002D DD E1         [14]   97 	pop	ix
+                             98 ;hal.c:29: }
+   002F C9            [10]   99 	ret
+                            100 ;hal.c:30: void hal_deinit ()
+                            101 ;	---------------------------------
+                            102 ; Function hal_deinit
+                            103 ; ---------------------------------
+   0030                     104 _hal_deinit::
+                            105 ;hal.c:33: }
+   0030 C9            [10]  106 	ret
+                            107 ;hal.c:37: void msx_wait (uint16_t times_jiffy)  __z88dk_fastcall __naked
+                            108 ;	---------------------------------
+                            109 ; Function msx_wait
+                            110 ; ---------------------------------
+   0031                     111 _msx_wait::
+                            112 ;hal.c:52: __endasm; 
+   0031 FB            [ 4]  113 	ei
+                            114 ;	Wait a determined number of interrupts
+                            115 ;	Input: BC = number of 1/framerate interrupts to wait
+                            116 ;	Output: (none)
+   0032                     117 	    WAIT:
+   0032 76            [ 4]  118 	halt	; waits 1/50th or 1/60th of a second till next interrupt
+   0033 2B            [ 6]  119 	dec	hl
+   0034 7C            [ 4]  120 	ld	a,h
+   0035 B5            [ 4]  121 	or	l
+   0036 20 FA         [12]  122 	jr	nz, WAIT
+   0038 C9            [10]  123 	ret
+                            124 ;hal.c:53: }
+                            125 ;hal.c:55: void delay_ms (uint16_t milliseconds)
+                            126 ;	---------------------------------
+                            127 ; Function delay_ms
+                            128 ; ---------------------------------
+   0039                     129 _delay_ms::
+                            130 ;hal.c:57: msx_wait (milliseconds/20);
+   0039 D1            [10]  131 	pop	de
+   003A C1            [10]  132 	pop	bc
+   003B C5            [11]  133 	push	bc
+   003C D5            [11]  134 	push	de
+   003D 21 14 00      [10]  135 	ld	hl, #0x0014
+   0040 E5            [11]  136 	push	hl
+   0041 C5            [11]  137 	push	bc
+   0042 CDr00r00      [17]  138 	call	__divuint
+   0045 F1            [10]  139 	pop	af
+   0046 F1            [10]  140 	pop	af
+                            141 ;hal.c:58: }
+   0047 C3r31r00      [10]  142 	jp	_msx_wait
+                            143 ;hal.c:60: void write_command (uint8_t command)  __z88dk_fastcall __naked
+                            144 ;	---------------------------------
+                            145 ; Function write_command
+                            146 ; ---------------------------------
+   004A                     147 _write_command::
+                            148 ;hal.c:66: __endasm;
+   004A 7D            [ 4]  149 	ld	a,l
+   004B D3 11         [11]  150 	out	(#0x11),a
+   004D C9            [10]  151 	ret
+                            152 ;hal.c:67: }
+                            153 ;hal.c:68: void write_data (uint8_t data)  __z88dk_fastcall __naked
+                            154 ;	---------------------------------
+                            155 ; Function write_data
+                            156 ; ---------------------------------
+   004E                     157 _write_data::
+                            158 ;hal.c:74: __endasm;
+   004E 7D            [ 4]  159 	ld	a,l
+   004F D3 10         [11]  160 	out	(#0x10),a
+   0051 C9            [10]  161 	ret
+                            162 ;hal.c:75: }
+                            163 ;hal.c:76: uint8_t read_data ()  __z88dk_fastcall __naked
+                            164 ;	---------------------------------
+                            165 ; Function read_data
+                            166 ; ---------------------------------
+   0052                     167 _read_data::
+                            168 ;hal.c:82: __endasm;
+   0052 DB 10         [11]  169 	in	a,(#0x10)
+   0054 6F            [ 4]  170 	ld	l,a
+   0055 C9            [10]  171 	ret
+                            172 ;hal.c:83: }
+                            173 ;hal.c:84: uint8_t read_status ()  __z88dk_fastcall __naked
+                            174 ;	---------------------------------
+                            175 ; Function read_status
+                            176 ; ---------------------------------
+   0056                     177 _read_status::
+                            178 ;hal.c:90: __endasm;
+   0056 DB 11         [11]  179 	in	a,(#0x11)
+   0058 6F            [ 4]  180 	ld	l,a
+   0059 C9            [10]  181 	ret
+                            182 ;hal.c:91: }
+                            183 ;hal.c:93: void error (char* txt)
+                            184 ;	---------------------------------
+                            185 ; Function error
+                            186 ; ---------------------------------
+   005A                     187 _error::
+                            188 ;hal.c:95: printf (txt);
+   005A C1            [10]  189 	pop	bc
+   005B E1            [10]  190 	pop	hl
+   005C E5            [11]  191 	push	hl
+   005D C5            [11]  192 	push	bc
+   005E E5            [11]  193 	push	hl
+   005F CDr00r00      [17]  194 	call	_printf
+   0062 F1            [10]  195 	pop	af
+                            196 ;hal.c:99: __endasm;
+   0063 F3            [ 4]  197 	di
+   0064 76            [ 4]  198 	halt
+                            199 ;hal.c:100: }
+   0065 C9            [10]  200 	ret
+                            201 ;hal.c:102: int putchar (int character)
+                            202 ;	---------------------------------
+                            203 ; Function putchar
+                            204 ; ---------------------------------
+   0066                     205 _putchar::
+                            206 ;hal.c:114: __endasm;
+   0066 21 02 00      [10]  207 	ld	hl, #2
+   0069 39            [11]  208 	add	hl, sp ;Bypass the return address of the function
+   006A 7E            [ 7]  209 	ld	a, (hl)
+   006B FD 2A C0 FC   [20]  210 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
+   006F DD E5         [15]  211 	push	ix
+   0071 DD 21 A2 00   [14]  212 	ld	ix,#0x00a2 ;address of BIOS routine
+   0075 CD 1C 00      [17]  213 	call	0x001c ;interslot call
+   0078 DD E1         [14]  214 	pop	ix
+                            215 ;hal.c:116: return character;
+   007A C1            [10]  216 	pop	bc
+   007B E1            [10]  217 	pop	hl
+   007C E5            [11]  218 	push	hl
+   007D C5            [11]  219 	push	bc
+                            220 ;hal.c:117: }
+   007E C9            [10]  221 	ret
+                            222 ;hal.c:120: int getchar ()
+                            223 ;	---------------------------------
+                            224 ; Function getchar
+                            225 ; ---------------------------------
+   007F                     226 _getchar::
+                            227 ;hal.c:131: __endasm;
+   007F FD 2A C0 FC   [20]  228 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
+   0083 DD E5         [15]  229 	push	ix
+   0085 DD 21 9F 00   [14]  230 	ld	ix,#0x009f ;address of BIOS routine
+   0089 CD 1C 00      [17]  231 	call	0x001c ;interslot call
+   008C DD E1         [14]  232 	pop	ix
+   008E 26 00         [ 7]  233 	ld	h,#0
+   0090 6F            [ 4]  234 	ld	l,a
+                            235 ;hal.c:132: }
+   0091 C9            [10]  236 	ret
+                            237 ;hal.c:134: bool pressed_ESC() __z88dk_fastcall __naked
+                            238 ;	---------------------------------
+                            239 ; Function pressed_ESC
+                            240 ; ---------------------------------
+   0092                     241 _pressed_ESC::
+                            242 ;hal.c:157: __endasm;
+                            243 ;	character in keybuffer?
+   0092 FD 2A C0 FC   [20]  244 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
+   0096 DD E5         [15]  245 	push	ix
+   0098 DD 21 9C 00   [14]  246 	ld	ix,#0x009c ;address of BIOS routine
+   009C CD 1C 00      [17]  247 	call	0x001c ;interslot call
+   009F DD E1         [14]  248 	pop	ix
+   00A1 2E 00         [ 7]  249 	ld	l,#0
+   00A3 C8            [11]  250 	ret	z
+                            251 ;	yes? lets check if its ESCape
+   00A4 FD 2A C0 FC   [20]  252 	ld	iy,(#0xfcc1 -1) ;BIOS slot in iyh
+   00A8 DD E5         [15]  253 	push	ix
+   00AA DD 21 9F 00   [14]  254 	ld	ix,#0x009f ;address of BIOS routine
+   00AE CD 1C 00      [17]  255 	call	0x001c ;interslot call
+   00B1 DD E1         [14]  256 	pop	ix
+   00B3 FE 1B         [ 7]  257 	cp	#27
+   00B5 2E 01         [ 7]  258 	ld	l,#1
+   00B7 C8            [11]  259 	ret	z
+   00B8 2E 00         [ 7]  260 	ld	l,#0
+   00BA C9            [10]  261 	ret
+                            262 ;hal.c:158: }
+                            263 ;hal.c:160: void  read_data_multiple (uint8_t* buffer,uint8_t len)
+                            264 ;	---------------------------------
+                            265 ; Function read_data_multiple
+                            266 ; ---------------------------------
+   00BB                     267 _read_data_multiple::
+                            268 ;hal.c:170: __endasm;
+   00BB FD 21 02 00   [14]  269 	ld	iy, #2
+   00BF FD 39         [15]  270 	add	iy,sp
+   00C1 FD 46 02      [19]  271 	ld	b,+2(iy)
+   00C4 FD 66 01      [19]  272 	ld	h,+1(iy)
+   00C7 FD 6E 00      [19]  273 	ld	l,+0(iy)
+   00CA 0E 10         [ 7]  274 	ld	c, #0x10
+   00CC ED B2               275 	.db	0xED,0xB2 ;inir
+                            276 ;hal.c:171: }
+   00CE C9            [10]  277 	ret
+                            278 ;hal.c:172: void    write_data_multiple (uint8_t* buffer,uint8_t len)
+                            279 ;	---------------------------------
+                            280 ; Function write_data_multiple
+                            281 ; ---------------------------------
+   00CF                     282 _write_data_multiple::
+                            283 ;hal.c:182: __endasm;
+   00CF FD 21 02 00   [14]  284 	ld	iy, #2
+   00D3 FD 39         [15]  285 	add	iy,sp
+   00D5 FD 46 02      [19]  286 	ld	b,+2(iy)
+   00D8 FD 66 01      [19]  287 	ld	h,+1(iy)
+   00DB FD 6E 00      [19]  288 	ld	l,+0(iy)
+   00DE 0E 10         [ 7]  289 	ld	c, #0x10
+   00E0 ED B3               290 	.db	0xED,0xB3 ;otir
+                            291 ;hal.c:183: }
+   00E2 C9            [10]  292 	ret
+                            293 	.area _CODE
+                            294 	.area _INITIALIZER
+                            295 	.area _CABS (ABS)

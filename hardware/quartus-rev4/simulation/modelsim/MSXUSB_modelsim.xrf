@@ -1,6 +1,6 @@
 vendor_name = ModelSim
-source_file = 1, C:/Users/crisag/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/msxusb.v
-source_file = 1, C:/Users/crisag/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/db/MSXUSB.cbx.xml
+source_file = 1, C:/Users/crist/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/msxusb.v
+source_file = 1, C:/Users/crist/OneDrive/Personal/11. Electronics/MSXUSB/GitHub/MSX-USB.crisag/hardware/quartus-rev3/db/MSXUSB.cbx.xml
 design_name = msxusb
 instance = comp, \in_a7_a0[2]~I , in_a7_a0[2], msxusb, 1
 instance = comp, \in_a7_a0[6]~I , in_a7_a0[6], msxusb, 1

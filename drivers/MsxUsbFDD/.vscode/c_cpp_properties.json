@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "MSX",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/share/sdcc/include"
+            ],
+            "defines": [
+                "NODEBUG"
+            ],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/sdcc",
+            "cStandard": "c17",
+            "intelliSenseMode": "linux-clang-arm64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

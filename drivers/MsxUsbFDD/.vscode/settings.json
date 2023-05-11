@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "*.asm": "z80-macroasm",
+        "algorithm": "c",
+        "memory": "c",
+        "utility": "c",
+        "hal.h": "c",
+        "usbdisk.h": "c",
+        "bios.h": "c",
+        "ch376s.h": "c",
+        "stdio.h": "c"
+    },
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "master"
+    ]
+}

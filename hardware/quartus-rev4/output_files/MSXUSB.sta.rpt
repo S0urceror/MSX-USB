@@ -1,6 +1,6 @@
 TimeQuest Timing Analyzer report for MSXUSB
-Fri Oct 07 21:37:39 2022
-Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+Tue Nov 22 02:08:49 2022
+Quartus II Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
 
 
 ---------------------
@@ -43,7 +43,7 @@ Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edit
 ----------------
 ; Legal Notice ;
 ----------------
-Copyright (C) 1991-2013 Altera Corporation
+Copyright (C) 1991-2011 Altera Corporation
 Your use of Altera Corporation's design tools, logic functions 
 and other software and tools, and its AMPP partner logic 
 functions, and any output files from any of the foregoing 
@@ -59,17 +59,17 @@ applicable agreement for further details.
 
 
 
-+----------------------------------------------------------------------------------------+
-; TimeQuest Timing Analyzer Summary                                                      ;
-+--------------------+-------------------------------------------------------------------+
-; Quartus II Version ; Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition ;
-; Revision Name      ; MSXUSB                                                            ;
-; Device Family      ; MAX7000S                                                          ;
-; Device Name        ; EPM7064SLC44-10                                                   ;
-; Timing Models      ; Final                                                             ;
-; Delay Model        ; Slow Model                                                        ;
-; Rise/Fall Delays   ; Unavailable                                                       ;
-+--------------------+-------------------------------------------------------------------+
++--------------------------------------------------------------------------------------+
+; TimeQuest Timing Analyzer Summary                                                    ;
++--------------------+-----------------------------------------------------------------+
+; Quartus II Version ; Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition ;
+; Revision Name      ; MSXUSB                                                          ;
+; Device Family      ; MAX7000S                                                        ;
+; Device Name        ; EPM7064SLC44-10                                                 ;
+; Timing Models      ; Final                                                           ;
+; Delay Model        ; Slow Model                                                      ;
+; Rise/Fall Delays   ; Unavailable                                                     ;
++--------------------+-----------------------------------------------------------------+
 
 
 Parallel compilation was disabled, but you have multiple processors available. Enable parallel compilation to reduce compilation time.
@@ -1214,50 +1214,49 @@ No dedicated SERDES Receiver circuitry present in device or used in design
 ; TimeQuest Timing Analyzer Messages ;
 +------------------------------------+
 Info: *******************************************************************
-Info: Running Quartus II 64-Bit TimeQuest Timing Analyzer
-    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-    Info: Processing started: Fri Oct 07 21:37:38 2022
+Info: Running Quartus II TimeQuest Timing Analyzer
+    Info: Version 11.0 Build 208 07/03/2011 Service Pack 1 SJ Web Edition
+    Info: Processing started: Tue Nov 22 02:08:47 2022
 Info: Command: quartus_sta MSXUSB -c MSXUSB
 Info: qsta_default_script.tcl version: #1
-Warning (20028): Parallel compilation is not licensed and has been disabled
-Info (306004): Started post-fitting delay annotation
-Info (306005): Delay annotation completed successfully
-Warning (335095): TimeQuest Timing Analyzer does not support the analysis of latches as synchronous elements for the currently selected device family.
-Critical Warning (332012): Synopsys Design Constraints File file not found: 'MSXUSB.sdc'. A Synopsys Design Constraints File is required by the TimeQuest Timing Analyzer to get proper timing constraints. Without it, the Compiler will not properly optimize the design.
-Info (332142): No user constrained base clocks found in the design. Calling "derive_clocks -period 1.0"
-Info (332105): Deriving Clocks
-    Info (332105): create_clock -period 1.000 -name reset_n reset_n
-    Info (332105): create_clock -period 1.000 -name rd_n rd_n
-    Info (332105): create_clock -period 1.000 -name sltsl_n sltsl_n
-Info: Found TIMEQUEST_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
-Critical Warning (332148): Timing requirements not met
-Info (332146): Worst-case setup slack is -14.000
-    Info (332119):     Slack End Point TNS Clock 
-    Info (332119): ========= ============= =====================
-    Info (332119):   -14.000      -300.000 sltsl_n 
-    Info (332119):    -9.000      -216.000 reset_n 
-    Info (332119):    -6.000       -36.000 rd_n 
-Info (332146): Worst-case hold slack is -8.000
-    Info (332119):     Slack End Point TNS Clock 
-    Info (332119): ========= ============= =====================
-    Info (332119):    -8.000      -192.000 reset_n 
-    Info (332119):    -8.000      -192.000 sltsl_n 
-    Info (332119):     2.000         0.000 rd_n 
-Info (332140): No Recovery paths to report
-Info (332140): No Removal paths to report
-Info (332146): Worst-case minimum pulse width slack is -3.500
-    Info (332119):     Slack End Point TNS Clock 
-    Info (332119): ========= ============= =====================
-    Info (332119):    -3.500      -210.000 sltsl_n 
-    Info (332119):    -3.500      -168.000 reset_n 
-    Info (332119):    -3.500       -42.000 rd_n 
-Info (332001): The selected device family is not supported by the report_metastability command.
-Info (332102): Design is not fully constrained for setup requirements
-Info (332102): Design is not fully constrained for hold requirements
-Info: Quartus II 64-Bit TimeQuest Timing Analyzer was successful. 0 errors, 4 warnings
-    Info: Peak virtual memory: 4506 megabytes
-    Info: Processing ended: Fri Oct 07 21:37:39 2022
-    Info: Elapsed time: 00:00:01
+Warning: Parallel compilation is not licensed and has been disabled
+Info: Started post-fitting delay annotation
+Info: Delay annotation completed successfully
+Warning: Timing Analysis does not support the analysis of latches as synchronous elements for the currently selected device family
+Critical Warning: Synopsys Design Constraints File file not found: 'MSXUSB.sdc'. A Synopsys Design Constraints File is required by the TimeQuest Timing Analyzer to get proper timing constraints. Without it, the Compiler will not properly optimize the design.
+Info: No user constrained base clocks found in the design. Calling "derive_clocks -period 1.0"
+Info: Deriving Clocks
+    Info: create_clock -period 1.000 -name reset_n reset_n
+    Info: create_clock -period 1.000 -name rd_n rd_n
+    Info: create_clock -period 1.000 -name sltsl_n sltsl_n
+Critical Warning: Timing requirements not met
+Info: Worst-case setup slack is -14.000
+    Info:     Slack End Point TNS Clock 
+    Info: ========= ============= =====================
+    Info:   -14.000      -300.000 sltsl_n 
+    Info:    -9.000      -216.000 reset_n 
+    Info:    -6.000       -36.000 rd_n 
+Info: Worst-case hold slack is -8.000
+    Info:     Slack End Point TNS Clock 
+    Info: ========= ============= =====================
+    Info:    -8.000      -192.000 reset_n 
+    Info:    -8.000      -192.000 sltsl_n 
+    Info:     2.000         0.000 rd_n 
+Info: No Recovery paths to report
+Info: No Removal paths to report
+Info: Worst-case minimum pulse width slack is -3.500
+    Info:     Slack End Point TNS Clock 
+    Info: ========= ============= =====================
+    Info:    -3.500      -210.000 sltsl_n 
+    Info:    -3.500      -168.000 reset_n 
+    Info:    -3.500       -42.000 rd_n 
+Info: The selected device family is not supported by the report_metastability command.
+Info: Design is not fully constrained for setup requirements
+Info: Design is not fully constrained for hold requirements
+Info: Quartus II TimeQuest Timing Analyzer was successful. 0 errors, 4 warnings
+    Info: Peak virtual memory: 223 megabytes
+    Info: Processing ended: Tue Nov 22 02:08:49 2022
+    Info: Elapsed time: 00:00:02
     Info: Total CPU time (on all processors): 00:00:00
 
 

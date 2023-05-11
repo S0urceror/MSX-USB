@@ -1,8 +1,8 @@
 # tools
-CPP = ../../../../Compilers/sdcc-4.1.0/bin/sdcc
-ASM = ../../../../Compilers/sdcc-4.1.0/bin/sdasz80
-SJASM = ../../../../Compilers/sjasmplus/sjasmplus
-HEX2BIN := /usr/local/bin/hex2bin
+CPP = sdcc
+ASM = sdasz80
+SJASM = sjasmplus
+HEX2BIN := hex2bin
 # compiler flags
 VERBOSE = --verbose
 DEFINES = -DNODEBUG
@@ -15,13 +15,13 @@ CPP_OUTPUT_DIR = ./objs
 CRT0_SRC_DIR = .
 SJASMFLAGS = --fullpath --raw=$@ --sym=$(basename $@).sym --lst=$(basename $@).lst
 # link flags
-LNK = ../../../../Compilers/sdcc-4.1.0/bin/sdcc
+LNK = sdcc
 LNK_OUTPUT_DIR = ./build
 LNK_FLAGS = -mz80 --code-loc $(ADDR_CODE) --data-loc $(ADDR_DATA) --no-std-crt0
 OBJS := $(CPP_OUTPUT_DIR)/msxromcrt0.rel $(CPP_OUTPUT_DIR)/driver.rel $(CPP_OUTPUT_DIR)/ch376s.rel $(CPP_OUTPUT_DIR)/hal.rel $(CPP_OUTPUT_DIR)/usbdisk.rel
 BIN := $(LNK_OUTPUT_DIR)/driver.rom
 IHX := $(LNK_OUTPUT_DIR)/driver.ihx
-KERNEL_DIR := ../../../../OS/Nextor
+KERNEL_DIR := ./kernel
 
 # distribution
 DIST_OUTPUT_DIR = ./dist
@@ -59,6 +59,6 @@ $(LNK_OUTPUT_DIR)/chgbnk.bin: chgbnk.asm
 	$(SJASM) $(SJASMFLAGS) $< 
 
 $(ROM): $(LNK_OUTPUT_DIR)/driver.rom $(LNK_OUTPUT_DIR)/chgbnk.bin $(LNK_OUTPUT_DIR)/extra1k.dat
-	$(KERNEL_DIR)/buildtools/macos/mknexrom $(KERNEL_DIR)/bin/kernels/Nextor-2.1.1.base.dat $(DIST_OUTPUT_DIR)/nextor.rom \
+	$(KERNEL_DIR)/mknexrom $(KERNEL_DIR)/Nextor-2.1.1.base.dat $(DIST_OUTPUT_DIR)/nextor.rom \
 							/d:$(LNK_OUTPUT_DIR)/driver.rom /m:$(LNK_OUTPUT_DIR)/chgbnk.bin \
 							/e:$(LNK_OUTPUT_DIR)/extra1k.dat

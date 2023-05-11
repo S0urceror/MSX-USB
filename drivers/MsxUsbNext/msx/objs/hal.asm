@@ -1,6 +1,6 @@
 ;--------------------------------------------------------
 ; File Created by SDCC : free open source ANSI-C Compiler
-; Version 4.1.0 #12072 (Mac OS X x86_64)
+; Version 4.0.0 #11528 (Linux)
 ;--------------------------------------------------------
 	.module hal
 	.optsdcc -mz80
@@ -79,12 +79,12 @@ _supports_80_column_mode::
 ; ---------------------------------
 _hal_init::
 ;hal.c:17: text_columns = 40;
-	ld	hl, #_text_columns
+	ld	hl,#_text_columns + 0
 	ld	(hl), #0x28
 ;hal.c:19: if (supports_80_column_mode())
 	call	_supports_80_column_mode
 	bit	0, l
-	jr	Z, 00102$
+	jr	Z,00102$
 ;hal.c:20: text_columns = 80;
 	ld	iy, #_text_columns
 	ld	0 (iy), #0x50
@@ -213,12 +213,10 @@ _putchar::
 	call	0x001c ;interslot call
 	pop	ix
 ;hal.c:116: return character;
-	ld	hl, #2
-	add	hl, sp
-	ld	a, (hl)
-	inc	hl
-	ld	h, (hl)
-	ld	l, a
+	pop	bc
+	pop	hl
+	push	hl
+	push	bc
 ;hal.c:117: }
 	ret
 ;hal.c:120: int getchar ()
