@@ -43,30 +43,30 @@ START_BASIC:
     ; check if EXTBIO is set (before we try UNAPI and Memory Mapper calls)
     ld a, (0FB20h)
     and 00000001b
-    ret z
+    call z, EXIT_ERROR
     ; check if the MSX USB UNAPI is available
     call GET_UNAPI_MSXUSB
     push af
     ld hl,TXT_MSXUSB_NOT_FOUND
     call c, PRINT_DOS
     pop af 
-    ret c
+    call c, EXIT_ERROR
     ; check if the Ram Helper is available
     call GET_RAM_HELPER
     push af
     ld hl,TXT_RAM_HELPER_NOT_FOUND
     call c, PRINT_DOS
     pop af 
-    ret c
+    call c, EXIT_ERROR
     ; check, connect, getdescriptors
     call USB_CHECK_ADAPTER
-    ret c
+    call c, EXIT_ERROR
     call USB_CONNECT_DEVICE
     push af
     ld hl,TXT_DEVICE_NOT_CONNECTED
     call z, PRINT_DOS
     pop af 
-    ret z
+    call z, EXIT_ERROR
     ; A holds the number of connected devices, try all of them
     ld d, 1 ; start with device number 1
     ld b, a
@@ -94,20 +94,20 @@ _FOUND_:
     ld hl,TXT_CDC_ECM_NOT_STARTED
     call c, PRINT_DOS
     pop af 
-    ret c
+    call c, EXIT_ERROR
     ; allocate a segment in the mapper
     call ALLOC_SEG
     push af
     ld hl,TXT_SEG_NOT_ALLOCATED
     call c, PRINT_DOS
     pop af 
-    ret c
+    call c, EXIT_ERROR
     ; hook the TSR to UNAPI
     call HOOK_TSR_UNAPI
-    ret c
+    call c, EXIT_ERROR
     ; copy the TSR part to the new segment
     call COPY_TSR_SEG
-    ret c
+    call c, EXIT_ERROR
     
     ret 
 
@@ -168,7 +168,7 @@ GET_RAM_HELPER:
     or l
     scf 
     ; not present
-    ret z
+    call z, EXIT_ERROR
     ld (RH_JUMPTABLE), hl
     ld a, b
     or c
@@ -183,7 +183,7 @@ GET_RAM_HELPER:
     call EXTBIO
     or a
     scf
-    ret z ; if A is zero and no reduced mapper table present, we need to stop
+    call z, EXIT_ERROR ; if A is zero and no reduced mapper table present, we need to stop
     jr _NORMAL_MAPPER_TABLE
 _REDUCED_MAPPER_TABLE:
     ld hl, bc
@@ -430,7 +430,7 @@ USB_CDC_ECM_START:
     ld d, a
     ld a, (ETHERNET_CONFIG_ID)
     call CH_SET_CONFIGURATION
-    ret c
+    call c, EXIT_ERROR
     ; set alternate setting for interface
     ld a, (ETHERNET_MAX_PACKET_SIZE)
     ld b, a
@@ -440,7 +440,7 @@ USB_CDC_ECM_START:
     ld e, a
     ld a, (DATA_INTERFACE_ALTERNATE)
     call CH_SET_INTERFACE
-    ret c
+    call c, EXIT_ERROR
     ; get MAC address string
     ld a, (ETHERNET_MAX_PACKET_SIZE)
     ld b, a
@@ -449,7 +449,7 @@ USB_CDC_ECM_START:
     ld a, (MAC_ADDRESS_ID)
     ld hl, MAC_ADDRESS_S
     call CH_GET_STRING
-    ret c
+    call c, EXIT_ERROR
     ; convert utf16-hex-string to bytes
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ld hl, MAC_ADDRESS_S
@@ -574,6 +574,9 @@ HOOK_TSR_UNAPI:
 ERROR:
     scf 
     ret
+
+EXIT_ERROR:
+    include "exit_error.asm"
 
 _CONOUT equ 02h
 _STROUT equ 09h
